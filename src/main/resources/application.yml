@@ -1,0 +1,73 @@
+#server:
+#  port: 8484
+#  context-path: /client
+#security:
+#    oauth2:
+#      client:
+#        client-id: testClient
+#        client-secret: testClientSecret
+#        access-token-uri: http://localhost:8282/authServer/oauth/token
+#        user-authorization-uri: http://localhost:8282/authServer/oauth/authorize
+#      resource:
+#        user-info-uri: http://localhost:8282/authServer/user
+spring:
+  thymeleaf:
+    cache: false
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+server:
+  port: 8484
+  context-path: /mgmt
+security:
+  oauth2:
+    client:
+      client-id: management
+      client-secret: test
+      access-token-uri: http://localhost:8080/oauth/token
+      user-authorization-uri: http://localhost:8080/oauth/authorize
+    resource:
+      user-info-uri: http://localhost:8080/oauth/resolve
+
+invite:
+  url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+  validityInSeconds: ${INVITE_VALIDITY:259200}
+
+learnerRecord:
+  serviceUrl: ${LEARNER_RECORD_URL:http://localhost:9000}
+  deleteUrl: "${learnerRecord.serviceUrl}/learner/%s"
+
+csrs:
+  serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
+  deleteUrl: "${csrs.serviceUrl}/civilServants/%s"
+
+notifications:
+  service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}
+  email: "${notifications.service}/notifications/email/"
+
+accountPeriodsInMonths:
+  deactivation: 13
+  notification: 25
+  deletion: 26
+
+govNotify:
+  template:
+    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
+    accountSuspension: ${GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID:de47fe22-96fc-448f-a3f0-d105e9f0e0e6}
+    accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
+
+---
+spring:
+  profiles: production
+  thymeleaf:
+    cache: true
+  datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        enable_lazy_load_no_trans: true
