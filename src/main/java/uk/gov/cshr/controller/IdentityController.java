@@ -3,7 +3,10 @@ package uk.gov.cshr.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -36,19 +39,18 @@ public class IdentityController {
     private IdentityService identityService;
 
     @GetMapping("/identities")
-    public String identities(Model model) {
+    public String identities(Model model, @PageableDefault(size = 10) Pageable pageable) {
         LOGGER.info("Listing all identities");
+        model.addAttribute("page", identityRepository.findAll(pageable));
 
-        Iterable<Identity> identities = identityRepository.findAll();
-        model.addAttribute("identities", identities);
-        return "identityList";
+        return "identity/list";
     }
 
     @GetMapping("/identities/update/{uid}")
     public String identityUpdate(Model model,
                                  @PathVariable("uid") String uid, Principal principal) {
 
-        LOGGER.info("{} editing identity for uid {}", ((IdentityDetails) principal).getUsername(), uid);
+        LOGGER.info("{} editing identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
@@ -57,10 +59,10 @@ public class IdentityController {
             Identity identity = optionalIdentity.get();
             model.addAttribute("identity", identity);
             model.addAttribute("roles", roles);
-            return "updateIdentity";
+            return "identity/edit";
         }
 
-        LOGGER.info("No identity found for uid {}", ((IdentityDetails) principal).getUsername(), uid);
+        LOGGER.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
         return "redirect:/identities";
     }
 
@@ -82,7 +84,7 @@ public class IdentityController {
                         // got role
                         roleSet.add(optionalRole.get());
                     } else {
-                        LOGGER.info("{} found no role for id {}", ((IdentityDetails) principal).getUsername(), id);
+                        LOGGER.info("{} found no role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
                         // do something here , probably go to error page
                         return "redirect:/identities";
                     }
@@ -105,7 +107,7 @@ public class IdentityController {
 
             identityRepository.save(identity);
 
-            LOGGER.info("{} updated new role {}", ((IdentityDetails) principal).getUsername(), identity);
+            LOGGER.info("{} updated new role {}", ((OAuth2Authentication) principal).getPrincipal(), identity);
         } else {
             LOGGER.info("{} found no identity for uid {}", ((IdentityDetails) principal).getUsername(), uid);
             // do something here , probably go to error page
@@ -116,7 +118,7 @@ public class IdentityController {
 
     @GetMapping("/identities/delete/{uid}")
     public String identityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
-        LOGGER.info("{} deleting identity for uid {}", ((IdentityDetails) principal).getUsername(), uid);
+        LOGGER.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
@@ -127,7 +129,7 @@ public class IdentityController {
             return "deleteIdentity";
         }
 
-        LOGGER.info("No identity found for uid {}", ((IdentityDetails) principal).getUsername(), uid);
+        LOGGER.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
         return "redirect:/identities";
     }
 

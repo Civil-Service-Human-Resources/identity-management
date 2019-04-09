@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>List of Identities</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h4>List of Identities</h4>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Active</th>
+            <th scope="col">Locked</th>
+            <th scope="col">Email</th>
+            <th scope="col">Update</th>
+            <th scope="col">Delete</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="identity : ${page.getContent()}">
+            <td>
+                <div class="form-check">
+                    <input class="form-check-input position-static" type="checkbox" th:checked="${identity.active}"
+                           readonly="readonly"/>
+                </div>
+            </td>
+            <td>
+                <div class="form-check">
+                    <input class="form-check-input position-static" type="checkbox" th:checked="${identity.locked}"
+                           readonly="readonly"/>
+                </div>
+            </td>
+            <td th:text="${identity.email}"></td>
+            <td>
+                <a class="btn btn-primary btn-sm" th:href="@{|/identities/update/${identity.uid}|}">
+                    Update
+                </a>
+            </td>
+            <td>
+                <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
+                    Delete
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <hr class="my-4"/>
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            <th:block th:each="i: ${#numbers.sequence(0, page.getTotalPages()-1)}">
+                <li class="page-item disabled">
+                    <a th:if="${page.getNumber() == i}" class="page-link" th:href="@{'?page=' + ${i}}"
+                       th:text="${i+1}"></a>
+                </li>
+                <li class="page-item">
+                    <a th:unless="${page.getNumber() == i}" class="page-link" th:href="@{'?page=' + ${i}}"
+                       th:text="${i+1}"></a>
+                </li>
+            </th:block>
+        </ul>
+    </nav>
+</section>
+</body>
+</html>

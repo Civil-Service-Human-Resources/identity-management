@@ -3,12 +3,12 @@ package uk.gov.cshr.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
-import uk.gov.cshr.service.security.IdentityDetails;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -24,7 +24,7 @@ public class RoleController {
     private RoleRepository roleRepository;
 
     @GetMapping
-    public String roles(Model model, Principal principal) {
+    public String roles(Model model) {
         LOGGER.info("Listing all roles");
 
         Iterable<Role> roles = roleRepository.findAll();
@@ -32,12 +32,13 @@ public class RoleController {
         model.addAttribute("roles", roles);
         model.addAttribute("role", new Role());
 
-        return "roleList"; // change from 'roles' testrunner produces common infinite loop exception as confuses 'roles' with /roles
+        return "role/list";
     }
 
     @PostMapping("/create")
     public String roleCreate(@ModelAttribute("role") Role role, Principal principal) {
-        LOGGER.info("{} created new role {}", ((IdentityDetails) principal).getUsername(), role);
+
+        LOGGER.info("{} created new role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         if (role.getId() == null) {
             roleRepository.save(role);
@@ -49,14 +50,14 @@ public class RoleController {
     @GetMapping("/update/{id}")
     public String roleUpdate(Model model,
                              @PathVariable("id") long id, Principal principal) {
-        LOGGER.info("{} updating role for id {}", ((IdentityDetails) principal).getUsername(), id);
+        LOGGER.info("{} updating role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
 
         Optional<Role> optionalRole = roleRepository.findById(id);
 
         if (optionalRole.isPresent()) {
             Role role = optionalRole.get();
             model.addAttribute("role", role);
-            return "updateRole";
+            return "role/edit";
         }
 
         LOGGER.info("No role found for id {}", id);
@@ -68,7 +69,7 @@ public class RoleController {
     public String roleUpdate(@ModelAttribute("role") Role role, Principal principal) {
         roleRepository.save(role);
 
-        LOGGER.info("{} updated role {}", ((IdentityDetails) principal).getUsername(), role);
+        LOGGER.info("{} updated role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         return "redirect:/roles";
     }
@@ -76,13 +77,13 @@ public class RoleController {
     @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
                              @PathVariable("id") long id, Principal principal) {
-        LOGGER.info("{} deleting role for id {}", ((IdentityDetails) principal).getUsername(), id);
+        LOGGER.info("{} deleting role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
 
         Optional<Role> role = roleRepository.findById(id);
 
         if (role.isPresent()) {
             model.addAttribute("role", role.get());
-            return "deleteRole";
+            return "role/delete";
         }
 
         LOGGER.info("No role found for id {}", id);
@@ -93,7 +94,7 @@ public class RoleController {
     public String roleDelete(@ModelAttribute("role") Role role, Principal principal) {
         roleRepository.delete(role);
 
-        LOGGER.info("{} deleted role {}", ((IdentityDetails) principal).getUsername(), role);
+        LOGGER.info("{} deleted role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         return "redirect:/roles";
     }
