@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>List of Invites</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h4>Send Invite</h4>
+
+    <form autocomplete="off" action="#" th:action="@{/invite}" method="post">
+        <div class="form-group">
+            <label for="forEmail">Email</label>
+            <input type="text" class="form-control" id="forEmail" name="forEmail" placeholder="Email for invitee"
+                   required="required"/>
+        </div>
+        <div class="form-group">
+            <label for="roleId">Roles</label>
+            <select class="form-control" multiple="multiple" name="roleId" id="roleId" required="required">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Invite</button>
+    </form>
+    <hr class="my-4"/>
+    <h4>List of Invites</h4>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Status</th>
+            <th scope="col">Invited At</th>
+            <th scope="col">Accepted At</th>
+            <th scope="col">Inviter</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="invite : ${invites}">
+            <td th:text="${invite.forEmail}"></td>
+            <td th:text="${invite.status}"></td>
+            <td th:text="${invite.invitedAt}"></td>
+            <td th:text="${invite.acceptedAt}"></td>
+            <td th:text="${invite.inviter.email}"></td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

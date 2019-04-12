@@ -3,6 +3,7 @@ package uk.gov.cshr.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,17 +46,17 @@ public class InviteController {
 
     @GetMapping
     public String invite(Model model, Principal principal) {
-        LOGGER.info("{} on Invite screen", ((IdentityDetails) principal).getUsername());
+        LOGGER.info("{} on Invite screen", ((OAuth2Authentication) principal).getPrincipal());
 
         model.addAttribute("roles", roleRepository.findAll());
         model.addAttribute("invites", inviteRepository.findAll());
 
-        return "inviteList";
+        return "invite/list";
     }
 
     @PostMapping
     public String invited(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes, Principal principal) {
-        LOGGER.info("{} inviting {} ", ((IdentityDetails) principal).getUsername(), forEmail);
+        LOGGER.info("{} inviting {} ", ((OAuth2Authentication) principal).getPrincipal(), forEmail);
 
         if (inviteRepository.existsByForEmailAndStatus(forEmail, InviteStatus.PENDING)) {
             LOGGER.info("{} has already been invited", forEmail);
@@ -78,7 +79,7 @@ public class InviteController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
-                    LOGGER.info("{} found no role for id {}", ((IdentityDetails) principal).getUsername(), id);
+                    LOGGER.info("{} found no role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
                     return "redirect:/invite";
                 }
             }
@@ -86,7 +87,7 @@ public class InviteController {
 
         inviteService.createNewInviteForEmailAndRoles(forEmail, roleSet, ((IdentityDetails) principal).getIdentity());
 
-        LOGGER.info("{} invited {}", ((IdentityDetails) principal).getUsername(), forEmail);
+        LOGGER.info("{} invited {}", ((OAuth2Authentication) principal).getPrincipal(), forEmail);
 
         redirectAttributes.addFlashAttribute("status", "Invite sent to " + forEmail);
         return "redirect:/invite";
