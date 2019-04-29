@@ -116,10 +116,10 @@ public class IdentityService implements UserDetailsService {
     public void deleteIdentity(String uid) {
         ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
 
-        if(response.getStatusCode() == HttpStatus.NO_CONTENT) {
+        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
             response = csrsService.deleteCivilServant(uid);
 
-            if(response.getStatusCode() == HttpStatus.NO_CONTENT) {
+            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
                 Optional<Identity> result = identityRepository.findFirstByUid(uid);
 
                 if (result.isPresent()) {

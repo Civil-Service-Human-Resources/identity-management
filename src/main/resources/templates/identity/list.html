@@ -6,15 +6,28 @@
 </head>
 <body>
 <section layout:fragment="content">
-    <h4>List of Identities</h4>
+    <form autocomplete="off" action="#" th:action="@{/identities}" method="get">
+        <div class="form-row">
+            <div class="col-10">
+
+                <label for="query" class="sr-only">Email</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="query" name="query"
+                       placeholder="Email Address to lookup" th:value="${query}" required="required"/>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary mb-2">Search</button>
+                <a class="btn btn-danger mb-2" href="/mgmt/identities">Reset</a>
+            </div>
+        </div>
+    </form>
+    <hr class="my-4"/>
     <table class="table table-striped">
         <thead class="thead-dark">
         <tr>
             <th scope="col">Active</th>
             <th scope="col">Locked</th>
             <th scope="col">Email</th>
-            <th scope="col">Update</th>
-            <th scope="col">Delete</th>
+            <th scope="col">Action</th>
         </tr>
         </thead>
         <tbody>
@@ -22,13 +35,13 @@
             <td>
                 <div class="form-check">
                     <input class="form-check-input position-static" type="checkbox" th:checked="${identity.active}"
-                           readonly="readonly"/>
+                           readonly="true"/>
                 </div>
             </td>
             <td>
                 <div class="form-check">
                     <input class="form-check-input position-static" type="checkbox" th:checked="${identity.locked}"
-                           readonly="readonly"/>
+                           readonly="true"/>
                 </div>
             </td>
             <td th:text="${identity.email}"></td>
@@ -36,8 +49,6 @@
                 <a class="btn btn-primary btn-sm" th:href="@{|/identities/update/${identity.uid}|}">
                     Update
                 </a>
-            </td>
-            <td>
                 <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
                     Delete
                 </a>
@@ -48,14 +59,15 @@
     <hr class="my-4"/>
     <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
-            <th:block th:each="i: ${#numbers.sequence(0, page.getTotalPages()-1)}">
+            <th:block th:each="ins: ${pagination}">
                 <li class="page-item disabled">
-                    <a th:if="${page.getNumber() == i}" class="page-link" th:href="@{'?page=' + ${i}}"
-                       th:text="${i+1}"></a>
+                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                       th:text="${ins.key}"></a>
                 </li>
                 <li class="page-item">
-                    <a th:unless="${page.getNumber() == i}" class="page-link" th:href="@{'?page=' + ${i}}"
-                       th:text="${i+1}"></a>
+                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                       th:href="@{|?query=${query}&amp;page=${ins.value}|}"
+                       th:text="${ins.key}"></a>
                 </li>
             </th:block>
         </ul>

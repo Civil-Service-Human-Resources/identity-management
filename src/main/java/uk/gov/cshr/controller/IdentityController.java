@@ -3,18 +3,22 @@ package uk.gov.cshr.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -39,9 +43,13 @@ public class IdentityController {
     private IdentityService identityService;
 
     @GetMapping("/identities")
-    public String identities(Model model, @PageableDefault(size = 10) Pageable pageable) {
+    public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
         LOGGER.info("Listing all identities");
-        model.addAttribute("page", identityRepository.findAll(pageable));
+
+        Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
+        model.addAttribute("page", pages);
+        model.addAttribute("query", query == null ? "" : query);
+        model.addAttribute("pagination", Pagination.generateList(pages.getNumber(), pages.getTotalPages()));
 
         return "identity/list";
     }
@@ -99,7 +107,7 @@ public class IdentityController {
                 identity.setActive(false);
             }
 
-            if(locked != null) {
+            if (locked != null) {
                 identity.setLocked(locked);
             } else {
                 identity.setLocked(false);
@@ -126,7 +134,7 @@ public class IdentityController {
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
             model.addAttribute("identity", identity);
-            return "deleteIdentity";
+            return "identity/delete";
         }
 
         LOGGER.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
