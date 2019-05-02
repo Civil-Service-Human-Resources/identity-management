@@ -11,14 +11,7 @@ pipeline {
                         customImage.push("${env.BRANCH_NAME}-${env.BUILD_ID}")
                     }
                 }
-            }
-        }
-        stage('Post') {
-            agent { label 'master' }
-            post {
-                cleanup {
-                    deleteDir()
-                }
+                deleteDir()
             }
         }
     }
