@@ -1,15 +1,4 @@
-#server:
-#  port: 8484
-#  context-path: /client
-#security:
-#    oauth2:
-#      client:
-#        client-id: testClient
-#        client-secret: testClientSecret
-#        access-token-uri: http://localhost:8282/authServer/oauth/token
-#        user-authorization-uri: http://localhost:8282/authServer/oauth/authorize
-#      resource:
-#        user-info-uri: http://localhost:8282/authServer/user
+
 spring:
   thymeleaf:
     cache: false
@@ -18,17 +7,17 @@ spring:
       ddl-auto: none
 
 server:
-  port: 8484
+  port: 8081
   context-path: /mgmt
 security:
   oauth2:
     client:
-      client-id: management
-      client-secret: test
-      access-token-uri: http://localhost:8080/oauth/token
-      user-authorization-uri: http://localhost:8080/oauth/authorize
+      client-id: ${CLIENT_ID:management}
+      client-secret: ${CLIENT_SECRET:test}
+      access-token-uri: ${OAUTH_URL:http://localhost:8080}/oauth/token
+      user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
     resource:
-      user-info-uri: http://localhost:8080/oauth/resolve
+      user-info-uri: ${OAUTH_URL:http://localhost:8080}/oauth/resolve
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
