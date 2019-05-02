@@ -4,8 +4,8 @@ pipeline {
         stage('Maven Build') {
             agent { label 'master' }
             steps {
-                sh './mvnw clean'
-                sh './mvnw package'
+                sh 'mvn clean'
+                sh 'mvn package'
                 stash 'workspace'
             }
         }
