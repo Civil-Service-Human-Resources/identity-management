@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Controller
+@PreAuthorize("hasAnyAuthority('IDENTITY_MANAGER')")
 public class IdentityController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);
