@@ -8,7 +8,8 @@ spring:
 
 server:
   port: 8081
-  context-path: /mgmt
+  context-path: /management
+
 security:
   oauth2:
     client:
@@ -42,7 +43,7 @@ accountPeriodsInMonths:
 
 govNotify:
   template:
-    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
+    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
     accountSuspension: ${GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID:de47fe22-96fc-448f-a3f0-d105e9f0e0e6}
     accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
 
