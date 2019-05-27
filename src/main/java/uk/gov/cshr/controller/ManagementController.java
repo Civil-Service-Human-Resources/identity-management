@@ -5,7 +5,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@PreAuthorize("hasAnyAuthority('IDENTITY_MANAGER')")
 public class ManagementController {
     @RequestMapping("/")
     public String index(){

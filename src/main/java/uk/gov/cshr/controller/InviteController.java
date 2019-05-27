@@ -32,7 +32,6 @@ import java.util.Set;
 
 @Controller
 @RequestMapping("/invites")
-@PreAuthorize("hasAnyAuthority('IDENTITY_MANAGER')")
 public class InviteController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
