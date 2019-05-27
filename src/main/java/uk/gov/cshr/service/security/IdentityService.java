@@ -150,9 +150,9 @@ public class IdentityService implements UserDetailsService {
                 identity.setDeletionNotificationSent(true);
                 identityRepository.save(identity);
             } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
+                notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
                 identityRepository.save(identity);
-                notificationService.send(messageService.createSuspensionMessage(identity));
             }
         });
     }

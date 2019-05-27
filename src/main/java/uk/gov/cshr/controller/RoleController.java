@@ -17,7 +17,6 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/roles")
-@PreAuthorize("hasAnyAuthority('IDENTITY_MANAGER')")
 public class RoleController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
