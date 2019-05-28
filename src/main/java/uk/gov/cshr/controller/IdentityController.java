@@ -43,7 +43,6 @@ public class IdentityController {
     private IdentityService identityService;
 
     @GetMapping("/identities")
-    @ExceptionHandler({ForbiddenException.class})
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
         LOGGER.info("Listing all identities");
 
@@ -139,15 +138,6 @@ public class IdentityController {
         }
 
         LOGGER.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
-        return "redirect:/identities";
-    }
-
-    @Transactional
-    @PostMapping("/identities/delete")
-    @PreAuthorize("hasAnyAuthority('IDENTITY_DELETE')")
-    public String identityDelete(@RequestParam("uid") String uid) {
-        identityService.deleteIdentity(uid);
-
         return "redirect:/identities";
     }
 }
