@@ -140,16 +140,22 @@ public class IdentityService implements UserDetailsService {
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
 
+        LOGGER.info("deactiviation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+
         identities.forEach(identity -> {
             LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
 
             if (lastLoggedIn.isBefore(deletionDate)) {
+                LOGGER.info("deleting identity {} ", identity.getEmail());
+                notificationService.send(messageService.createDeletionMessage(identity));
                 deleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
+                LOGGER.info("sending notify {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletionMessage(identity));
                 identity.setDeletionNotificationSent(true);
                 identityRepository.save(identity);
             } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
+                LOGGER.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
                 identityRepository.save(identity);

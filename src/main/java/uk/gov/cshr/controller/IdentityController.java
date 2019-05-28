@@ -125,7 +125,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/delete/{uid}")
-    public String identityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
+    public String getIdentityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
         LOGGER.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
@@ -138,6 +138,23 @@ public class IdentityController {
         }
 
         LOGGER.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        return "redirect:/identities";
+    }
+
+    @Transactional
+    @PostMapping("/identities/delete/{uid}")
+    public String identityDelete(@RequestParam("uid") String uid) {
+        identityService.deleteIdentity(uid);
+
+        return "redirect:/identities";
+    }
+
+    @Transactional
+    @GetMapping("/identities/track")
+    public String identityTrack() {
+        LOGGER.info("Tracking user activity");
+        identityService.trackUserActivity();
+
         return "redirect:/identities";
     }
 }
