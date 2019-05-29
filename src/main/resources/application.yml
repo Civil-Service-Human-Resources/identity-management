@@ -1,7 +1,5 @@
 
 spring:
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
   thymeleaf:
     cache: false
   jpa:
