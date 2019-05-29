@@ -142,7 +142,7 @@ public class IdentityController {
     }
 
     @Transactional
-    @PostMapping("/identities/delete/{uid}")
+    @PostMapping("/identities/delete")
     public String identityDelete(@RequestParam("uid") String uid) {
         identityService.deleteIdentity(uid);
 

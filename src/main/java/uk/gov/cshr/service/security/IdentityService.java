@@ -147,7 +147,7 @@ public class IdentityService implements UserDetailsService {
 
             if (lastLoggedIn.isBefore(deletionDate)) {
                 LOGGER.info("deleting identity {} ", identity.getEmail());
-                notificationService.send(messageService.createDeletionMessage(identity));
+                notificationService.send(messageService.createDeletedMessage(identity));
                 deleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
                 LOGGER.info("sending notify {} ", identity.getEmail());

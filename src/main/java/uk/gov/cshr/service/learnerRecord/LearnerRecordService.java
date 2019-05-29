@@ -24,7 +24,7 @@ public class LearnerRecordService {
 
     public LearnerRecordService(RestTemplate restTemplate,
                                 RequestEntityFactory requestEntityFactory,
-                                @Value("learnerRecord.deleteUrl") String learnerRecordDeleteUrl
+                                @Value("${learnerRecord.deleteUrl}") String learnerRecordDeleteUrl
     ) {
         this.restTemplate = restTemplate;
         this.requestEntityFactory = requestEntityFactory;

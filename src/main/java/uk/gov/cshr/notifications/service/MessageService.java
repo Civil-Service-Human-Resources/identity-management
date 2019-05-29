@@ -23,13 +23,16 @@ public class MessageService {
 
     private final String deletedMessageTemplateId;
 
+    private final String resetUrl;
+
     @Value("${invite.url}")
     private String signupUrlFormat;
 
-    public MessageService(@Value("govNotify.template.accountSuspension") String suspensionMessageTemplateId,
-                          @Value("govNotify.template.accountDeletion") String deletionMessageTemplateId,
-                          @Value("govNotify.template.invite") String invitationMessageTemplateId,
-                          @Value("govNotify.template.accountDeleted") String deletedMessageTemplateId,
+    public MessageService(@Value("${govNotify.template.accountSuspension}") String suspensionMessageTemplateId,
+                          @Value("${govNotify.template.accountDeletion}") String deletionMessageTemplateId,
+                          @Value("${govNotify.template.invite}") String invitationMessageTemplateId,
+                          @Value("${govNotify.template.accountDeleted}") String deletedMessageTemplateId,
+                          @Value("${security.oauth2.client.reset-uri}") String resetUrl,
                           MessageDtoFactory messageDtoFactory
     ) {
         this.messageDtoFactory = messageDtoFactory;
@@ -37,6 +40,7 @@ public class MessageService {
         this.deletionMessageTemplateId = deletionMessageTemplateId;
         this.invitationMessageTemplateId = invitationMessageTemplateId;
         this.deletedMessageTemplateId = deletedMessageTemplateId;
+        this.resetUrl = resetUrl;
     }
 
     public MessageDto createInvitationnMessage(Invite invite) {
@@ -52,6 +56,7 @@ public class MessageService {
         Map<String, String> map = new HashMap<>();
 
         map.put("learnerName", identity.getEmail());
+        map.put("resetUrl", resetUrl);
 
         return messageDtoFactory.create(identity.getEmail(), suspensionMessageTemplateId, map);
     }
@@ -60,6 +65,7 @@ public class MessageService {
         Map<String, String> map = new HashMap<>();
 
         map.put("learnerName", identity.getEmail());
+        map.put("resetUrl", resetUrl);
 
         return messageDtoFactory.create(identity.getEmail(), deletionMessageTemplateId, map);
     }

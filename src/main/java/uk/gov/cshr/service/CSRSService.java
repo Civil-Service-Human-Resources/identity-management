@@ -20,7 +20,7 @@ public class CSRSService {
 
     private final String csrsDeleteUrl;
 
-    public CSRSService(@Value("csrs.deleteUrl") String csrsDeleteUrl,
+    public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
