@@ -5,17 +5,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.exceptions.ForbiddenException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
@@ -29,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Controller
+
 public class IdentityController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);
@@ -125,7 +125,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/delete/{uid}")
-    public String identityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
+    public String getIdentityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
         LOGGER.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
@@ -143,10 +143,21 @@ public class IdentityController {
 
     @Transactional
     @PostMapping("/identities/delete")
-    @PreAuthorize("hasAnyAuthority('IDENTITY_DELETE')")
     public String identityDelete(@RequestParam("uid") String uid) {
         identityService.deleteIdentity(uid);
 
         return "redirect:/identities";
     }
+
+    @Transactional
+    @GetMapping("/identities/track")
+    public String identityTrack() {
+        LOGGER.info("Tracking user activity");
+        identityService.trackUserActivity();
+
+        return "redirect:/identities";
+    }
 }
+
+
+

@@ -17,6 +17,7 @@ security:
       client-secret: ${CLIENT_SECRET:test}
       access-token-uri: ${OAUTH_URL:http://localhost:8080}/oauth/token
       user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
+      reset-uri: ${OAUTH_URL:http://localhost:8080}/reset
     resource:
       user-info-uri: ${OAUTH_URL:http://localhost:8080}/oauth/resolve
 
@@ -30,7 +31,7 @@ learnerRecord:
 
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
-  deleteUrl: "${csrs.serviceUrl}/civilServants/%s"
+  deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}
@@ -38,7 +39,7 @@ notifications:
 
 accountPeriodsInMonths:
   deactivation: 13
-  notification: 25
+  notification: 24
   deletion: 26
 
 govNotify:
@@ -46,6 +47,7 @@ govNotify:
     invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
     accountSuspension: ${GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID:de47fe22-96fc-448f-a3f0-d105e9f0e0e6}
     accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
+    accountDeleted: ${GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID:f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686}
 
 ---
 spring:
