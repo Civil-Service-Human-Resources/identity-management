@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Controller
-
+@PreAuthorize("hasPermission(returnObject, 'read')")
 public class IdentityController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);

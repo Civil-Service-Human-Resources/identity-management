@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 @Controller
 @RequestMapping("/invites")
+@PreAuthorize("hasPermission(returnObject, 'read')")
 public class InviteController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
