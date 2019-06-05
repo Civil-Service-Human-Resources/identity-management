@@ -126,6 +126,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/delete/{uid}")
+    @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String getIdentityDelete(Model model, @PathVariable("uid") String uid, Principal principal) {
         LOGGER.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
@@ -144,6 +145,7 @@ public class IdentityController {
 
     @Transactional
     @PostMapping("/identities/delete")
+    @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam("uid") String uid) {
         identityService.deleteIdentity(uid);
 
