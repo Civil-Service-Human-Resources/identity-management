@@ -44,10 +44,12 @@ public class MessageService {
     }
 
     public MessageDto createInvitationnMessage(Invite invite) {
+        String activationUrl = String.format(signupUrlFormat, invite.getCode());
+
         Map<String, String> map = new HashMap<>();
 
-        map.put("learnerName", invite.getForEmail());
-        map.put("url", signupUrlFormat);
+        map.put("email", invite.getForEmail());
+        map.put("activationUrl", activationUrl);
 
         return messageDtoFactory.create(invite.getForEmail(), invitationMessageTemplateId, map);
     }
