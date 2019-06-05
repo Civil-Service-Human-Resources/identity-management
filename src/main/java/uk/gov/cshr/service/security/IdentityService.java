@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,14 +21,14 @@ import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CSRSService;
 import uk.gov.cshr.service.InviteService;
+import uk.gov.cshr.service.ResetService;
+import uk.gov.cshr.service.TokenService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-
-import static java.util.stream.Collectors.toSet;
 
 @Service
 @Transactional
@@ -41,6 +39,10 @@ public class IdentityService implements UserDetailsService {
     private final IdentityRepository identityRepository;
 
     private InviteService inviteService;
+
+    private ResetService resetService;
+
+    private TokenService tokenService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -66,7 +68,9 @@ public class IdentityService implements UserDetailsService {
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
                            NotificationService notificationService,
-                           MessageService messageService) {
+                           MessageService messageService,
+                           ResetService resetService,
+                           TokenService tokenService) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -76,6 +80,8 @@ public class IdentityService implements UserDetailsService {
         this.deactivationMonths = deactivation;
         this.notificationMonths = notification;
         this.deletionMonths = deletion;
+        this.resetService = resetService;
+        this.tokenService = tokenService;
     }
 
     @Autowired
@@ -127,6 +133,8 @@ public class IdentityService implements UserDetailsService {
                     Identity identity = result.get();
 
                     inviteService.deleteInvitesByIdentity(identity);
+                    resetService.deleteResetsByIdentity(identity);
+                    tokenService.deleteTokensByIdentity(identity);
                     identityRepository.delete(identity);
                 }
             }
