@@ -30,6 +30,10 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, ArrayList<String>>>> o = oMapper.convertValue(auth, LinkedHashMap.class);
         LinkedHashMap<String, LinkedHashMap<String, ArrayList<String>>> userAuthentication = o.get("userAuthentication");
         ArrayList<String> roles = userAuthentication.get("details").get("roles");
-        return roles.contains("IDENTITY_MANAGER");
+        if (permission.equals("read")) {
+            return roles.contains("IDENTITY_MANAGER");
+        } else {
+            return roles.contains("IDENTITY_DELETE");
+        }
     }
 }
