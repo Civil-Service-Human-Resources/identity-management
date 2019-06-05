@@ -46,8 +46,8 @@ public class MessageService {
     public MessageDto createInvitationnMessage(Invite invite) {
         Map<String, String> map = new HashMap<>();
 
-        map.put("learnerName", invite.getForEmail());
-        map.put("url", signupUrlFormat);
+        map.put("email", invite.getForEmail());
+        map.put("activationUrl", signupUrlFormat);
 
         return messageDtoFactory.create(invite.getForEmail(), invitationMessageTemplateId, map);
     }
