@@ -40,6 +40,18 @@ public class RequestEntityFactory {
         }
     }
 
+    public RequestEntity createGetRequest(URI uri) {
+        return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
+    }
+
+    public RequestEntity createGetRequest(String uri) {
+        try {
+            return createGetRequest(new URI(uri));
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
+
     public RequestEntity createPostRequest(URI uri, Object body) {
         getOauth2HeadersFromSecurityContext();
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
