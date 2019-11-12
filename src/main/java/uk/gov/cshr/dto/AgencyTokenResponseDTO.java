@@ -1,9 +1,11 @@
 package uk.gov.cshr.dto;
 
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @NoArgsConstructor
-public class AgencyTokenDTO {
+public class AgencyTokenResponseDTO {
 
     private Long id;
     private String token;

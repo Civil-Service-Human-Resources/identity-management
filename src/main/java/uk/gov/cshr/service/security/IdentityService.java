@@ -16,13 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.dto.AgencyTokenResponseDTO;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.CSRSService;
-import uk.gov.cshr.service.InviteService;
-import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.TokenService;
+import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.Instant;
@@ -54,6 +52,8 @@ public class IdentityService implements UserDetailsService {
 
     private final MessageService messageService;
 
+    private final AgencyTokenService agencyTokenService;
+
     private final int deactivationMonths;
 
     private final int notificationMonths;
@@ -70,7 +70,8 @@ public class IdentityService implements UserDetailsService {
                            NotificationService notificationService,
                            MessageService messageService,
                            ResetService resetService,
-                           TokenService tokenService) {
+                           TokenService tokenService,
+                           AgencyTokenService agencyTokenService) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -82,6 +83,7 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
+        this.agencyTokenService = agencyTokenService;
     }
 
     @Autowired
@@ -121,23 +123,24 @@ public class IdentityService implements UserDetailsService {
 
     @Transactional
     public void deleteIdentity(String uid) {
-        ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
+        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
 
-        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-            response = csrsService.deleteCivilServant(uid);
+        if (lrResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+                ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
 
-            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-                Optional<Identity> result = identityRepository.findFirstByUid(uid);
+                if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+                    Optional<Identity> result = identityRepository.findFirstByUid(uid);
 
-                if (result.isPresent()) {
-                    Identity identity = result.get();
-
-                    inviteService.deleteInvitesByIdentity(identity);
-                    resetService.deleteResetsByIdentity(identity);
-                    tokenService.deleteTokensByIdentity(identity);
-                    identityRepository.delete(identity);
+                    if (result.isPresent()) {
+                        Identity identity = result.get();
+                        // update token quota
+                        agencyTokenService.updateAgencyTokenUsageForUser(identity);
+                        inviteService.deleteInvitesByIdentity(identity);
+                        resetService.deleteResetsByIdentity(identity);
+                        tokenService.deleteTokensByIdentity(identity);
+                        identityRepository.delete(identity);
+                    }
                 }
-            }
         }
     }
 
