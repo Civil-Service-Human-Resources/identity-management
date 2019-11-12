@@ -32,7 +32,7 @@ learnerRecord:
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
-  getAgencyTokenUrl: "${csrs.serviceUrl}/agencyTokens"
+  agencyTokenUrl: "${csrs.serviceUrl}/agencyTokens"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}
