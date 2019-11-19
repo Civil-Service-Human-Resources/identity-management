@@ -134,6 +134,7 @@ public class IdentityService implements UserDetailsService {
                     if (result.isPresent()) {
                         Identity identity = result.get();
                         // update token quota
+                        // TODO - IS THIS REQUIRED HERE OR AT CHANGING TO INACTIVE STAGE
                         agencyTokenService.updateAgencyTokenUsageForUser(identity);
                         inviteService.deleteInvitesByIdentity(identity);
                         resetService.deleteResetsByIdentity(identity);
