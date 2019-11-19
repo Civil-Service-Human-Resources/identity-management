@@ -24,8 +24,11 @@ public class CSRSService {
 
     private final String csrsAgencyTokenUrl;
 
+    private final String csrsOrgCodeUrl;
+
     public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.agencyTokenUrl}") String csrsAgencyTokenUrl,
+                       @Value("${csrs.orgCodeUrl}") String csrsOrgCodeUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
@@ -33,6 +36,7 @@ public class CSRSService {
         this.requestEntityFactory = requestEntityFactory;
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsAgencyTokenUrl = csrsAgencyTokenUrl;
+        this.csrsOrgCodeUrl = csrsOrgCodeUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
@@ -44,6 +48,22 @@ public class CSRSService {
             LOGGER.error("Could not delete user from csrs service: " + e);
             return null;
         }
+    }
+
+    public ResponseEntity getOrganisationCodeForCivilServant(String uid) {
+
+        String requestURL = String.format(csrsOrgCodeUrl, uid);
+        System.out.println(requestURL);
+
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(requestURL);
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, String.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not get Org Code fro Civil Servant from csrs service: " + e);
+            return null;
+        }
+
     }
 
     public ResponseEntity getAgencyTokenForCivilServant(String domain, String code) {
