@@ -28,7 +28,7 @@ public class RequestEntityFactory {
     private String clientUrl;
 
 
-    public RequestEntity createDeleteRequest(URI uri) {
+    private RequestEntity createDeleteRequest(URI uri) {
         return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
     }
 
@@ -40,7 +40,7 @@ public class RequestEntityFactory {
         }
     }
 
-    public RequestEntity createGetRequest(URI uri) {
+    private RequestEntity createGetRequest(URI uri) {
         return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
     }
 
@@ -52,7 +52,7 @@ public class RequestEntityFactory {
         }
     }
 
-    public RequestEntity createPutRequest(URI uri, Object body) {
+    private RequestEntity createPutRequest(URI uri, Object body) {
         getOauth2HeadersFromSecurityContext();
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PUT, uri);
     }
@@ -65,7 +65,7 @@ public class RequestEntityFactory {
         }
     }
 
-    public RequestEntity createPostRequest(URI uri, Object body) {
+    private RequestEntity createPostRequest(URI uri, Object body) {
         getOauth2HeadersFromSecurityContext();
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
     }
