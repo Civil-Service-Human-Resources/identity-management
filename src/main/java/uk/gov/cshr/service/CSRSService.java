@@ -1,7 +1,7 @@
 package uk.gov.cshr.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -11,33 +11,24 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
 import uk.gov.cshr.dto.UpdateSpacesForAgencyTokenDTO;
 
+@Slf4j
 @Service
 public class CSRSService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CSRSService.class);
+    @Autowired
+    private RestTemplate restTemplate;
 
-    private final RestTemplate restTemplate;
+    @Autowired
+    private RequestEntityFactory requestEntityFactory;
 
-    private final RequestEntityFactory requestEntityFactory;
+    @Value("${csrs.deleteUrl}")
+    private String csrsDeleteUrl;
 
-    private final String csrsDeleteUrl;
+    @Value("${csrs.agencyTokenUrl}")
+    private String csrsAgencyTokenUrl;
 
-    private final String csrsAgencyTokenUrl;
-
-    private final String csrsOrgCodeUrl;
-
-    public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
-                       @Value("${csrs.agencyTokenUrl}") String csrsAgencyTokenUrl,
-                       @Value("${csrs.orgCodeUrl}") String csrsOrgCodeUrl,
-                       RestTemplate restTemplate,
-                       RequestEntityFactory requestEntityFactory
-    ) {
-        this.restTemplate = restTemplate;
-        this.requestEntityFactory = requestEntityFactory;
-        this.csrsDeleteUrl = csrsDeleteUrl;
-        this.csrsAgencyTokenUrl = csrsAgencyTokenUrl;
-        this.csrsOrgCodeUrl = csrsOrgCodeUrl;
-    }
+    @Value("${csrs.orgCodeUrl}")
+    private String csrsOrgCodeUrl;
 
     public ResponseEntity deleteCivilServant(String uid) {
         try {
@@ -45,47 +36,36 @@ public class CSRSService {
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Void.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
-            LOGGER.error("Could not delete user from csrs service: " + e);
+            log.error("Could not delete user from csrs service: " + e);
             return null;
         }
     }
 
     public ResponseEntity getOrganisationCodeForCivilServant(String uid) {
-
-        String requestURL = String.format(csrsOrgCodeUrl, uid);
-        System.out.println(requestURL);
-
         try {
-            RequestEntity requestEntity = requestEntityFactory.createGetRequest(requestURL);
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(csrsOrgCodeUrl, uid));
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, String.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
-            LOGGER.error("Could not get Org Code fro Civil Servant from csrs service: " + e);
+            log.error("Could not get Org Code fro Civil Servant from csrs service: " + e);
             return null;
         }
 
     }
 
     public ResponseEntity getAgencyTokenForCivilServant(String domain, String code) {
-
-        String requestURL = String.format(csrsAgencyTokenUrl, domain, code);
-        System.out.println(requestURL);
-
         try {
-            RequestEntity requestEntity = requestEntityFactory.createGetRequest(requestURL);
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(csrsAgencyTokenUrl, domain, code));
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
-            LOGGER.error("Could not get AgencyToken from csrs service: " + e);
+            log.error("Could not get AgencyToken from csrs service: " + e);
             return null;
         }
 
     }
 
     public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token) {
-
-        String requestURL = String.format(csrsAgencyTokenUrl);
-        System.out.println(requestURL);
         UpdateSpacesForAgencyTokenDTO requestDTO = new UpdateSpacesForAgencyTokenDTO();
         requestDTO.setCode(code);
         requestDTO.setDomain(domain);
@@ -93,13 +73,14 @@ public class CSRSService {
         requestDTO.setRemoveUser(true);
 
         try {
-            RequestEntity requestEntity = requestEntityFactory.createPutRequest(requestURL, requestDTO);
+            RequestEntity requestEntity = requestEntityFactory.createPutRequest(String.format(csrsAgencyTokenUrl), requestDTO);
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
-            LOGGER.error("Could not update quota on AgencyToken from csrs service: " + e);
+            log.error("Could not update quota on AgencyToken from csrs service: " + e);
             return null;
         }
 
     }
+
 }
