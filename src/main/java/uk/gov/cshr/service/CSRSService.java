@@ -27,6 +27,9 @@ public class CSRSService {
     @Value("${csrs.agencyTokenUrl}")
     private String csrsAgencyTokenUrl;
 
+    @Value("${csrs.getAgencyTokenByDomainAndCodeUrl}")
+    private String getAgencyTokenByDomainAndCodeUrl;
+
     @Value("${csrs.orgCodeUrl}")
     private String csrsOrgCodeUrl;
 
@@ -47,7 +50,10 @@ public class CSRSService {
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, String.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
-            log.error("Could not get Org Code fro Civil Servant from csrs service: " + e);
+            log.error("Could not get Org Code from Civil Servant from csrs service: " + e);
+            return null;
+        } catch(Exception e) {
+            log.error("Could not create request to get Org Code from Civil Servant from csrs service: " + e);
             return null;
         }
 
@@ -55,11 +61,14 @@ public class CSRSService {
 
     public ResponseEntity getAgencyTokenForCivilServant(String domain, String code) {
         try {
-            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(csrsAgencyTokenUrl, domain, code));
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(getAgencyTokenByDomainAndCodeUrl, domain, code));
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
             log.error("Could not get AgencyToken from csrs service: " + e);
+            return null;
+        } catch(Exception e) {
+            log.error("Could not create request to get AgencyToken from csrs service: " + e);
             return null;
         }
 
@@ -78,6 +87,9 @@ public class CSRSService {
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
             log.error("Could not update quota on AgencyToken from csrs service: " + e);
+            return null;
+        } catch(Exception e) {
+            log.error("Could not create request to update quota on AgencyToken from csrs service: " + e);
             return null;
         }
 
