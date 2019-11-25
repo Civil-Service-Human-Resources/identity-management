@@ -24,14 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class CSRSServiceTest {
 
-    //@SpyBean
     @Autowired
     private RestTemplate restTemplate;
 
@@ -98,13 +96,11 @@ public class CSRSServiceTest {
 
         ResponseEntity actual = this.classUnderTest.getOrganisationCodeForCivilServant("myUId");
 
-        verify(restTemplate, never()).exchange(any(RequestEntity.class), String.class);
         assertThat(actual).isNull();
     }
 
-    @Ignore
     @Test
-    public void givenAValidDomainAndCode_getAgencyTokenForCivilServant_thenReturnsSuccessfully() {
+    public void givenAValidDomainAndCode_whenGetAgencyTokenForCivilServant_thenReturnsSuccessfully() {
 
         AgencyTokenResponseDTO responseDTO = new AgencyTokenResponseDTO();
         responseDTO.setCapacity(100);
@@ -127,27 +123,26 @@ public class CSRSServiceTest {
         assertThat(actualDTO.getId()).isEqualTo(1l);
     }
 
-    /*@Test
-    public void givenAInvalidValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsNotFound() {
+    @Test
+    public void givenAnDomainAndCodeThatIsNotFound_whenGetAgencyTokenForCivilServant_thenReturnsNotFound() {
 
-        this.mockServer.expect(requestTo("/civilServants/orgcode"))
+        this.mockServer.expect(requestTo(EXPECTED_GET_AGENCYTOKEN_FOR_CIVIL_SERVANT_BY_DOMAIN_AND_CODE_URL))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-        ResponseEntity actual = this.classUnderTest.getOrganisationCodeForCivilServant("myUId");
+        ResponseEntity actual = this.classUnderTest.getAgencyTokenForCivilServant("aDomain", "aCode");
 
         mockServer.verify();
         assertThat(actual).isNull();
     }
 
     @Test
-    public void givenAnIssueCreatingRequest_whenGetOrganisationCodeForCivilServant_thenDoesNotCallExternalServiceAndReturnsNull() {
+    public void givenAnIssueCreatingRequest_whenGetAgencyTokenForCivilServant_thenReturnsNull() {
 
         when(requestEntityFactory.createGetRequest(anyString())).thenThrow(new NullPointerException());
 
-        ResponseEntity actual = this.classUnderTest.getOrganisationCodeForCivilServant("myUId");
+        ResponseEntity actual = this.classUnderTest.getAgencyTokenForCivilServant("aDomain", "aCode");
 
-        verify(restTemplate, never()).exchange(any(RequestEntity.class), String.class);
         assertThat(actual).isNull();
-    }*/
+    }
 
 }
