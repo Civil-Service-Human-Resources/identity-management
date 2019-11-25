@@ -74,15 +74,17 @@ public class CSRSService {
 
     }
 
-    public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token) {
+    public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token, boolean isRemoveUser) {
         UpdateSpacesForAgencyTokenRequestDTO requestDTO = new UpdateSpacesForAgencyTokenRequestDTO();
         requestDTO.setCode(code);
         requestDTO.setDomain(domain);
         requestDTO.setToken(token);
-        requestDTO.setRemoveUser(true);
+        requestDTO.setRemoveUser(isRemoveUser);
+
+        String requestURL = String.format(csrsAgencyTokenUrl);
 
         try {
-            RequestEntity requestEntity = requestEntityFactory.createPutRequest(String.format(csrsAgencyTokenUrl), requestDTO);
+            RequestEntity requestEntity = requestEntityFactory.createPutRequest(requestURL, requestDTO);
             ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {

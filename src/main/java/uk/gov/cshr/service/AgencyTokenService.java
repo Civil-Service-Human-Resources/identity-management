@@ -38,7 +38,7 @@ public class AgencyTokenService {
 
                 // Update the agencyToken usage for this civil servant
                 // String code, String domain, String token
-                ResponseEntity csrsUpdateAgencyTokenQuotaResponse = csrsService.updateAgencyTokenForCivilServant(code, domain, tokenCode);
+                ResponseEntity csrsUpdateAgencyTokenQuotaResponse = csrsService.updateAgencyTokenForCivilServant(code, domain, tokenCode, true);
 
                 if(csrsUpdateAgencyTokenQuotaResponse.getStatusCode() == HttpStatus.OK) {
                     isSuccessful = true;
