@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
-import uk.gov.cshr.dto.UpdateSpacesForAgencyTokenDTO;
+import uk.gov.cshr.dto.UpdateSpacesForAgencyTokenRequestDTO;
 
 @Slf4j
 @Service
@@ -66,7 +66,7 @@ public class CSRSService {
     }
 
     public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token) {
-        UpdateSpacesForAgencyTokenDTO requestDTO = new UpdateSpacesForAgencyTokenDTO();
+        UpdateSpacesForAgencyTokenRequestDTO requestDTO = new UpdateSpacesForAgencyTokenRequestDTO();
         requestDTO.setCode(code);
         requestDTO.setDomain(domain);
         requestDTO.setToken(token);

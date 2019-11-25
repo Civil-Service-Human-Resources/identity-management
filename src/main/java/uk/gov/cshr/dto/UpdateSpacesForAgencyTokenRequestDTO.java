@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UpdateSpacesForAgencyTokenDTO {
+public class UpdateSpacesForAgencyTokenRequestDTO {
 
     private String domain;
     private String token;
