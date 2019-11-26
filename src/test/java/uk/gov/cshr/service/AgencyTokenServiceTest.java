@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+@Transactional
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class AgencyTokenServiceTest {
@@ -59,9 +61,9 @@ public class AgencyTokenServiceTest {
     }
 
     @Test
-    public void givenAValidIdentity_whenUpdateAgencyTokenUsageForUser_thenReturnsSuccessfully() {
+    public void givenAValidIdentityAndRemoveUserIsTrue_whenUpdateAgencyTokenUsageForUser_thenReturnsSuccessfully() {
 
-        boolean actual = classUnderTest.updateAgencyTokenUsageForUser(identity);
+        boolean actual = classUnderTest.updateAgencyTokenQuotaForUser(identity, true);
 
         assertTrue(actual);
 
@@ -71,12 +73,24 @@ public class AgencyTokenServiceTest {
     }
 
     @Test
+    public void givenAValidIdentityAndRemoveUserIsFalse_whenUpdateAgencyTokenUsageForUser_thenReturnsSuccessfully() {
+
+        boolean actual = classUnderTest.updateAgencyTokenQuotaForUser(identity, false);
+
+        assertTrue(actual);
+
+        verify(csrsService, times(1)).getOrganisationCodeForCivilServant(eq(identity.getUid()));
+        verify(csrsService, times(1)).getAgencyTokenForCivilServant(eq(identity.getEmail()), eq("co"));
+        verify(csrsService, times(1)).updateAgencyTokenForCivilServant(eq("co"), eq(identity.getEmail()), eq("aToken"), eq(false));
+    }
+
+    @Test
     public void givenANotFoundOrgCode_whenUpdateAgencyTokenUsageForUser_thenReturnsFalseAndRollsback() {
 
         ResponseEntity getOrgCodeResponseEntity = new ResponseEntity(HttpStatus.NOT_FOUND);
         when(csrsService.getOrganisationCodeForCivilServant(eq(identity.getUid()))).thenReturn(getOrgCodeResponseEntity);
 
-        boolean actual = classUnderTest.updateAgencyTokenUsageForUser(identity);
+        boolean actual = classUnderTest.updateAgencyTokenQuotaForUser(identity, true);
 
         assertFalse(actual);
 
@@ -91,7 +105,7 @@ public class AgencyTokenServiceTest {
         ResponseEntity getAgencyTokenResponseEntity = new ResponseEntity(HttpStatus.NOT_FOUND);
         when(csrsService.getAgencyTokenForCivilServant(eq(identity.getEmail()), eq("co"))).thenReturn(getAgencyTokenResponseEntity);
 
-        boolean actual = classUnderTest.updateAgencyTokenUsageForUser(identity);
+        boolean actual = classUnderTest.updateAgencyTokenQuotaForUser(identity, true);
 
         assertFalse(actual);
 
@@ -106,7 +120,7 @@ public class AgencyTokenServiceTest {
         ResponseEntity updateAgencyTokenResponseEntity = new ResponseEntity(HttpStatus.CONFLICT);
         when(csrsService.updateAgencyTokenForCivilServant(eq("co"), eq(identity.getEmail()), eq("aToken"), eq(true))).thenReturn(updateAgencyTokenResponseEntity);
 
-        boolean actual = classUnderTest.updateAgencyTokenUsageForUser(identity);
+        boolean actual = classUnderTest.updateAgencyTokenQuotaForUser(identity, true);
 
         assertFalse(actual);
 

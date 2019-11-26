@@ -75,6 +75,7 @@ public class CSRSService {
     }
 
     public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token, boolean isRemoveUser) {
+        // Do NOT catch any exception, this ensures any exception is handled by the caller which has to be part of a transaction.
         UpdateSpacesForAgencyTokenRequestDTO requestDTO = new UpdateSpacesForAgencyTokenRequestDTO();
         requestDTO.setCode(code);
         requestDTO.setDomain(domain);
@@ -83,18 +84,9 @@ public class CSRSService {
 
         String requestURL = String.format(csrsAgencyTokenUrl);
 
-        try {
-            RequestEntity requestEntity = requestEntityFactory.createPutRequest(requestURL, requestDTO);
-            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
-            return responseEntity;
-        } catch(RequestEntityException | RestClientException e) {
-            log.error("Could not update quota on AgencyToken from csrs service: " + e);
-            return null;
-        } catch(Exception e) {
-            log.error("Could not create request to update quota on AgencyToken from csrs service: " + e);
-            return null;
-        }
-
+        RequestEntity requestEntity = requestEntityFactory.createPutRequest(requestURL, requestDTO);
+        ResponseEntity responseEntity = restTemplate.exchange(requestEntity, AgencyTokenResponseDTO.class);
+        return responseEntity;
     }
 
 }
