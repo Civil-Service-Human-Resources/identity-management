@@ -57,7 +57,7 @@ public class AgencyTokenServiceTest {
         updateAgencyTokenResponseDTO.setToken("aToken");
         updateAgencyTokenResponseDTO.setId(new Long(1));
         ResponseEntity updateAgencyTokenResponseEntity = new ResponseEntity(updateAgencyTokenResponseDTO, HttpStatus.OK);
-        when(csrsService.updateAgencyTokenForCivilServant(eq("co"), eq(identity.getEmail()), eq("aToken"), eq(true))).thenReturn(updateAgencyTokenResponseEntity);
+        when(csrsService.updateAgencyTokenForCivilServant(eq("co"), eq(identity.getEmail()), eq("aToken"), anyBoolean())).thenReturn(updateAgencyTokenResponseEntity);
     }
 
     @Test
