@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
@@ -192,8 +193,8 @@ public class CSRSServiceTest {
         assertThat(actualDTO.getId()).isEqualTo(1l);
     }
 
-    @Test
-    public void givenAnInvalidCode_whenUpdateAgencyTokenForCivilServant_thenReturnsNotFound() {
+    @Test(expected = HttpClientErrorException.class)
+    public void givenAnInvalidCode_whenUpdateAgencyTokenForCivilServant_thenTheActualExceptionIsThrownAndNotCaught() {
 
         this.mockServer.expect(requestTo(EXPECTED_PUT_UPDATE_AGENCYTOKEN_URL))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
@@ -201,18 +202,14 @@ public class CSRSServiceTest {
         ResponseEntity actual = this.classUnderTest.updateAgencyTokenForCivilServant("aCode", "aDomain", "aToken", false);
 
         mockServer.verify();
-
-        assertThat(actual).isNull();
     }
 
-    @Test
-    public void givenAnIssueCreatingRequest_whenUpdateAgencyTokenForCivilServant_thenReturnsNull() {
+    @Test(expected = NullPointerException.class)
+    public void givenAnIssueCreatingRequest_whenUpdateAgencyTokenForCivilServant_thenTheActualExceptionIsThrownAndNotCaught() {
 
         when(requestEntityFactory.createPutRequest(anyString(), any())).thenThrow(new NullPointerException());
 
         ResponseEntity actual = this.classUnderTest.updateAgencyTokenForCivilServant("aCode", "aDomain", "aToken", false);
-
-        assertThat(actual).isNull();
     }
 
 }
