@@ -12,11 +12,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.dto.AgencyTokenResponseDTO;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -52,8 +53,6 @@ public class IdentityService implements UserDetailsService {
 
     private final MessageService messageService;
 
-    private final AgencyTokenService agencyTokenService;
-
     private final int deactivationMonths;
 
     private final int notificationMonths;
@@ -83,7 +82,6 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
-        this.agencyTokenService = agencyTokenService;
     }
 
     @Autowired
@@ -121,7 +119,7 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(identity);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void deleteIdentity(String uid) {
         ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
 
@@ -133,9 +131,6 @@ public class IdentityService implements UserDetailsService {
 
                     if (result.isPresent()) {
                         Identity identity = result.get();
-                        // update token quota
-                        // TODO - IS THIS REQUIRED HERE OR AT CHANGING TO INACTIVE STAGE
-                        agencyTokenService.updateAgencyTokenUsageForUser(identity);
                         inviteService.deleteInvitesByIdentity(identity);
                         resetService.deleteResetsByIdentity(identity);
                         tokenService.deleteTokensByIdentity(identity);
@@ -176,4 +171,5 @@ public class IdentityService implements UserDetailsService {
             }
         });
     }
+
 }
