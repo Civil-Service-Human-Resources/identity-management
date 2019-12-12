@@ -59,6 +59,8 @@ public class IdentityService implements UserDetailsService {
 
     private final int deletionMonths;
 
+    private final AgencyTokenService agencyTokenService;
+
     public IdentityService(@Value("${accountPeriodsInMonths.deactivation}") int deactivation,
                            @Value("${accountPeriodsInMonths.notification}") int notification,
                            @Value("${accountPeriodsInMonths.deletion}") int deletion,
@@ -82,6 +84,7 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
+        this.agencyTokenService = agencyTokenService;
     }
 
     @Autowired
@@ -167,6 +170,7 @@ public class IdentityService implements UserDetailsService {
                 LOGGER.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
+                agencyTokenService.updateAgencyTokenQuotaForUser(identity,true);
                 identityRepository.save(identity);
             }
         });
