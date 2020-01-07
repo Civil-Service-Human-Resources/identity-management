@@ -56,8 +56,22 @@ public class CSRSService {
             log.error("Could not create request to get Org Code from Civil Servant from csrs service: " + e);
             return null;
         }
-
     }
+
+    public ResponseEntity removeOrg() {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(csrsOrgCodeUrl));
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, String.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            log.error("Could not remove Org Code from Civil Servant from csrs service: " + e);
+            return null;
+        } catch(Exception e) {
+            log.error("Could not create request to remove Org Code from Civil Servant from csrs service: " + e);
+            return null;
+        }
+    }
+
 
     public ResponseEntity getAgencyTokenForCivilServant(String domain, String code) {
         try {
@@ -71,7 +85,6 @@ public class CSRSService {
             log.error("Could not create request to get AgencyToken from csrs service: " + e);
             return null;
         }
-
     }
 
     public ResponseEntity updateAgencyTokenForCivilServant(String code, String domain, String token, boolean isRemoveUser) {

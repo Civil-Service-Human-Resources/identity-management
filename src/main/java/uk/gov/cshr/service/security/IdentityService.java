@@ -171,6 +171,8 @@ public class IdentityService implements UserDetailsService {
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
                 agencyTokenService.updateAgencyTokenQuotaForUser(identity,true);
+                // set the organisation for the user to be null
+                csrsService.removeOrg();
                 identityRepository.save(identity);
             }
         });
