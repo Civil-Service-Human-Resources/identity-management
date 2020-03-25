@@ -151,7 +151,7 @@ public class IdentityService implements UserDetailsService {
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
 
-        LOGGER.info("deactiviation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+        LOGGER.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
 
         identities.forEach(identity -> {
             LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
