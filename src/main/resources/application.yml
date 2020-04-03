@@ -34,7 +34,7 @@ csrs:
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
 
 notifications:
-  service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}
+  service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
   email: "${notifications.service}/notifications/email/"
 
 accountPeriodsInMonths:
