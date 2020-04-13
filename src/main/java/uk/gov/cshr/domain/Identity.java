@@ -32,6 +32,12 @@ public class Identity implements Serializable {
 
     private boolean locked;
 
+    @Column
+    private boolean emailRecentlyUpdated;
+
+    @Column
+    private boolean recentlyReactivated;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "identity_role",
             joinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id"),
@@ -42,7 +48,7 @@ public class Identity implements Serializable {
     public Identity() {
     }
 
-    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent) {
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent, boolean emailRecentlyUpdated, boolean recentlyReactivated) {
         this.uid = uid;
         this.email = email;
         this.password = password;
@@ -51,6 +57,8 @@ public class Identity implements Serializable {
         this.locked = locked;
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
+        this.emailRecentlyUpdated = emailRecentlyUpdated;
+        this.recentlyReactivated = recentlyReactivated;
     }
 
     public boolean isActive() {
@@ -117,6 +125,22 @@ public class Identity implements Serializable {
         this.deletionNotificationSent = deletionNotificationSent;
     }
 
+    public boolean isEmailRecentlyUpdated() {
+        return emailRecentlyUpdated;
+    }
+
+    public void setEmailRecentlyUpdated(boolean emailRecentlyUpdated) {
+        this.emailRecentlyUpdated = emailRecentlyUpdated;
+    }
+
+    public boolean isRecentlyReactivated() {
+        return recentlyReactivated;
+    }
+
+    public void setRecentlyReactivated(boolean recentlyReactivated) {
+        this.recentlyReactivated = recentlyReactivated;
+    }
+
     @Override
     public String toString() {
         return "Identity{" +
@@ -128,6 +152,8 @@ public class Identity implements Serializable {
                 ", active=" + active +
                 ", locked=" + locked +
                 ", roles=" + roles +
+                ", emailRecentlyUpdated=" + emailRecentlyUpdated +
+                ", recentlyReactivated=" + recentlyReactivated +
                 '}';
     }
 }

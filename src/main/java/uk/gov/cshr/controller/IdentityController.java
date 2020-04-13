@@ -99,10 +99,14 @@ public class IdentityController {
                     }
                 }
             }
-            // afer this give roleset to identity
+            // after this give roleset to identity
             identity.setRoles(roleSet);
             // and update  the active property
             if (active != null) {
+                if(isIdentityCurrentlyInactive(identity) && (active)) {
+                    // user is being reactivated
+                    identity.setRecentlyReactivated(true);
+                }
                 identity.setActive(active);
             } else {
                 identity.setActive(false);
@@ -159,6 +163,14 @@ public class IdentityController {
         identityService.trackUserActivity();
 
         return "redirect:/identities";
+    }
+
+    private boolean isIdentityCurrentlyInactive(Identity identity) {
+        if(!identity.isActive()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 

@@ -3,6 +3,7 @@ package uk.gov.cshr.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
 import uk.gov.cshr.dto.UpdateSpacesForAgencyTokenRequestDTO;
+import uk.gov.cshr.exceptions.UnableToRemoveOrgFromCivilServantException;
 
 @Slf4j
 @Service
@@ -58,17 +60,23 @@ public class CSRSService {
         }
     }
 
-    public ResponseEntity removeOrg() {
+    public void removeOrg() throws UnableToRemoveOrgFromCivilServantException {
+        RequestEntity requestEntity = requestEntityFactory.createDeleteRequest(String.format(csrsOrgCodeUrl));
         try {
-            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(csrsOrgCodeUrl));
-            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, String.class);
-            return responseEntity;
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Void.class);
+            if(responseEntity.getStatusCode() != HttpStatus.NO_CONTENT) {
+                UnableToRemoveOrgFromCivilServantException unable = new UnableToRemoveOrgFromCivilServantException("Unable to remove Org Code from Civil Servant from csrs service");
+                log.error("Could not remove Org Code from Civil Servant from csrs service: " + unable);
+                throw unable;
+            }
         } catch(RequestEntityException | RestClientException e) {
+            UnableToRemoveOrgFromCivilServantException unable = new UnableToRemoveOrgFromCivilServantException("Unable to remove Org Code from Civil Servant from csrs service", e);
             log.error("Could not remove Org Code from Civil Servant from csrs service: " + e);
-            return null;
+            throw unable;
         } catch(Exception e) {
-            log.error("Could not create request to remove Org Code from Civil Servant from csrs service: " + e);
-            return null;
+            UnableToRemoveOrgFromCivilServantException unable = new UnableToRemoveOrgFromCivilServantException("An unexpected error occurred: Unable to remove Org Code from Civil Servant from csrs service", e);
+            log.error("Could not remove Org Code from Civil Servant from csrs service: " + e);
+            throw unable;
         }
     }
 

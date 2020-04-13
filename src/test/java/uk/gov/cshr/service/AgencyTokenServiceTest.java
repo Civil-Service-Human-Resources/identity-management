@@ -132,7 +132,7 @@ public class AgencyTokenServiceTest {
     private Identity buildIdentity() {
         Set<Role> roles = new HashSet<Role>();
         roles.add(new Role());
-        return new Identity("aUid", "someone@example.com", "myPassword", true, false, roles, Instant.now(), false);
+        return new Identity("aUid", "someone@example.com", "myPassword", true, false, roles, Instant.now(), false, false, false);
     }
 
 }

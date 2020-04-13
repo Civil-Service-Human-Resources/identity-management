@@ -34,7 +34,7 @@ csrs:
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
   agencyTokenUrl: "${csrs.serviceUrl}/agencyTokens"
   getAgencyTokenByDomainAndCodeUrl: "${csrs.serviceUrl}/agencyTokens/?domain=%s&code=%s"
-  orgCodeUrl: "${csrs.serviceUrl}/civilServants/orgcode"
+  orgCodeUrl: "${csrs.serviceUrl}/civilServants/org"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}

@@ -45,13 +45,9 @@ public class CSRSServiceTest {
     @Captor
     private ArgumentCaptor<UpdateSpacesForAgencyTokenRequestDTO> updateAgencyTokenRequestDTO;
 
-    private static final String CODE = "aCode";
-
-    private static final String DOMAIN = "aDomain";
-
     private static final String EXPECTED_GET_AGENCYTOKEN_FOR_CIVIL_SERVANT_BY_DOMAIN_AND_CODE_URL = "/agencyTokens/?domain=aDomain&code=aCode";
 
-    private static final String EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL = "/civilServants/orgcode";
+    private static final String EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL = "/civilServants/org";
 
     private static final String EXPECTED_PUT_UPDATE_AGENCYTOKEN_URL = "/agencyTokens";
 
@@ -80,7 +76,11 @@ public class CSRSServiceTest {
     }
 
     @Test
-    public void givenAValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsSuccessfully() {
+    public void givenAValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsSuccessfully() throws URISyntaxException {
+
+        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/org"));
+        String getOrgCodeURL = getOrgCodeRequestEntity.getUrl().toString();
+        when(requestEntityFactory.createGetRequest(contains(getOrgCodeURL))).thenReturn(getOrgCodeRequestEntity);
 
         this.mockServer.expect(requestTo(EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL))
                 .andRespond(withSuccess("co", MediaType.APPLICATION_JSON));
@@ -93,7 +93,11 @@ public class CSRSServiceTest {
     }
 
     @Test
-    public void givenAInvalidValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsNotFound() {
+    public void givenAInvalidValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsNotFound() throws URISyntaxException {
+
+        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/org"));
+        String getOrgCodeURL = getOrgCodeRequestEntity.getUrl().toString();
+        when(requestEntityFactory.createGetRequest(contains(getOrgCodeURL))).thenReturn(getOrgCodeRequestEntity);
 
         this.mockServer.expect(requestTo(EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));

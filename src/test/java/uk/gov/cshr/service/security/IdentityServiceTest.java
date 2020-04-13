@@ -88,7 +88,7 @@ public class IdentityServiceTest {
   public void trackUserActivity_verifyNoActionsTakenOnActiveUser() {
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, 0, true, false));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, 0, true, false, false, false));
 
     when(identityRepository.findAll()).thenReturn(identities);
 
@@ -110,7 +110,7 @@ public class IdentityServiceTest {
   public void trackUserActivity_verifyDeactivationOfUserInDeactivationTimeFrame() {
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, DEACTIVATION_OFFSET, true, false));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, DEACTIVATION_OFFSET, true, false, false, false));
 
     MessageDto suspensionMessage = new MessageDto();
 
@@ -146,7 +146,7 @@ public class IdentityServiceTest {
   public void trackUserActivity_verifyNoDeactivationOfUserInDeactivationTimeFrameWhenAlreadyDeactivated() {
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, DEACTIVATION_OFFSET, false, false));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, DEACTIVATION_OFFSET, false, false, false, false));
 
     MessageDto suspensionMessage = new MessageDto();
 
@@ -171,7 +171,7 @@ public class IdentityServiceTest {
   public void trackUserActivity_verifyNotificationOfUserInNotificationTimeFrame() {
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, NOTIFICATION_OFFSET, false, false));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, NOTIFICATION_OFFSET, false, false, false, false));
 
     MessageDto notificationMessage = new MessageDto();
 
@@ -205,7 +205,7 @@ public class IdentityServiceTest {
   public void trackUserActivity_verifyNoNotificationOfUserInNotificationTimeFrameWhenNotificationAlreadySent() {
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, NOTIFICATION_OFFSET, false, true));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(1, NOTIFICATION_OFFSET, false, true, false, false));
 
     MessageDto notificationMessage = new MessageDto();
 
@@ -232,7 +232,7 @@ public class IdentityServiceTest {
     long userId = new Random().nextLong();
 
     List<Identity> identities = new ArrayList<>();
-    identities.add(createRandomIdentityWithOffsetLastLoggedIn(userId, DELETION_OFFSET, false, true));
+    identities.add(createRandomIdentityWithOffsetLastLoggedIn(userId, DELETION_OFFSET, false, true, false, false));
 
     MessageDto deletionMessage = new MessageDto();
 
@@ -269,8 +269,8 @@ public class IdentityServiceTest {
 
   }
 
-  private Identity createRandomIdentityWithOffsetLastLoggedIn(long userId, int offset, boolean isActive, boolean deleteNotificationSent) {
+  private Identity createRandomIdentityWithOffsetLastLoggedIn(long userId, int offset, boolean isActive, boolean deleteNotificationSent, boolean isEmailRecentlyUpdated, boolean isRecentlyReactivated) {
     return new Identity(String.valueOf(userId), null, null, isActive, false, null,
-        LocalDateTime.now().minusMonths(offset).toInstant(ZoneOffset.UTC), deleteNotificationSent);
+        LocalDateTime.now().minusMonths(offset).toInstant(ZoneOffset.UTC), deleteNotificationSent, isEmailRecentlyUpdated, isRecentlyReactivated);
   }
 }
