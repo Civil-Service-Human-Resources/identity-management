@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 import uk.gov.cshr.dto.AgencyTokenResponseDTO;
 import uk.gov.cshr.dto.UpdateSpacesForAgencyTokenRequestDTO;
+import uk.gov.cshr.exceptions.UnableToRemoveOrgFromCivilServantException;
 import uk.gov.cshr.utils.JsonUtils;
 
 import java.net.URI;
@@ -49,6 +50,8 @@ public class CSRSServiceTest {
 
     private static final String EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL = "/civilServants/org";
 
+    private static final String EXPECTED_DELETE_ORG_CODE_FOR_CIVIL_SERVANT_URL = "/civilServants/org";
+
     private static final String EXPECTED_PUT_UPDATE_AGENCYTOKEN_URL = "/agencyTokens";
 
     @Before
@@ -57,7 +60,7 @@ public class CSRSServiceTest {
         gateway.setRestTemplate(restTemplate);
         mockServer = MockRestServiceServer.createServer(gateway);
 
-        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/orgcode"));
+        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/org"));
         String getOrgCodeURL = getOrgCodeRequestEntity.getUrl().toString();
         when(requestEntityFactory.createGetRequest(contains(getOrgCodeURL))).thenReturn(getOrgCodeRequestEntity);
 
@@ -73,14 +76,14 @@ public class CSRSServiceTest {
         updateAgencyTokenSpacesDTO.setToken("aToken");
         updateAgencyTokenSpacesDTO.setRemoveUser(false);
         when(requestEntityFactory.createPutRequest(contains(updateAgencyTokenURL), updateAgencyTokenRequestDTO.capture())).thenReturn(updateAgencyTokenSpacesRequestEntity);
+
+        RequestEntity deleteOrgCodeRequestEntity = new RequestEntity(HttpMethod.DELETE, new URI("/civilServants/org"));
+        String deleteOrgCodeURL = deleteOrgCodeRequestEntity.getUrl().toString();
+        when(requestEntityFactory.createDeleteRequest(contains(deleteOrgCodeURL))).thenReturn(deleteOrgCodeRequestEntity);
     }
 
     @Test
     public void givenAValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsSuccessfully() throws URISyntaxException {
-
-        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/org"));
-        String getOrgCodeURL = getOrgCodeRequestEntity.getUrl().toString();
-        when(requestEntityFactory.createGetRequest(contains(getOrgCodeURL))).thenReturn(getOrgCodeRequestEntity);
 
         this.mockServer.expect(requestTo(EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL))
                 .andRespond(withSuccess("co", MediaType.APPLICATION_JSON));
@@ -94,10 +97,6 @@ public class CSRSServiceTest {
 
     @Test
     public void givenAInvalidValidUID_whenGetOrganisationCodeForCivilServant_thenReturnsNotFound() throws URISyntaxException {
-
-        RequestEntity getOrgCodeRequestEntity = new RequestEntity(HttpMethod.GET, new URI("/civilServants/org"));
-        String getOrgCodeURL = getOrgCodeRequestEntity.getUrl().toString();
-        when(requestEntityFactory.createGetRequest(contains(getOrgCodeURL))).thenReturn(getOrgCodeRequestEntity);
 
         this.mockServer.expect(requestTo(EXPECTED_GET_ORG_CODE_FOR_CIVIL_SERVANT_URL))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
@@ -116,6 +115,39 @@ public class CSRSServiceTest {
         ResponseEntity actual = this.classUnderTest.getOrganisationCodeForCivilServant("myUId");
 
         assertThat(actual).isNull();
+    }
+
+    @Test
+    public void givenAValidUID_whenRemoveOrganisationCodeForCivilServant_thenReturnsSuccessfully() throws URISyntaxException {
+
+        this.mockServer.expect(requestTo(EXPECTED_DELETE_ORG_CODE_FOR_CIVIL_SERVANT_URL))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        this.classUnderTest.removeOrg();
+
+        mockServer.verify();
+    }
+
+    @Test (expected = UnableToRemoveOrgFromCivilServantException.class)
+    public void givenInvalidUID_whenRemoveOrganisationCodeForCivilServant_thenThrowsUnableToRemoveOrgFromCivilServantException() throws URISyntaxException {
+
+        this.mockServer.expect(requestTo(EXPECTED_DELETE_ORG_CODE_FOR_CIVIL_SERVANT_URL))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        this.classUnderTest.removeOrg();
+
+        mockServer.verify();
+    }
+
+    @Test (expected = UnableToRemoveOrgFromCivilServantException.class)
+    public void givenTechnicalError_whenRemoveOrganisationCodeForCivilServant_thenThrowsUnableToRemoveOrgFromCivilServantException() throws URISyntaxException {
+
+        this.mockServer.expect(requestTo(EXPECTED_DELETE_ORG_CODE_FOR_CIVIL_SERVANT_URL))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        this.classUnderTest.removeOrg();
+
+        mockServer.verify();
     }
 
     @Test
