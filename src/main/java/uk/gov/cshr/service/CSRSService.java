@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class CSRSService {
 
@@ -20,13 +23,21 @@ public class CSRSService {
 
     private final String csrsDeleteUrl;
 
+    private final String csrsGetOrganisationsUrl;
+
+    private final String csrsAddOrganisationReportingPermissionUrl;
+
     public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
+                       @Value("${csrs.organisationListUrl}") String csrsGetOrganisationsUrl,
+                       @Value("${csrs.AddOrganisationReportingPermissionUrl}") String AddOrganisationReportingPermissionUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
         this.restTemplate = restTemplate;
         this.requestEntityFactory = requestEntityFactory;
         this.csrsDeleteUrl = csrsDeleteUrl;
+        this.csrsGetOrganisationsUrl = csrsGetOrganisationsUrl;
+        this.csrsAddOrganisationReportingPermissionUrl = AddOrganisationReportingPermissionUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
@@ -36,6 +47,27 @@ public class CSRSService {
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
             LOGGER.error("Could not delete user from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity getOrganisations() {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(csrsGetOrganisationsUrl);
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Object.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not get organisations from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity addOrganisationReportingPermission(String uid, List<String> organisationIds) {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createPostRequest(String.format(csrsAddOrganisationReportingPermissionUrl, uid), organisationIds);
+            return restTemplate.exchange(requestEntity, Object.class);
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not add organisations from csrs service: " + e);
             return null;
         }
     }

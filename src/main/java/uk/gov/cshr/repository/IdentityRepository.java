@@ -19,4 +19,5 @@ public interface IdentityRepository extends PagingAndSortingRepository<Identity,
 
     Optional<Identity> findFirstByUid(String uid);
 
+    Optional<Identity> findIdentityByEmailEquals(String email);
 }

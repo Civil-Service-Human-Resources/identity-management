@@ -98,6 +98,14 @@ public class IdentityService implements UserDetailsService {
         return new IdentityDetails(identity);
     }
 
+    public String getUIDFromEmail(String email) {
+        Optional<Identity> identity = identityRepository.findIdentityByEmailEquals(email);
+        if(identity.isPresent()) {
+            return identity.get().getUid();
+        }
+        return null;
+    }
+
     @ReadOnlyProperty
     public boolean existsByEmail(String email) {
         return identityRepository.existsByEmail(email);
