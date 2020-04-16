@@ -45,7 +45,7 @@ public class OrganisationController {
     }
 
     @PostMapping
-    public String addOrganisationReportingPermission(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "organisationId", required = true) ArrayList<String> organisationId, Model model, Principal principal) {
+    public String addOrganisationReportingPermission(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "organisationId", required = true) List<String> organisationId, Model model, Principal principal) {
         forEmail = forEmail.trim().toLowerCase();
         String actorEmail = ((OAuth2Authentication) principal).getPrincipal().toString();
         LOGGER.info("{} inviting {} ", actorEmail, forEmail);

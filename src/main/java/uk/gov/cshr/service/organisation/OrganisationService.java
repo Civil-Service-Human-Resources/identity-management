@@ -49,7 +49,7 @@ public class OrganisationService {
         return organisationDtoList;
     }
 
-    public boolean addOrganisationReportingPermission(String uid, ArrayList<String> organisationIds) {
+    public boolean addOrganisationReportingPermission(String uid, List<String> organisationIds) {
         ResponseEntity response = csrsService.addOrganisationReportingPermission(uid, organisationIds);
         if(response.getStatusCode().is2xxSuccessful()) {
             return true;
