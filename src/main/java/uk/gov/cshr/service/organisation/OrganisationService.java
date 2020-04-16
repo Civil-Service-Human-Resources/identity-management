@@ -30,7 +30,6 @@ public class OrganisationService {
 
     public List<OrganisationDto> getOrganisations() {
         ResponseEntity response = csrsService.getOrganisations();
-        //convert to organisation dto
         return convertToOrganisationDto(response);
     }
 
@@ -51,9 +50,6 @@ public class OrganisationService {
 
     public boolean addOrganisationReportingPermission(String uid, List<String> organisationIds) {
         ResponseEntity response = csrsService.addOrganisationReportingPermission(uid, organisationIds);
-        if(response.getStatusCode().is2xxSuccessful()) {
-            return true;
-        }
-        return false;
+        return response.getStatusCode().is2xxSuccessful() == true ? true: false;
     }
 }
