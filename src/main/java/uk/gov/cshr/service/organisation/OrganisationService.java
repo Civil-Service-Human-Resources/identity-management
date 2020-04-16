@@ -50,6 +50,6 @@ public class OrganisationService {
 
     public boolean addOrganisationReportingPermission(String uid, List<String> organisationIds) {
         ResponseEntity response = csrsService.addOrganisationReportingPermission(uid, organisationIds);
-        return response.getStatusCode().is2xxSuccessful() == true ? true: false;
+        return response.getStatusCode().is2xxSuccessful();
     }
 }

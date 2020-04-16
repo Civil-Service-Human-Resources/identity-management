@@ -55,7 +55,7 @@ public class OrganisationController {
             if(response) {
                 return "redirect:/organisation";
             } else {
-                model.addAttribute("error", "There is some problem at the momennt, try again later");
+                model.addAttribute("error", "There is some problem at the moment, try again later");
                 return "redirect:/error";
             }
         } else {
