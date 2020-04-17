@@ -29,7 +29,7 @@ public class CSRSService {
 
     public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.organisationListUrl}") String csrsGetOrganisationsUrl,
-                       @Value("${csrs.AddOrganisationReportingPermissionUrl}") String AddOrganisationReportingPermissionUrl,
+                       @Value("${csrs.addOrganisationReportingPermissionUrl}") String addOrganisationReportingPermissionUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
@@ -37,7 +37,7 @@ public class CSRSService {
         this.requestEntityFactory = requestEntityFactory;
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsGetOrganisationsUrl = csrsGetOrganisationsUrl;
-        this.csrsAddOrganisationReportingPermissionUrl = AddOrganisationReportingPermissionUrl;
+        this.csrsAddOrganisationReportingPermissionUrl = addOrganisationReportingPermissionUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
