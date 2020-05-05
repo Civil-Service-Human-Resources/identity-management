@@ -1,22 +1,14 @@
 package uk.gov.cshr.service.organisation;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.ReadOnlyProperty;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.InviteStatus;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.notifications.service.MessageService;
-import uk.gov.cshr.notifications.service.NotificationService;
-import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CSRSService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Transactional
@@ -40,8 +32,8 @@ public class OrganisationService {
             listMap = (List<HashMap>)response.getBody();
             for (HashMap res : listMap){
                 OrganisationDto dto = new OrganisationDto();
-                dto.setId((Integer) res.get("id"));
-                dto.setName((String) res.get("name"));
+                dto.setId(Integer.parseInt(StringUtils.substringAfterLast(((String)res.get("href")), "/")));
+                dto.setName((String) res.get("formattedName"));
                 organisationDtoList.add(dto);
             }
         }

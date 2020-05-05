@@ -24,7 +24,7 @@ public class OrganisationServiceTest {
     public void shouldGetOrganisationReportingPermission() {
         List<Map<String, Object>> listDto = new ArrayList<>();
         Map<String, Object> dtoValue = new HashMap();
-        dtoValue.put("id", 1);
+        dtoValue.put("href", "http://localhost/organisationunits/1");
         dtoValue.put("name", "user");
         listDto.add(dtoValue);
         ResponseEntity responseEntity = new ResponseEntity<List<Map<String, Object>>>(listDto, HttpStatus.OK);
