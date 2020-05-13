@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -104,6 +106,10 @@ public class IdentityService implements UserDetailsService {
             return identity.get().getUid();
         }
         return null;
+    }
+
+    public Page<Identity> getAllIdentityFromUid(Pageable pageable, List<String> listUid) {
+        return identityRepository.findAllByUidIn(pageable, listUid);
     }
 
     @ReadOnlyProperty

@@ -27,9 +27,12 @@ public class CSRSService {
 
     private final String csrsAddOrganisationReportingPermissionUrl;
 
+    private final String civilServantWithReportingPermissionUrl;
+
     public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.organisationListUrl}") String csrsGetOrganisationsUrl,
                        @Value("${csrs.addOrganisationReportingPermissionUrl}") String addOrganisationReportingPermissionUrl,
+                       @Value("${csrs.civilServantWithReportingPermissionUrl}")  String civilServantWithReportingPermissionUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
@@ -38,6 +41,7 @@ public class CSRSService {
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsGetOrganisationsUrl = csrsGetOrganisationsUrl;
         this.csrsAddOrganisationReportingPermissionUrl = addOrganisationReportingPermissionUrl;
+        this.civilServantWithReportingPermissionUrl = civilServantWithReportingPermissionUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
@@ -47,6 +51,17 @@ public class CSRSService {
             return responseEntity;
         } catch(RequestEntityException | RestClientException e) {
             LOGGER.error("Could not delete user from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity getCivilServantUIDsWithReportingPermission() {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(civilServantWithReportingPermissionUrl);
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Object.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not get users with reporting permission " + e);
             return null;
         }
     }

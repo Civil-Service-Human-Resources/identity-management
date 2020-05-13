@@ -32,6 +32,7 @@ learnerRecord:
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
+  civilServantWithReportingPermissionUrl: "${csrs.serviceUrl}/civilServants/civilservantwithreportingpermission"
   organisationListUrl: "${csrs.serviceUrl}/organisationalUnits/flat"
   addOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/addOrganisationReportingPermission/%s"
 

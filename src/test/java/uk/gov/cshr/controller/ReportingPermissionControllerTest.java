@@ -12,8 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import uk.gov.cshr.service.organisation.OrganisationDto;
-import uk.gov.cshr.service.organisation.OrganisationService;
+import uk.gov.cshr.dto.OrganisationDto;
+import uk.gov.cshr.service.organisation.ReportingPermissionService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import javax.transaction.Transactional;
@@ -28,16 +28,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class OrganisationControllerTest {
+public class ReportingPermissionControllerTest {
 
     @InjectMocks
-    private OrganisationController organisationController;
+    private ReportingPermissionController organisationController;
 
     @Autowired
     private MockMvc mockMvc;
 
     @Mock
-    private OrganisationService organisationService;
+    private ReportingPermissionService organisationService;
 
     @Mock
     private IdentityService identityService;
@@ -52,7 +52,7 @@ public class OrganisationControllerTest {
     @Test
     public void shouldReturnOrganisationAddPage() throws Exception {
         when(organisationService.getOrganisations()).thenReturn(new ArrayList<OrganisationDto>());
-        this.mockMvc.perform(get("/organisation"))
+        this.mockMvc.perform(get("/reportingpermission/add"))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(print());
     }

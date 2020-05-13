@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.dto.OrganisationDto;
 import uk.gov.cshr.service.CSRSService;
 
 import java.util.ArrayList;
@@ -12,12 +13,21 @@ import java.util.List;
 
 @Service
 @Transactional
-public class OrganisationService {
+public class ReportingPermissionService {
 
     private final CSRSService csrsService;
 
-    public OrganisationService(CSRSService csrsService) {
+    public ReportingPermissionService(CSRSService csrsService) {
         this.csrsService = csrsService;
+    }
+
+    public List<String> getCivilServantUIDsWithReportingPermission() {
+        List<String> listUid = new ArrayList<>();
+        ResponseEntity response = csrsService.getCivilServantUIDsWithReportingPermission();
+        if(response != null && response.getBody() != null) {
+            listUid.addAll((ArrayList)response.getBody());
+        }
+        return listUid;
     }
 
     public List<OrganisationDto> getOrganisations() {

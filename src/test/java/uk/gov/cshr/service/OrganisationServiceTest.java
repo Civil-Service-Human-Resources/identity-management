@@ -3,8 +3,8 @@ package uk.gov.cshr.service;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.cshr.service.organisation.OrganisationDto;
-import uk.gov.cshr.service.organisation.OrganisationService;
+import uk.gov.cshr.dto.OrganisationDto;
+import uk.gov.cshr.service.organisation.ReportingPermissionService;
 
 import java.util.*;
 
@@ -18,7 +18,7 @@ public class OrganisationServiceTest {
 
     private CSRSService csrsService = mock(CSRSService.class);
 
-    private OrganisationService organisationService = new OrganisationService(csrsService);
+    private ReportingPermissionService reportingPermissionService = new ReportingPermissionService(csrsService);
 
     @Test
     public void shouldGetOrganisationReportingPermission() {
@@ -30,7 +30,7 @@ public class OrganisationServiceTest {
         ResponseEntity responseEntity = new ResponseEntity<List<Map<String, Object>>>(listDto, HttpStatus.OK);
         when(csrsService.getOrganisations()).thenReturn(responseEntity);
 
-        List<OrganisationDto> response = organisationService.getOrganisations();
+        List<OrganisationDto> response = reportingPermissionService.getOrganisations();
         assertTrue(response.size() == 1);
     }
 
@@ -41,7 +41,7 @@ public class OrganisationServiceTest {
         List<String> ids = Arrays.asList("1");
         when(csrsService.addOrganisationReportingPermission(uid, ids)).thenReturn(responseEntity);
 
-        boolean response = organisationService.addOrganisationReportingPermission(uid, ids);
+        boolean response = reportingPermissionService.addOrganisationReportingPermission(uid, ids);
         assertTrue(response);
     }
 
@@ -52,7 +52,7 @@ public class OrganisationServiceTest {
         List<String> ids = Arrays.asList("1");
         when(csrsService.addOrganisationReportingPermission(uid, ids)).thenReturn(responseEntity);
 
-        boolean response = organisationService.addOrganisationReportingPermission(uid, ids);
+        boolean response = reportingPermissionService.addOrganisationReportingPermission(uid, ids);
         assertFalse(response);
     }
 }

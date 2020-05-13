@@ -1,4 +1,4 @@
-package uk.gov.cshr.service.organisation;
+package uk.gov.cshr.dto;
 
 import lombok.Data;
 
@@ -6,7 +6,5 @@ import lombok.Data;
 public class OrganisationDto {
 
     private Integer id;
-
     private String name;
-
 }

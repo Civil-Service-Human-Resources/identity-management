@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>List of User with organisation reporting permission</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <form autocomplete="off" action="#" th:action="@{/reportingpermission}" method="get">
+        <div class="form-row">
+            <div class="col-10">
+
+                <label for="query" class="sr-only">Email</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="query" name="query"
+                       placeholder="Email Address to lookup" th:value="${query}" required="required"/>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary mb-2">Search</button>
+                <a class="btn btn-danger mb-2" href="/mgmt/reportingpermission/add">Add</a>
+            </div>
+        </div>
+    </form>
+    <hr class="my-4"/>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="identity : ${page.getContent()}">
+            <td th:text="${identity.email}"></td>
+            <td>
+                <a class="btn btn-primary btn-sm" th:href="@{|/reportingpermission/update/${identity.uid}|}">
+                    Update
+                </a>
+                <a class="btn btn-danger btn-sm" th:href="@{|/reportingpermission/delete/${identity.uid}|}">
+                    Delete
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <hr class="my-4"/>
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            <th:block th:each="ins: ${pagination}">
+                <li class="page-item disabled">
+                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                       th:text="${ins.key}"></a>
+                </li>
+                <li class="page-item">
+                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                       th:href="@{|?query=${query}&amp;page=${ins.value}|}"
+                       th:text="${ins.key}"></a>
+                </li>
+            </th:block>
+        </ul>
+    </nav>
+</section>
+</body>
+</html>
