@@ -15,7 +15,7 @@ See the `diagram/` folder for diagram source in draw.io XML format
 
 ### Build-time
 
-For a complete list of build dependencies check the `build.gradle` file. The main source dependencies are:  
+For a complete list of build dependencies check the `pom.xml` file. The main source dependencies are:  
 - Spring Boot 1.5 (cloud, web, security, oauth2)
 - Spring Data JPA
 - Azure App Insights 2.5
@@ -26,7 +26,7 @@ For a complete list of build dependencies check the `build.gradle` file. The mai
 
 ### Test-time
 
-For a complete list of test dependencies check the `build.gradle` file. The main test dependencies are:  
+For a complete list of test dependencies check the `pom.xml` file. The main test dependencies are:  
 - Spring Boot Starter Test
 - Spring Boot Security Test
 - mockito 2.8
