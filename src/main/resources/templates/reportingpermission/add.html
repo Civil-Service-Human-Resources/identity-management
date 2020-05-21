@@ -15,7 +15,7 @@
                    required="required"/>
         </div>
         <div class="form-group">
-            <label for="roleId">Department</label>
+            <label for="organisationId">Department</label>
             <select class="form-control" multiple="multiple" name="organisationId" id="organisationId" required="required" size="26">
                 <option th:each="organisation : ${organisations}" th:value="${organisation.id}" th:text="${organisation.name}"></option>
             </select>

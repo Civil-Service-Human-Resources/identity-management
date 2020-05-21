@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.dto.OrganisationDto;
+import uk.gov.cshr.dto.ReportingPermissionDto;
 import uk.gov.cshr.service.CSRSService;
 
 import java.util.ArrayList;
@@ -31,8 +32,7 @@ public class ReportingPermissionService {
     }
 
     public List<OrganisationDto> getOrganisations() {
-        ResponseEntity response = csrsService.getOrganisations();
-        return convertToOrganisationDto(response);
+        return convertToOrganisationDto(csrsService.getOrganisations());
     }
 
     private List<OrganisationDto> convertToOrganisationDto(ResponseEntity response) {
@@ -52,6 +52,17 @@ public class ReportingPermissionService {
 
     public boolean addOrganisationReportingPermission(String uid, List<String> organisationIds) {
         ResponseEntity response = csrsService.addOrganisationReportingPermission(uid, organisationIds);
+        return response.getStatusCode().is2xxSuccessful();
+    }
+
+    public List<String> getCivilServantReportingPermission(String uid) {
+        List<String> listUid = new ArrayList<>();
+        listUid.addAll((ArrayList)csrsService.getCivilServantReportingPermission(uid).getBody());
+        return listUid;
+     }
+
+    public boolean updateOrganisationReportingPermission(String uid, List<String> listOrganisationId) {
+        ResponseEntity response = csrsService.updateOrganisationReportingPermission(uid, listOrganisationId);
         return response.getStatusCode().is2xxSuccessful();
     }
 }

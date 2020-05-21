@@ -17,7 +17,7 @@ public interface IdentityRepository extends PagingAndSortingRepository<Identity,
 
     Page<Identity> findAllByEmailContains(Pageable pageable, String email);
 
-    Page<Identity> findAllByUidInOrderByEmail(Pageable pageable, List<String> listUid);
+    Page<Identity> findAllByUidIn(Pageable pageable, List<String> listUid);
 
     boolean existsByEmail(String email);
 

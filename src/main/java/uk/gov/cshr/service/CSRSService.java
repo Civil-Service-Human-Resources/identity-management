@@ -27,12 +27,18 @@ public class CSRSService {
 
     private final String csrsAddOrganisationReportingPermissionUrl;
 
+    private final String csrsUpdateOrganisationReportingPermissionUrl;
+
     private final String civilServantWithReportingPermissionUrl;
+
+    private final String civilServantReportingPermissionUrl;
 
     public CSRSService(@Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.organisationListUrl}") String csrsGetOrganisationsUrl,
                        @Value("${csrs.addOrganisationReportingPermissionUrl}") String addOrganisationReportingPermissionUrl,
+                       @Value("${csrs.updateOrganisationReportingPermissionUrl}") String updateOrganisationReportingPermissionUrl,
                        @Value("${csrs.civilServantWithReportingPermissionUrl}")  String civilServantWithReportingPermissionUrl,
+                       @Value("${csrs.civilServantReportingPermissionUrl}")  String civilServantReportingPermissionUrl,
                        RestTemplate restTemplate,
                        RequestEntityFactory requestEntityFactory
     ) {
@@ -41,7 +47,9 @@ public class CSRSService {
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsGetOrganisationsUrl = csrsGetOrganisationsUrl;
         this.csrsAddOrganisationReportingPermissionUrl = addOrganisationReportingPermissionUrl;
+        this.csrsUpdateOrganisationReportingPermissionUrl = updateOrganisationReportingPermissionUrl;
         this.civilServantWithReportingPermissionUrl = civilServantWithReportingPermissionUrl;
+        this.civilServantReportingPermissionUrl = civilServantReportingPermissionUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
@@ -80,6 +88,27 @@ public class CSRSService {
     public ResponseEntity addOrganisationReportingPermission(String uid, List<String> organisationIds) {
         try {
             RequestEntity requestEntity = requestEntityFactory.createPostRequest(String.format(csrsAddOrganisationReportingPermissionUrl, uid), organisationIds);
+            return restTemplate.exchange(requestEntity, Object.class);
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not add organisations from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity getCivilServantReportingPermission(String uid) {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createGetRequest(String.format(civilServantReportingPermissionUrl, uid));
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Object.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not get organisation permission from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity updateOrganisationReportingPermission(String uid, List<String> listOrganisationId) {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createPutRequest(String.format(csrsUpdateOrganisationReportingPermissionUrl, uid), listOrganisationId);
             return restTemplate.exchange(requestEntity, Object.class);
         } catch(RequestEntityException | RestClientException e) {
             LOGGER.error("Could not add organisations from csrs service: " + e);

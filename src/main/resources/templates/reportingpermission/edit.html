@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title th:text="${'Update reporting permission - ' + identity.email}"></title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h4 th:text="${'Update reporting permission - ' + identity.email}"></h4>
+    <form autocomplete="off" action="#" th:action="@{/reportingpermission/update}" method="post">
+        <div class="form-group">
+            <label for="organisationId">Reporting Permission</label>
+            <select class="form-control" multiple="multiple" name="organisationId" id="organisationId" size="26" style="height: 100%;">
+                <option th:each="organisation : ${organisations}" th:value="${organisation.id}" th:text="${organisation.name}"
+                        th:selected="${permissions.contains(organisation.id)}"></option>
+            </select>
+        </div>
+        <input type="hidden" th:field="*{identity.uid}"/>
+        <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+</section>
+</body>
+</html>

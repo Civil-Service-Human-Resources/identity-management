@@ -19,8 +19,11 @@ import uk.gov.cshr.service.security.IdentityService;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,5 +58,37 @@ public class ReportingPermissionControllerTest {
         this.mockMvc.perform(get("/reportingpermission/add"))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(print());
+    }
+
+    @Test
+    public void shouldAddOrganisationReportingPermission() throws Exception {
+        String uid = "test";
+        boolean response = true;
+        when(identityService.getUIDFromEmail(anyString())).thenReturn(uid);
+        when(organisationService.addOrganisationReportingPermission(anyString(), anyList()))
+                .thenReturn(response);
+        this.mockMvc.perform(post("/reportingpermission"))
+                .andReturn().getResponse()
+                .getContentAsString().equalsIgnoreCase("redirect:/reportingpermission");
+    }
+
+    @Test
+    public void shouldUpdateReportingPermission() throws Exception {
+        boolean response = true;
+        when(organisationService.updateOrganisationReportingPermission(anyString(), anyList()))
+                .thenReturn(response);
+        this.mockMvc.perform(post("/reportingpermission/update"))
+                .andReturn().getResponse()
+                .getContentAsString().equalsIgnoreCase("redirect:/reportingpermission");
+    }
+
+    @Test
+    public void shouldDisplayError_WhenUpdateReportingPermission() throws Exception {
+        boolean response = false;
+        when(organisationService.updateOrganisationReportingPermission(anyString(), anyList()))
+                .thenReturn(response);
+        this.mockMvc.perform(post("/reportingpermission/update"))
+                .andReturn().getResponse()
+                .getContentAsString().equalsIgnoreCase("redirect:/error");
     }
 }

@@ -12,13 +12,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.dto.ReportingPermissionDto;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.dto.OrganisationDto;
 import uk.gov.cshr.service.organisation.ReportingPermissionService;
+import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.security.Principal;
-import java.util.List;
+import java.util.*;
 
 @Controller
 @RequestMapping("/reportingpermission")
@@ -32,6 +36,9 @@ public class ReportingPermissionController {
 
     @Autowired
     private IdentityService identityService;
+
+    @Autowired
+    private IdentityRepository identityRepository;
 
     @GetMapping
     public String listUserWithReportingPermission(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
@@ -73,6 +80,45 @@ public class ReportingPermissionController {
             }
         } else {
             model.addAttribute("error", "User already exists with email address " + forEmail);
+            return "redirect:/error";
+        }
+    }
+
+    @DeleteMapping("/{uid}")
+    @PreAuthorize("hasAnyAuthority('IDENTITY_DELETE')")
+    public ResponseEntity deleteLearner(@PathVariable String uid) {
+        LOGGER.info("Deleting reporting permission for civil servant with uid {}", uid);
+//
+//        learnerService.deleteLearnerByUid(uid);
+//
+//        LOGGER.info("Learner deleted with uid {}", uid);
+//
+       return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/update/{uid}")
+    public String showUpdateReportingPermission(Model model,
+                                 @PathVariable("uid") String uid, Principal principal) {
+        LOGGER.info("{} editing reporting permission for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+
+        List<OrganisationDto> organisations = reportingPermissionService.getOrganisations();
+        List<String> listCivilServantReportingPermission  = reportingPermissionService.getCivilServantReportingPermission(uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+
+        model.addAttribute("organisations", organisations);
+        model.addAttribute("permissions", listCivilServantReportingPermission);
+        model.addAttribute("identity", optionalIdentity.isPresent() ? optionalIdentity.get() : null);
+        return "reportingpermission/edit";
+    }
+
+    @PostMapping("/update")
+    public String updateReportingPermission(@RequestParam(value = "organisationId", required = true) List<String> listOrganisationId, @RequestParam("uid") String uid, Model model, Principal principal) {
+
+        boolean response = reportingPermissionService.updateOrganisationReportingPermission(uid, listOrganisationId);
+        if(response) {
+            return "redirect:/reportingpermission";
+        } else {
+            model.addAttribute("error", "There is some problem at the moment, try again later");
             return "redirect:/error";
         }
     }

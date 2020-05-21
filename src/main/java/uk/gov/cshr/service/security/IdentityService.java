@@ -109,7 +109,7 @@ public class IdentityService implements UserDetailsService {
     }
 
     public Page<Identity> getAllIdentityFromUid(Pageable pageable, List<String> listUid) {
-        return identityRepository.findAllByUidInOrderByEmail(pageable, listUid);
+        return identityRepository.findAllByUidIn(pageable, listUid);
     }
 
     @ReadOnlyProperty
