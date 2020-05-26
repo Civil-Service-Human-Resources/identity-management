@@ -5,24 +5,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.dto.ReportingPermissionDto;
+import uk.gov.cshr.dto.OrganisationDto;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.Pagination;
-import uk.gov.cshr.dto.OrganisationDto;
 import uk.gov.cshr.service.organisation.ReportingPermissionService;
-import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/reportingpermission")
@@ -84,18 +81,6 @@ public class ReportingPermissionController {
         }
     }
 
-    @DeleteMapping("/{uid}")
-    @PreAuthorize("hasAnyAuthority('IDENTITY_DELETE')")
-    public ResponseEntity deleteLearner(@PathVariable String uid) {
-        LOGGER.info("Deleting reporting permission for civil servant with uid {}", uid);
-//
-//        learnerService.deleteLearnerByUid(uid);
-//
-//        LOGGER.info("Learner deleted with uid {}", uid);
-//
-       return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/update/{uid}")
     public String showUpdateReportingPermission(Model model,
                                  @PathVariable("uid") String uid, Principal principal) {
@@ -115,6 +100,29 @@ public class ReportingPermissionController {
     public String updateReportingPermission(@RequestParam(value = "organisationId", required = true) List<String> listOrganisationId, @RequestParam("uid") String uid, Model model, Principal principal) {
 
         boolean response = reportingPermissionService.updateOrganisationReportingPermission(uid, listOrganisationId);
+        if(response) {
+            return "redirect:/reportingpermission";
+        } else {
+            model.addAttribute("error", "There is some problem at the moment, try again later");
+            return "redirect:/error";
+        }
+    }
+
+    @GetMapping("/delete/{uid}")
+    public String showDeleteReportingPermission(Model model,
+                             @PathVariable("uid") String uid, Principal principal) {
+        LOGGER.info("{} deleting reporting permission for id {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        model.addAttribute("identity", optionalIdentity.isPresent() ? optionalIdentity.get() : null);
+        return "reportingpermission/delete";
+    }
+
+
+    @PostMapping("/delete")
+    public String deleteReportingPermission(@RequestParam("uid") String uid, Model model, Principal principal) {
+        LOGGER.info("{} deleted role {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        boolean response = reportingPermissionService.deleteOrganisationReportingPermission(uid);
         if(response) {
             return "redirect:/reportingpermission";
         } else {

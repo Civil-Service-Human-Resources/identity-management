@@ -37,6 +37,7 @@ csrs:
   organisationListUrl: "${csrs.serviceUrl}/organisationalUnits/flat"
   addOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/addOrganisationReportingPermission/%s"
   updateOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/updateOrganisationReportingPermission/%s"
+  deleteOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/deleteOrganisationReportingPermission/%s"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}

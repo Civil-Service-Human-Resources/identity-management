@@ -29,6 +29,8 @@ public class CSRSService {
 
     private final String csrsUpdateOrganisationReportingPermissionUrl;
 
+    private final String csrsDeleteOrganisationReportingPermissionUrl;
+
     private final String civilServantWithReportingPermissionUrl;
 
     private final String civilServantReportingPermissionUrl;
@@ -37,6 +39,7 @@ public class CSRSService {
                        @Value("${csrs.organisationListUrl}") String csrsGetOrganisationsUrl,
                        @Value("${csrs.addOrganisationReportingPermissionUrl}") String addOrganisationReportingPermissionUrl,
                        @Value("${csrs.updateOrganisationReportingPermissionUrl}") String updateOrganisationReportingPermissionUrl,
+                       @Value("${csrs.deleteOrganisationReportingPermissionUrl}") String csrsDeleteOrganisationReportingPermissionUrl,
                        @Value("${csrs.civilServantWithReportingPermissionUrl}")  String civilServantWithReportingPermissionUrl,
                        @Value("${csrs.civilServantReportingPermissionUrl}")  String civilServantReportingPermissionUrl,
                        RestTemplate restTemplate,
@@ -50,6 +53,7 @@ public class CSRSService {
         this.csrsUpdateOrganisationReportingPermissionUrl = updateOrganisationReportingPermissionUrl;
         this.civilServantWithReportingPermissionUrl = civilServantWithReportingPermissionUrl;
         this.civilServantReportingPermissionUrl = civilServantReportingPermissionUrl;
+        this.csrsDeleteOrganisationReportingPermissionUrl = csrsDeleteOrganisationReportingPermissionUrl;
     }
 
     public ResponseEntity deleteCivilServant(String uid) {
@@ -112,6 +116,17 @@ public class CSRSService {
             return restTemplate.exchange(requestEntity, Object.class);
         } catch(RequestEntityException | RestClientException e) {
             LOGGER.error("Could not add organisations from csrs service: " + e);
+            return null;
+        }
+    }
+
+    public ResponseEntity deleteOrganisationReportingPermission(String uid) {
+        try {
+            RequestEntity requestEntity = requestEntityFactory.createDeleteRequest(String.format(csrsDeleteOrganisationReportingPermissionUrl, uid));
+            ResponseEntity responseEntity = restTemplate.exchange(requestEntity, Void.class);
+            return responseEntity;
+        } catch(RequestEntityException | RestClientException e) {
+            LOGGER.error("Could not delete reporting permission from csrs service: " + e);
             return null;
         }
     }

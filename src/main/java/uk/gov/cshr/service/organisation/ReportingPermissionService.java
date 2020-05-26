@@ -65,4 +65,9 @@ public class ReportingPermissionService {
         ResponseEntity response = csrsService.updateOrganisationReportingPermission(uid, listOrganisationId);
         return response.getStatusCode().is2xxSuccessful();
     }
+
+    public boolean deleteOrganisationReportingPermission(String uid) {
+        ResponseEntity response = csrsService.deleteOrganisationReportingPermission(uid);
+        return response.getStatusCode().is2xxSuccessful();
+    }
 }
