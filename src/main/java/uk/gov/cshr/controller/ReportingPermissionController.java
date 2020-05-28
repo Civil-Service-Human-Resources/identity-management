@@ -97,9 +97,14 @@ public class ReportingPermissionController {
     }
 
     @PostMapping("/update")
-    public String updateReportingPermission(@RequestParam(value = "organisationId", required = true) List<String> listOrganisationId, @RequestParam("uid") String uid, Model model, Principal principal) {
+    public String updateReportingPermission(@RequestParam(value = "organisationId", required = false) List<String> listOrganisationId, @RequestParam("uid") String uid, Model model, Principal principal) {
 
-        boolean response = reportingPermissionService.updateOrganisationReportingPermission(uid, listOrganisationId);
+        boolean response = false;
+        if (listOrganisationId != null) {
+            response = reportingPermissionService.updateOrganisationReportingPermission(uid, listOrganisationId);
+        } else {
+            response = reportingPermissionService.deleteOrganisationReportingPermission(uid);
+        }
         if(response) {
             return "redirect:/reportingpermission";
         } else {
