@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -20,6 +21,7 @@ import uk.gov.cshr.service.security.IdentityService;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/reportingpermission")
@@ -40,9 +42,18 @@ public class ReportingPermissionController {
     @GetMapping
     public String listUserWithReportingPermission(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
         LOGGER.info("Listing all users with reporting permission");
-
+        Page<Identity> listUser;
+        List<Identity> listIdentity;
+        List<Identity> listFilteredIdentity;
         List<String> listCivilServantUid = reportingPermissionService.getCivilServantUIDsWithReportingPermission();
-        Page<Identity> listUser = identityService.getAllIdentityFromUid(pageable, listCivilServantUid);
+        if(query == null || query.isEmpty()) {
+            listUser = identityService.getAllIdentityFromUid(pageable, listCivilServantUid);
+        } else {
+            listIdentity = identityService.findAllByForEmailContains(query);
+            listFilteredIdentity = listIdentity.stream().filter(x -> listCivilServantUid.contains(x.getUid()))
+                    .collect(Collectors.toList());
+            listUser = new PageImpl<>(listFilteredIdentity, pageable, listFilteredIdentity.size());
+        }
 
         model.addAttribute("page", listUser);
         model.addAttribute("query", query == null ? "" : query);

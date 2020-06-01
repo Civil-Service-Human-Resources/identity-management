@@ -112,6 +112,10 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.findAllByUidIn(pageable, listUid);
     }
 
+    public List<Identity> findAllByForEmailContains(String email) {
+        return identityRepository.findAllByEmailContains(email);
+    }
+
     @ReadOnlyProperty
     public boolean existsByEmail(String email) {
         return identityRepository.existsByEmail(email);

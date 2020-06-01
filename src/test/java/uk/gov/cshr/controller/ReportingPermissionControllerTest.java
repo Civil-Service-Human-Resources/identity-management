@@ -9,6 +9,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -20,10 +23,11 @@ import uk.gov.cshr.service.security.IdentityService;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -51,11 +55,15 @@ public class ReportingPermissionControllerTest {
     @Mock
     private IdentityRepository identityRepository;
 
+    @Autowired
+    private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
+
     @Before
     public void setup() {
 
         MockitoAnnotations.initMocks(this);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(organisationController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(organisationController)
+                .setCustomArgumentResolvers(pageableArgumentResolver).build();
     }
 
     @Test
@@ -127,4 +135,38 @@ public class ReportingPermissionControllerTest {
                 .getContentAsString().equalsIgnoreCase("redirect:/error");
     }
 
+    @Test
+    public void shouldListUserWithReportingPermissionWithoutQuery() throws Exception {
+        List<Identity> listIdentity = new ArrayList<>();
+        Identity identity = new Identity();
+        listIdentity.add(identity);
+        List<String> listCivilServantUid = new ArrayList<>();
+        listCivilServantUid.add("uid1");
+        listCivilServantUid.add("uid2");
+        Page<Identity> listUser = new PageImpl<>(listIdentity);
+        when(reportingPermissionService.getCivilServantUIDsWithReportingPermission())
+                .thenReturn(listCivilServantUid);
+        when(identityService.getAllIdentityFromUid(any(), anyList()))
+                .thenReturn(listUser);
+        this.mockMvc.perform(get("/reportingpermission"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString().equalsIgnoreCase("reportingpermission/list");
+        verify(identityService).getAllIdentityFromUid(any(), anyList());
+    }
+
+    @Test
+    public void shouldListUserWithReportingPermissionWithQuery() throws Exception {
+        List<String> listCivilServantUid = new ArrayList<>();
+        listCivilServantUid.add("uid1");
+        listCivilServantUid.add("uid2");
+        when(reportingPermissionService.getCivilServantUIDsWithReportingPermission())
+                .thenReturn(listCivilServantUid);
+        this.mockMvc.perform(get("/reportingpermission")
+                .param("query", "somestring"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString().equalsIgnoreCase("reportingpermission/list");
+        verify(identityService).findAllByForEmailContains("somestring");
+    }
 }
