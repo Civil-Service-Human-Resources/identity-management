@@ -8,19 +8,20 @@
 <section layout:fragment="content">
     <form autocomplete="off" action="#" th:action="@{/reportingpermission}" method="get">
         <div class="form-row">
+            <a class="btn btn-danger mb-2" href="/mgmt/reportingpermission/add">Add new user</a>
+        </div>
+        <hr class="my-4"/>
+        <div class="form-row">
             <div class="col-10">
-
                 <label for="query" class="sr-only">Email</label>
                 <input type="text" class="form-control mb-2 mr-sm-2" id="query" name="query"
-                       placeholder="Email Address to lookup" th:value="${query}" required="required"/>
+                       placeholder="Search for existing user’s email address" th:value="${query}" />
             </div>
             <div class="col">
                 <button type="submit" class="btn btn-primary mb-2">Search</button>
-                <a class="btn btn-danger mb-2" href="/mgmt/reportingpermission/add">Add</a>
             </div>
         </div>
     </form>
-    <hr class="my-4"/>
     <table class="table table-striped">
         <thead class="thead-dark">
         <tr>

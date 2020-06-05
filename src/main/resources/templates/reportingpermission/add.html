@@ -2,20 +2,20 @@
 <html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
 <head>
-    <title>Organisation</title>
+    <title>Reporting permission</title>
 </head>
 <body>
 <section layout:fragment="content">
-    <h4>Add Organisation</h4>
+    <h4>Add reporting permission</h4>
 
     <form autocomplete="off" action="#" th:action="@{/reportingpermission}" method="post">
         <div class="form-group">
-            <label for="forEmail">Email address</label>
-            <input type="text" class="form-control" id="forEmail" name="forEmail" placeholder="Email"
+            <label for="forEmail">New user’s email address</label>
+            <input type="text" class="form-control" id="forEmail" name="forEmail" placeholder="Email address"
                    required="required"/>
         </div>
         <div class="form-group">
-            <label for="organisationId">Department</label>
+            <label for="organisationId">Select organisation(s)</label>
             <select class="form-control" multiple="multiple" name="organisationId" id="organisationId" required="required" size="26">
                 <option th:each="organisation : ${organisations}" th:value="${organisation.id}" th:text="${organisation.name}"></option>
             </select>

@@ -2,15 +2,14 @@
 <html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
     <head>
-        <title th:text="${'Delete reporting permission - ' + identity.email}"></title>
+        <title th:text="${'Delete reporting permission for - ' + identity.email}"></title>
     </head>
     <body>
         <section layout:fragment="content">
             <h4 th:text="'Delete Reporting permission for - ' + ${identity.email}"></h4>
             <div class="alert alert-warning" role="alert">
-                Are you sure to delete the following role?
-                <p class="govuk-body">Some text here to add here, to confirm with Mo</p>
-                <p class="govuk-body">Some more text here to add here, to confirm with Mo</p>
+                Are you sure you want to delete the reporting permissions for this user?
+                <p class="govuk-body">This will remove access to all reporting for this user. This action can not be reversed.</p>
             </div>
             <form autocomplete="off" action="#" th:action="@{/reportingpermission/delete}" th:object="${identity}" method="post">
                 <input type="hidden" th:field="*{uid}"/>

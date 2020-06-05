@@ -79,12 +79,16 @@ public class ReportingPermissionController {
         LOGGER.info("{} inviting {} ", actorEmail, forEmail);
         String uid = identityService.getUIDFromEmail(forEmail);
         if (uid != null) {
-            boolean response = reportingPermissionService.addOrganisationReportingPermission(uid, organisationId);
-            if(response) {
-                return "redirect:/reportingpermission";
+            if(reportingPermissionService.getCivilServantUIDsWithReportingPermission().contains(uid)) {
+                return "redirect:/reportingpermission/update/" + uid;
             } else {
-                model.addAttribute("error", "There is some problem at the moment, try again later");
-                return "redirect:/error";
+                boolean response = reportingPermissionService.addOrganisationReportingPermission(uid, organisationId);
+                if (response) {
+                    return "redirect:/reportingpermission";
+                } else {
+                    model.addAttribute("error", "There is some problem at the moment, try again later");
+                    return "redirect:/error";
+                }
             }
         } else {
             model.addAttribute("error", "User already exists with email address " + forEmail);
