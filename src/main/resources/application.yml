@@ -32,6 +32,12 @@ learnerRecord:
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
+  civilServantWithReportingPermissionUrl: "${csrs.serviceUrl}/civilServants/civilservantwithreportingpermission"
+  civilServantReportingPermissionUrl: "${csrs.serviceUrl}/civilServants/civilservantreportingpermission/%s"
+  organisationListUrl: "${csrs.serviceUrl}/organisationalUnits/flat"
+  addOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/addOrganisationReportingPermission/%s"
+  updateOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/updateOrganisationReportingPermission/%s"
+  deleteOrganisationReportingPermissionUrl: "${csrs.serviceUrl}/organisationalUnits/deleteOrganisationReportingPermission/%s"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}

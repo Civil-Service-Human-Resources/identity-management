@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -96,6 +98,22 @@ public class IdentityService implements UserDetailsService {
             throw new UsernameNotFoundException("No user found with email address " + username);
         }
         return new IdentityDetails(identity);
+    }
+
+    public String getUIDFromEmail(String email) {
+        Optional<Identity> identity = identityRepository.findIdentityByEmailEquals(email);
+        if(identity.isPresent()) {
+            return identity.get().getUid();
+        }
+        return null;
+    }
+
+    public Page<Identity> getAllIdentityFromUid(Pageable pageable, List<String> listUid) {
+        return identityRepository.findAllByUidIn(pageable, listUid);
+    }
+
+    public List<Identity> findAllByForEmailContains(String email) {
+        return identityRepository.findAllByEmailContains(email);
     }
 
     @ReadOnlyProperty
