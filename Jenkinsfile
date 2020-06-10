@@ -1,5 +1,10 @@
 pipeline {
     agent none
+
+    environment {
+        jwt_key = "test-key"
+    }
+
     stages {
         stage('Build & Push to ACR') {
             agent { label 'master' }
