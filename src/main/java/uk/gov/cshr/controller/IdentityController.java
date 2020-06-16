@@ -102,6 +102,7 @@ public class IdentityController {
                 identity.setActive(false);
                 identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
+
                 redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
 
                 return REDIRECT_IDENTITIES_LIST;
@@ -118,8 +119,8 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/reactivate/{uid}")
-    public String updateActive(@PathVariable(UID_ATTRIBUTE) String uid,
-                               Model model) {
+    public String reactivateUser(@PathVariable(UID_ATTRIBUTE) String uid,
+                                 Model model) {
         Identity identity = identityService.getIdentity(uid);
 
         model.addAttribute(IDENTITY_ATTRIBUTE, identity);

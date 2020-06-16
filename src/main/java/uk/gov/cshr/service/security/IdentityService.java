@@ -107,29 +107,16 @@ public class IdentityService implements UserDetailsService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public void updateActive(String uid) {
-        Identity identity = identityRepository.findFirstByUid(uid)
-                .orElseThrow(ResourceNotFoundException::new);
-
-        if (identity.isActive()) {
-            identity.setActive(false);
-            identityRepository.save(identity);
-        } else {
-            identityReactivationService.sendReactivationEmail(identity);
-        }
-    }
-
     public void updateLocked(String uid) {
         Identity identity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);
 
         if (identity.isLocked()) {
             identity.setLocked(false);
-            identityRepository.save(identity);
         } else {
             identity.setLocked(true);
-            identityRepository.save(identity);
         }
+        identityRepository.save(identity);
     }
 
     @Transactional
