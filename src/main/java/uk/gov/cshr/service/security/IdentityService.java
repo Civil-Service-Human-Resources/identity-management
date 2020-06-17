@@ -14,21 +14,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.CSRSService;
-import uk.gov.cshr.service.InviteService;
-import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.TokenService;
+import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -54,6 +49,8 @@ public class IdentityService implements UserDetailsService {
 
     private final MessageService messageService;
 
+    private IdentityReactivationService identityReactivationService;
+
     private final int deactivationMonths;
 
     private final int notificationMonths;
@@ -70,7 +67,8 @@ public class IdentityService implements UserDetailsService {
                            NotificationService notificationService,
                            MessageService messageService,
                            ResetService resetService,
-                           TokenService tokenService) {
+                           TokenService tokenService,
+                           IdentityReactivationService identityReactivationService) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -82,6 +80,7 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
+        this.identityReactivationService = identityReactivationService;
     }
 
     @Autowired
@@ -103,19 +102,20 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    public void createIdentityFromInviteCode(String code, String password) {
-        Invite invite = inviteService.findByCode(code);
-
-        Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
-        identityRepository.save(identity);
-
-        LOGGER.info("New identity {} successfully created", identity.getEmail());
+    public Identity getIdentity(String uid) {
+        return identityRepository.findFirstByUid(uid)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public void lockIdentity(String email) {
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(email);
-        identity.setLocked(true);
+    public void updateLocked(String uid) {
+        Identity identity = identityRepository.findFirstByUid(uid)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        if (identity.isLocked()) {
+            identity.setLocked(false);
+        } else {
+            identity.setLocked(true);
+        }
         identityRepository.save(identity);
     }
 
