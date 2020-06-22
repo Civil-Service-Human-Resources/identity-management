@@ -178,4 +178,7 @@ public class IdentityService implements UserDetailsService {
         });
     }
 
+    public void clearUserTokens(Identity identity) {
+        tokenService.deleteTokensByIdentity(identity);
+    }
 }

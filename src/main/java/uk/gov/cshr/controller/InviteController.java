@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
@@ -76,8 +77,11 @@ public class InviteController {
     @PostMapping
     public String invited(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes, Principal principal) {
         forEmail = forEmail.trim().toLowerCase();
-        String actorEmail = ((OAuth2Authentication) principal).getPrincipal().toString();
-        LOGGER.info("{} inviting {} ", actorEmail, forEmail);
+
+        String inviterUid = ((OAuth2Authentication) principal).getPrincipal().toString();
+        Identity inviter = identityRepository.findFirstByUid(inviterUid).get();
+
+        LOGGER.info("{} inviting {} ", inviter.getEmail(), forEmail);
 
         if (inviteRepository.existsByForEmailAndStatus(forEmail, InviteStatus.PENDING)) {
             LOGGER.info("{} has already been invited", forEmail);
@@ -100,15 +104,15 @@ public class InviteController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
-                    LOGGER.info("{} found no role for id {}", actorEmail, id);
+                    LOGGER.info("{} found no role for id {}", inviter.getEmail(), id);
                     return "redirect:/invites";
                 }
             }
         }
 
-        inviteService.createNewInviteForEmailAndRoles(forEmail, roleSet, identityRepository.findFirstByActiveTrueAndEmailEquals(actorEmail));
+        inviteService.createNewInviteForEmailAndRoles(forEmail, roleSet, identityRepository.findFirstByActiveTrueAndEmailEquals(inviter.getEmail()));
 
-        LOGGER.info("{} invited {}", actorEmail, forEmail);
+        LOGGER.info("{} invited {}", inviter.getEmail(), forEmail);
 
         redirectAttributes.addFlashAttribute("status", "Invite sent to " + forEmail);
         return "redirect:/invites";
