@@ -197,6 +197,7 @@ public class IdentityController {
                 }
             }
             identityRepository.save(identity);
+            identityService.clearUserTokens(identity);
 
             log.info("{} updated new role {}", ((OAuth2Authentication) principal).getPrincipal(), identity);
         } else {

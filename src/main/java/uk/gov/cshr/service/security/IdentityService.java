@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
@@ -49,13 +51,13 @@ public class IdentityService implements UserDetailsService {
 
     private final MessageService messageService;
 
-    private IdentityReactivationService identityReactivationService;
-
     private final int deactivationMonths;
 
     private final int notificationMonths;
 
     private final int deletionMonths;
+
+    private final AgencyTokenService agencyTokenService;
 
     public IdentityService(@Value("${accountPeriodsInMonths.deactivation}") int deactivation,
                            @Value("${accountPeriodsInMonths.notification}") int notification,
@@ -68,7 +70,7 @@ public class IdentityService implements UserDetailsService {
                            MessageService messageService,
                            ResetService resetService,
                            TokenService tokenService,
-                           IdentityReactivationService identityReactivationService) {
+                           AgencyTokenService agencyTokenService) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -80,7 +82,7 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
-        this.identityReactivationService = identityReactivationService;
+        this.agencyTokenService = agencyTokenService;
     }
 
     @Autowired
@@ -119,25 +121,24 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(identity);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void deleteIdentity(String uid) {
-        ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
+        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
 
-        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-            response = csrsService.deleteCivilServant(uid);
+        if (lrResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+                ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
 
-            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-                Optional<Identity> result = identityRepository.findFirstByUid(uid);
+                if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+                    Optional<Identity> result = identityRepository.findFirstByUid(uid);
 
-                if (result.isPresent()) {
-                    Identity identity = result.get();
-
-                    inviteService.deleteInvitesByIdentity(identity);
-                    resetService.deleteResetsByIdentity(identity);
-                    tokenService.deleteTokensByIdentity(identity);
-                    identityRepository.delete(identity);
+                    if (result.isPresent()) {
+                        Identity identity = result.get();
+                        inviteService.deleteInvitesByIdentity(identity);
+                        resetService.deleteResetsByIdentity(identity);
+                        tokenService.deleteTokensByIdentity(identity);
+                        identityRepository.delete(identity);
+                    }
                 }
-            }
         }
     }
 
@@ -149,7 +150,7 @@ public class IdentityService implements UserDetailsService {
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
 
-        LOGGER.info("deactiviation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+        LOGGER.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
 
         identities.forEach(identity -> {
             LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
@@ -157,6 +158,7 @@ public class IdentityService implements UserDetailsService {
             if (lastLoggedIn.isBefore(deletionDate)) {
                 LOGGER.info("deleting identity {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletedMessage(identity));
+
                 deleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
                 LOGGER.info("sending notify {} ", identity.getEmail());
@@ -167,8 +169,15 @@ public class IdentityService implements UserDetailsService {
                 LOGGER.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
+                agencyTokenService.updateAgencyTokenQuotaForUser(identity,true);
+                // set the organisation for the user to be null
+                csrsService.removeOrg();
                 identityRepository.save(identity);
             }
         });
+    }
+
+    public void clearUserTokens(Identity identity) {
+        tokenService.deleteTokensByIdentity(identity);
     }
 }

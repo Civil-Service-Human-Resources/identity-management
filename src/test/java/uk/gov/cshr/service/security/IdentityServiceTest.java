@@ -30,9 +30,6 @@ public class IdentityServiceTest {
     private IdentityRepository identityRepository;
 
     @Mock
-    private InviteService inviteService;
-
-    @Mock
     private ResetService resetService;
 
     @Mock
@@ -54,7 +51,7 @@ public class IdentityServiceTest {
     private MessageService messageService;
 
     @Mock
-    private IdentityReactivationService identityReactivationService;
+    private AgencyTokenService agencyTokenService;
 
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
@@ -80,7 +77,7 @@ public class IdentityServiceTest {
                 messageService,
                 resetService,
                 tokenService,
-                identityReactivationService);
+                agencyTokenService);
 
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
