@@ -6,25 +6,43 @@
 </head>
 <body>
 <section layout:fragment="content">
-    <h4 th:text="${'Update Identity - ' + identity.email}"></h4>
+    <a href="/mgmt/identities" class="btn btn-link">Back</a>
+
+    <h1 th:text="${'Update Identity - ' + identity.email}"></h1>
+    <h2>Account status</h2>
+    <div class="container">
+        <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+            <div class="row" style="padding-bottom: 1%">
+                <div class="col-sm-8" th:text="${identity.active} ? 'Account Active: Yes' : 'Account Active: No'"></div>
+                <div class="col-sm-4">
+                    <button type="submit" class="btn btn-primary"
+                            th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
+                </div>
+            </div>
+            <input type="hidden" th:field="*{uid}"/>
+        </form>
+        <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
+            <div class="row" style="padding-bottom: 1%">
+                <div class="col-sm-8" th:text="${identity.locked} ? 'Account Locked: Yes' : 'Account Locked: No'"></div>
+                <div class="col-sm-4">
+                    <button type="submit" class="btn btn-primary"
+                            th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
+                </div>
+            </div>
+            <input type="hidden" th:field="*{uid}"/>
+        </form>
+    </div>
+
+    <h2>Update roles</h2>
     <form autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
-        <div class="form-check">
-            <input id="active" class="form-check-input" type="checkbox" th:field="*{active}" th:checked="${identity.active}"/>
-            <label for="active" class="form-check-label" th:for="active">Active</label>
-        </div>
-        <div class="form-check">
-            <input id="lock" class="form-check-input" type="checkbox" th:field="*{locked}" th:checked="${identity.locked}"/>
-            <label for="lock" class="form-check-label" th:for="locked">Locked</label>
-        </div>
         <div class="form-group">
-            <label for="roleId">Roles</label>
             <select class="form-control" multiple="multiple" name="roleId" id="roleId" size="25" style="height: 100%;">
                 <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
                         th:selected="${identity.getRoles().contains(role)}"></option>
             </select>
         </div>
         <input type="hidden" th:field="*{uid}"/>
-        <button type="submit" class="btn btn-primary">Update</button>
+        <button type="submit" class="btn btn-primary">Update Roles</button>
     </form>
 </section>
 </body>

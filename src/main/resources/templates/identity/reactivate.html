@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title th:text="'Reactivate Identity - ' + ${identity.email}"></title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h4 th:text="'Reactivate identity - ' + ${identity.email}"></h4>
+    <div class="alert alert-warning" role="alert">
+        Are you sure want to request reactivation for this user? Once requested, the user will receive an verification
+        email to complete
+        the process.
+    </div>
+
+    <form autocomplete="off" action="#" th:action="@{/identities/reactivate}" th:object="${identity}" method="post">
+        <div style="padding-bottom: 1%">
+            <input type="hidden" th:field="*{uid}"/>
+            <button type="submit" class="btn btn-success">Send reactivation</button>
+        </div>
+    </form>
+    <a class="btn btn-danger" th:href="@{|/identities/update/${identity.uid}|}" role="button">Cancel</a>
+
+</section>
+</body>
+</html>

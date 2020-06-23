@@ -6,6 +6,14 @@
 </head>
 <body>
 <section layout:fragment="content">
+    <div th:if="${status}" class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">There was a problem</h4>
+        <p th:text="${status}">status ...</p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}">success</div>
     <form autocomplete="off" action="#" th:action="@{/identities}" method="get">
         <div class="form-row">
             <div class="col-10">
