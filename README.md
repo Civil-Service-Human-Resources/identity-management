@@ -75,7 +75,7 @@ Deployment is controlled via the Terraform scripts in the main PaaS repository, 
 
 Significant configuration properties are highlighted here. For the full configuration file see `src/main/resources/application.yml`
 
-- `oauth` connection settings for the identity-service used to validate bearer tokens
+- `oauth` connection settings for the identity-service used to create JWT auth tokens
 - `spring.datasource` connection settings for MySQL database
 - `invite` path and validity settings for the invite link to send to new users
 - `learnerRecord` connection settings for the learner-record service
