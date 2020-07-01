@@ -12,14 +12,17 @@ server:
 
 security:
   oauth2:
+    resource:
+      prefer-token-info: true
+      jwt:
+        key-value: ${jwt_key}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
       access-token-uri: ${OAUTH_URL:http://localhost:8080}/oauth/token
       user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
       reset-uri: ${OAUTH_URL:http://localhost:8080}/reset
-    resource:
-      user-info-uri: ${OAUTH_URL:http://localhost:8080}/oauth/resolve
+
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
@@ -34,7 +37,7 @@ csrs:
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
 
 notifications:
-  service: ${NOTIFICATION_SERVICE_URL:http://localhost:9005}
+  service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
   email: "${notifications.service}/notifications/email/"
 
 accountPeriodsInMonths:

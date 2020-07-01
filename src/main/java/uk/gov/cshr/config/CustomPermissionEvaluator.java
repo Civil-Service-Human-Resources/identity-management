@@ -1,17 +1,10 @@
 package uk.gov.cshr.config;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import uk.gov.cshr.exceptions.ForbiddenException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 @Component
 public class CustomPermissionEvaluator implements PermissionEvaluator {
@@ -26,14 +19,10 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
             return false;
         }
 
-        ObjectMapper oMapper = new ObjectMapper();
-        LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, ArrayList<String>>>> o = oMapper.convertValue(auth, LinkedHashMap.class);
-        LinkedHashMap<String, LinkedHashMap<String, ArrayList<String>>> userAuthentication = o.get("userAuthentication");
-        ArrayList<String> roles = userAuthentication.get("details").get("roles");
         if (permission.equals("read")) {
-            return roles.contains("IDENTITY_MANAGER");
+            return auth.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("IDENTITY_MANAGER"));
         } else {
-            return roles.contains("IDENTITY_DELETE");
+            return auth.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("IDENTITY_DELETE"));
         }
     }
 }
