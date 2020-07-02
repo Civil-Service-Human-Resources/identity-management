@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
 <head>
     <title>List of Invites</title>
 </head>
 <body>
 <section layout:fragment="content">
+    <h1>Invites</h1>
     <form autocomplete="off" action="#" th:action="@{/invites}" method="get">
         <div class="form-row">
             <div class="col-10">
@@ -15,7 +16,7 @@
                        placeholder="Email Address to lookup" th:value="${query}" required="required"/>
             </div>
             <div class="col">
-                <button type="submit" class="btn btn-primary mb-2">Search</button>
+                <button type="submit" class="btn btn-contrast-fix mb-2">Search</button>
                 <a class="btn btn-danger mb-2" href="/mgmt/invites">Reset</a>
             </div>
         </div>

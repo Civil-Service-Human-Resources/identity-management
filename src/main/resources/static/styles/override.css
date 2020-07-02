@@ -1,0 +1,17 @@
+.btn-contrast-fix {
+    color: #fff;
+    background-color: #007BC7;
+}
+
+.btn-contrast-fix:hover {
+    color: #fff;
+    background-color: #007BC7;
+}
+
+.btn-link-contrast-fix {
+    color: #007BC7;
+}
+
+.btn-link-contrast-fix:hover {
+    color: #007BC7;
+}
