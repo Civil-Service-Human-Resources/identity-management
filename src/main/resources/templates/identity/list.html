@@ -24,7 +24,7 @@
                        placeholder="Email Address to lookup" th:value="${query}" required="required"/>
             </div>
             <div class="col">
-                <button type="submit" class="btn btn-contrast-fix mb-2">Search</button>
+                <button type="submit" class="btn btn-primary btn-contrast-fix mb-2">Search</button>
                 <a class="btn btn-danger mb-2" href="/mgmt/identities">Reset</a>
             </div>
         </div>
@@ -55,7 +55,7 @@
             </td>
             <td th:text="${identity.email}"></td>
             <td>
-                <a class="btn btn-contrast-fix btn-sm" th:href="@{|/identities/update/${identity.uid}|}">
+                <a class="btn btn-primary btn-contrast-fix btn-sm" th:href="@{|/identities/update/${identity.uid}|}">
                     Update
                 </a>
                 <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
@@ -70,11 +70,11 @@
         <ul class="pagination justify-content-center">
             <th:block th:each="ins: ${pagination}">
                 <li class="page-item disabled">
-                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
                        th:text="${ins.key}"></a>
                 </li>
                 <li class="page-item">
-                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link"
+                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
                        th:href="@{|?query=${query}&amp;page=${ins.value}|}"
                        th:text="${ins.key}"></a>
                 </li>
