@@ -15,7 +15,7 @@
             <div class="row" style="padding-bottom: 1%">
                 <div class="col-sm-8" th:text="${identity.active} ? 'Account Active: Yes' : 'Account Active: No'"></div>
                 <div class="col-sm-4">
-                    <button type="submit" class="btn btn-contrast-fix"
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
                             th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
                 </div>
             </div>
@@ -25,7 +25,7 @@
             <div class="row" style="padding-bottom: 1%">
                 <div class="col-sm-8" th:text="${identity.locked} ? 'Account Locked: Yes' : 'Account Locked: No'"></div>
                 <div class="col-sm-4">
-                    <button type="submit" class="btn btn-contrast-fix"
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
                             th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
                 </div>
             </div>
@@ -42,7 +42,7 @@
             </select>
         </div>
         <input type="hidden" th:field="*{uid}"/>
-        <button type="submit" class="btn btn-contrast-fix">Update Roles</button>
+        <button type="submit" class="btn btn-primary btn-contrast-fix">Update Roles</button>
     </form>
 </section>
 </body>

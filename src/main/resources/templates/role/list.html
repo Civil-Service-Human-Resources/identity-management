@@ -19,7 +19,7 @@
             <input type="text" class="form-control" id="description" placeholder="Role Description"
                    th:field="*{description}"/>
         </div>
-        <button type="submit" class="btn btn-contrast-fix">Create</button>
+        <button type="submit" class="btn btn-primary btn-contrast-fix">Create</button>
     </form>
     <hr class="my-4"/>
     <h2>List of Roles</h2>
@@ -35,7 +35,7 @@
             <td th:text="${role.name}"></td>
             <td th:text="${role.description}"></td>
             <td align="right nowrap">
-                <a class="btn btn-sm btn-contrast-fix" th:href="@{|/roles/update/${role.id}|}">
+                <a class="btn btn-sm btn-primary btn-contrast-fix" th:href="@{|/roles/update/${role.id}|}">
                     Update
                 </a>
                 <a class="btn btn-danger btn-sm" th:href="@{|/roles/delete/${role.id}|}">
