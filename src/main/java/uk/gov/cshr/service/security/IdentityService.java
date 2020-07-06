@@ -126,19 +126,19 @@ public class IdentityService implements UserDetailsService {
         ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
 
         if (lrResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
-                ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
+            ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
 
-                if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
-                    Optional<Identity> result = identityRepository.findFirstByUid(uid);
+            if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+                Optional<Identity> result = identityRepository.findFirstByUid(uid);
 
-                    if (result.isPresent()) {
-                        Identity identity = result.get();
-                        inviteService.deleteInvitesByIdentity(identity);
-                        resetService.deleteResetsByIdentity(identity);
-                        tokenService.deleteTokensByIdentity(identity);
-                        identityRepository.delete(identity);
-                    }
+                if (result.isPresent()) {
+                    Identity identity = result.get();
+                    inviteService.deleteInvitesByIdentity(identity);
+                    resetService.deleteResetsByIdentity(identity);
+                    tokenService.deleteTokensByIdentity(identity);
+                    identityRepository.delete(identity);
                 }
+            }
         }
     }
 
@@ -169,9 +169,7 @@ public class IdentityService implements UserDetailsService {
                 LOGGER.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
-                agencyTokenService.updateAgencyTokenQuotaForUser(identity,true);
-                // set the organisation for the user to be null
-                csrsService.removeOrg();
+                identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
             }
         });
