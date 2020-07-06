@@ -16,7 +16,6 @@ import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.CSRSService;
 import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.TokenService;
@@ -61,8 +60,6 @@ public class IdentityServiceTest {
     @Mock
     private MessageService messageService;
 
-    @Mock
-    private AgencyTokenService agencyTokenService;
 
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
@@ -87,8 +84,7 @@ public class IdentityServiceTest {
                 notificationService,
                 messageService,
                 resetService,
-                tokenService,
-                agencyTokenService);
+                tokenService);
 
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }

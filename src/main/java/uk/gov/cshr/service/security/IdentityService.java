@@ -20,7 +20,10 @@ import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.*;
+import uk.gov.cshr.service.CSRSService;
+import uk.gov.cshr.service.InviteService;
+import uk.gov.cshr.service.ResetService;
+import uk.gov.cshr.service.TokenService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.LocalDateTime;
@@ -57,8 +60,6 @@ public class IdentityService implements UserDetailsService {
 
     private final int deletionMonths;
 
-    private final AgencyTokenService agencyTokenService;
-
     public IdentityService(@Value("${accountPeriodsInMonths.deactivation}") int deactivation,
                            @Value("${accountPeriodsInMonths.notification}") int notification,
                            @Value("${accountPeriodsInMonths.deletion}") int deletion,
@@ -69,8 +70,7 @@ public class IdentityService implements UserDetailsService {
                            NotificationService notificationService,
                            MessageService messageService,
                            ResetService resetService,
-                           TokenService tokenService,
-                           AgencyTokenService agencyTokenService) {
+                           TokenService tokenService) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -82,7 +82,6 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
-        this.agencyTokenService = agencyTokenService;
     }
 
     @Autowired
