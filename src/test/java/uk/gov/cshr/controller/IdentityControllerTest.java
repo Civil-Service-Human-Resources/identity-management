@@ -385,7 +385,7 @@ public class IdentityControllerTest {
         identity.setEmail(EMAIL);
         identity.setAgencyTokenUid(AGENCY_UID);
         identity.setRoles(null);
-        
+
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
@@ -395,6 +395,27 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2")
                         .accept(APPLICATION_JSON).param("roleId", "3"))
+                .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        verify(identityRepository, times(0)).save(any(Identity.class));
+    }
+
+    @Test
+    public void updateIdentityRolesShouldRedirectIfRoleParamNotPresent() throws Exception {
+        Identity identity = new Identity();
+        identity.setActive(true);
+        identity.setEmail(EMAIL);
+        identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(null);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
+
+        mockMvc.perform(
+                post("/identities/update/")
+                        .with(csrf())
+                        .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));

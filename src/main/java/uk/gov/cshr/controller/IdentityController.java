@@ -176,22 +176,20 @@ public class IdentityController {
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
-        if (optionalIdentity.isPresent()) {
+        if (optionalIdentity.isPresent() && roleId != null) {
             Identity identity = optionalIdentity.get();
 
             Set<Role> roleSet = new HashSet<>();
-            if (roleId != null) {
-                for (String id : roleId) {
-                    Optional<Role> optionalRole = roleRepository.findById(Long.parseLong(id));
-                    if (optionalRole.isPresent()) {
-                        roleSet.add(optionalRole.get());
-                    } else {
-                        redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
-                        return REDIRECT_IDENTITIES_LIST;
-                    }
+            for (String id : roleId) {
+                Optional<Role> optionalRole = roleRepository.findById(Long.parseLong(id));
+                if (optionalRole.isPresent()) {
+                    roleSet.add(optionalRole.get());
+                } else {
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+                    return REDIRECT_IDENTITIES_LIST;
                 }
-                identity.setRoles(roleSet);
             }
+            identity.setRoles(roleSet);
             identityRepository.save(identity);
             identityService.clearUserTokens(identity);
         } else {
