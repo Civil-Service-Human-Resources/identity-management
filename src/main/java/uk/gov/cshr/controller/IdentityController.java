@@ -21,7 +21,6 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
@@ -171,37 +170,29 @@ public class IdentityController {
 
 
     @PostMapping("/identities/update")
-    public String identityUpdate(@RequestParam(value = "locked", required = false) Boolean locked,
-                                 @RequestParam(value = "active", required = false) Boolean active,
-                                 @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
+    public String identityUpdate(@RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  @RequestParam(UID_ATTRIBUTE) String uid,
-                                 Principal principal,
                                  RedirectAttributes redirectAttributes) {
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
-        if (optionalIdentity.isPresent()) {
+        if (optionalIdentity.isPresent() && roleId != null) {
             Identity identity = optionalIdentity.get();
 
             Set<Role> roleSet = new HashSet<>();
-            if (roleId != null) {
-                for (String id : roleId) {
-                    Optional<Role> optionalRole = roleRepository.findById(Long.parseLong(id));
-                    if (optionalRole.isPresent()) {
-                        roleSet.add(optionalRole.get());
-                    } else {
-                        log.info("{} found no role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
-                        redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
-                        return REDIRECT_IDENTITIES_LIST;
-                    }
+            for (String id : roleId) {
+                Optional<Role> optionalRole = roleRepository.findById(Long.parseLong(id));
+                if (optionalRole.isPresent()) {
+                    roleSet.add(optionalRole.get());
+                } else {
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+                    return REDIRECT_IDENTITIES_LIST;
                 }
             }
+            identity.setRoles(roleSet);
             identityRepository.save(identity);
             identityService.clearUserTokens(identity);
-
-            log.info("{} updated new role {}", ((OAuth2Authentication) principal).getPrincipal(), identity);
         } else {
-            log.info("{} found no identity for uid {}", ((IdentityDetails) principal).getUsername(), uid);
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }

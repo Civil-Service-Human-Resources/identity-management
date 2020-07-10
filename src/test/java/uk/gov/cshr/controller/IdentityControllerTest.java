@@ -16,12 +16,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -303,5 +309,117 @@ public class IdentityControllerTest {
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
+    }
+
+    @Test
+    public void updateIdentityRoles() throws Exception {
+        Identity identity = new Identity();
+        identity.setActive(true);
+        identity.setEmail(EMAIL);
+        identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(null);
+
+        Role learnerRole = new Role("LEARNER", "LEARNER DESC");
+        Role adminRole = new Role("ADMIN", "ADMIN DESC");
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
+        when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
+        doNothing().when(identityService).clearUserTokens(identity);
+
+        mockMvc.perform(
+                post("/identities/update/")
+                        .with(csrf())
+                        .accept(APPLICATION_JSON).param("uid", UID)
+                        .accept(APPLICATION_JSON).param("roleId", "1")
+                        .accept(APPLICATION_JSON).param("roleId", "2"))
+                .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        verify(identityRepository).save(identityArgumentCaptor.capture());
+
+        Set<Role> rolesSet = new HashSet<>(Arrays.asList(learnerRole, adminRole));
+
+        Identity actualIdentity = identityArgumentCaptor.getValue();
+        assertEquals(true, actualIdentity.isActive());
+        assertEquals(AGENCY_UID, actualIdentity.getAgencyTokenUid());
+        assertEquals(rolesSet, actualIdentity.getRoles());
+    }
+
+    @Test
+    public void updateIdentityRolesShouldRedirectIfRoleNotPresent() throws Exception {
+        Identity identity = new Identity();
+        identity.setActive(true);
+        identity.setEmail(EMAIL);
+        identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(null);
+
+        Role learnerRole = new Role("LEARNER", "LEARNER DESC");
+        Role adminRole = new Role("ADMIN", "ADMIN DESC");
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
+        when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
+        when(roleRepository.findById(3)).thenReturn(Optional.empty());
+        doNothing().when(identityService).clearUserTokens(identity);
+
+        mockMvc.perform(
+                post("/identities/update/")
+                        .with(csrf())
+                        .accept(APPLICATION_JSON).param("uid", UID)
+                        .accept(APPLICATION_JSON).param("roleId", "1")
+                        .accept(APPLICATION_JSON).param("roleId", "2")
+                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        verify(identityRepository, times(0)).save(any(Identity.class));
+    }
+
+    @Test
+    public void updateIdentityRolesShouldRedirectIfIdentityNotPresent() throws Exception {
+        Identity identity = new Identity();
+        identity.setActive(true);
+        identity.setEmail(EMAIL);
+        identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(null);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
+
+        mockMvc.perform(
+                post("/identities/update/")
+                        .with(csrf())
+                        .accept(APPLICATION_JSON).param("uid", UID)
+                        .accept(APPLICATION_JSON).param("roleId", "1")
+                        .accept(APPLICATION_JSON).param("roleId", "2")
+                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        verify(identityRepository, times(0)).save(any(Identity.class));
+    }
+
+    @Test
+    public void updateIdentityRolesShouldRedirectIfRoleParamNotPresent() throws Exception {
+        Identity identity = new Identity();
+        identity.setActive(true);
+        identity.setEmail(EMAIL);
+        identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(null);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
+
+        mockMvc.perform(
+                post("/identities/update/")
+                        .with(csrf())
+                        .accept(APPLICATION_JSON).param("uid", UID))
+                .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        verify(identityRepository, times(0)).save(any(Identity.class));
     }
 }
