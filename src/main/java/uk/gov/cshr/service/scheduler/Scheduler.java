@@ -23,7 +23,9 @@ public class Scheduler {
     public void trackUserActivity() {
         LOGGER.info("Executing trackUserActivity at {}", dateFormat.format(new Date()));
 
-        identityService.trackUserActivity();
+        LOGGER.info("Skipping trackUserActivity at {}", dateFormat.format(new Date()));
+
+//        identityService.trackUserActivity();
 
         LOGGER.info("trackUserActivity complete at {}", dateFormat.format(new Date()));
     }
