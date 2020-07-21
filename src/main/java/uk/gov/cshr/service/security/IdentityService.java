@@ -153,6 +153,7 @@ public class IdentityService implements UserDetailsService {
     @Async
     @Transactional
     public void trackUserActivity() {
+        log.info("Staring trackUserActivity");
         Iterable<Identity> identities = identityRepository.findAll();
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
@@ -186,11 +187,14 @@ public class IdentityService implements UserDetailsService {
         } else {
             log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
         }
+
+        log.info("Finished trackUserActivity");
     }
 
     @Async
     @Transactional
     public void experimentalTrackUserActivity() {
+        log.info("Staring experimentalTrackUserActivity");
         Iterable<Identity> identities = identityRepository.findAll();
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
@@ -224,6 +228,8 @@ public class IdentityService implements UserDetailsService {
         } else {
             log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
         }
+
+        log.info("Finished experimentalTrackUserActivity");
     }
 
     public void clearUserTokens(Identity identity) {

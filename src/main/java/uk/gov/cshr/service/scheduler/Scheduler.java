@@ -20,7 +20,6 @@ public class Scheduler {
     @Autowired
     private IdentityService identityService;
 
-    @Scheduled(cron = "0 0 5 * * *")
     public void trackUserActivity() {
         log.info("Executing trackUserActivity at {}", dateFormat.format(new Date()));
 

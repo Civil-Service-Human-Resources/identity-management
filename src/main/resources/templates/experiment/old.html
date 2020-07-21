@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>Old trackUserActivity launched</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h4>Old trackUserActivity launched</h4>
+    <div class="alert alert-success" role="alert">
+        <p th:text="'Old executed @ ' + ${#dates.format(#dates.createNow(), 'dd MMM yyyy HH:mm:ss:SS z')}"></p>
+    </div>
+</section>
+</body>
+</html>

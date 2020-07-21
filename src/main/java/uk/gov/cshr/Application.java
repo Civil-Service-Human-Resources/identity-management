@@ -12,9 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
+@EnableAsync
 @EnableOAuth2Sso
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableAsync
 public class Application {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
