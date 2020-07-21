@@ -10,12 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -25,10 +22,9 @@ import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.TokenService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,8 +39,6 @@ public class IdentityService implements UserDetailsService {
     private ResetService resetService;
 
     private TokenService tokenService;
-
-    private final PasswordEncoder passwordEncoder;
 
     private final LearnerRecordService learnerRecordService;
 
@@ -64,7 +58,6 @@ public class IdentityService implements UserDetailsService {
                            @Value("${accountPeriodsInMonths.notification}") int notification,
                            @Value("${accountPeriodsInMonths.deletion}") int deletion,
                            IdentityRepository identityRepository,
-                           PasswordEncoder passwordEncoder,
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
                            NotificationService notificationService,
@@ -72,7 +65,6 @@ public class IdentityService implements UserDetailsService {
                            ResetService resetService,
                            TokenService tokenService) {
         this.identityRepository = identityRepository;
-        this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
         this.notificationService = notificationService;
@@ -101,22 +93,6 @@ public class IdentityService implements UserDetailsService {
     @ReadOnlyProperty
     public boolean existsByEmail(String email) {
         return identityRepository.existsByEmail(email);
-    }
-
-    public void createIdentityFromInviteCode(String code, String password) {
-        Invite invite = inviteService.findByCode(code);
-
-        Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
-        identityRepository.save(identity);
-
-        LOGGER.info("New identity {} successfully created", identity.getEmail());
-    }
-
-    public void lockIdentity(String email) {
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(email);
-        identity.setLocked(true);
-        identityRepository.save(identity);
     }
 
     @Transactional
