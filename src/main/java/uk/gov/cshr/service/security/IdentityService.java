@@ -121,6 +121,7 @@ public class IdentityService implements UserDetailsService {
                     resetService.deleteResetsByIdentity(identity);
                     tokenService.deleteTokensByIdentity(identity);
                     identityRepository.delete(identity);
+                    identityRepository.flush();
                 }
             }
         }
@@ -128,13 +129,15 @@ public class IdentityService implements UserDetailsService {
 
     @Transactional
     public void trackUserActivity() {
-        Iterable<Identity> identities = identityRepository.findAll();
+        log.info("Staring trackUserActivity");
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
 
         log.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+
+        Iterable<Identity> identities = identityRepository.findByLastLoggedInBefore(deactivationDate.toInstant(ZoneOffset.UTC));
 
         identities.forEach(identity -> {
             LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
@@ -147,20 +150,24 @@ public class IdentityService implements UserDetailsService {
                 log.info("sending notify {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletionMessage(identity));
                 identity.setDeletionNotificationSent(true);
-                identityRepository.save(identity);
+                identityRepository.saveAndFlush(identity);
             } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
                 log.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
-                identityRepository.save(identity);
+                identityRepository.saveAndFlush(identity);
             }
         });
+      
 
         if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
             log.info("Management client user logged out after data retention execution");
         } else {
             log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
         }
+      
+      log.info("Finished trackUserActivity");
+
     }
 
     public void clearUserTokens(Identity identity) {
