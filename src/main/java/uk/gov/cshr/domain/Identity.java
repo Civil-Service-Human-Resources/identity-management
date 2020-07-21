@@ -1,5 +1,6 @@
 package uk.gov.cshr.domain;
 
+import lombok.AllArgsConstructor;
 import org.hibernate.validator.constraints.Email;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import java.time.Instant;
 import java.util.Set;
 
 @Entity
+@AllArgsConstructor
 public class Identity implements Serializable {
 
     @Id

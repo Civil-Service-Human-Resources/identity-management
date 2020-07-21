@@ -127,6 +127,29 @@ public class IdentityService implements UserDetailsService {
     }
 
     @Transactional
+    public void experimentalDeleteIdentity(String uid) {
+        ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
+
+        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
+            response = csrsService.deleteCivilServant(uid);
+
+            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
+                Optional<Identity> result = identityRepository.findFirstByUid(uid);
+
+                if (result.isPresent()) {
+                    Identity identity = result.get();
+
+                    inviteService.deleteInvitesByIdentity(identity);
+                    resetService.deleteResetsByIdentity(identity);
+                    tokenService.deleteTokensByIdentity(identity);
+                    identityRepository.delete(identity);
+                    identityRepository.flush();
+                }
+            }
+        }
+    }
+
+    @Transactional
     public void trackUserActivity() {
         Iterable<Identity> identities = identityRepository.findAll();
 
@@ -153,6 +176,43 @@ public class IdentityService implements UserDetailsService {
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
                 identityRepository.save(identity);
+            }
+        });
+
+        if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
+            log.info("Management client user logged out after data retention execution");
+        } else {
+            log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
+        }
+    }
+
+    @Transactional
+    public void experimentalTrackUserActivity() {
+        Iterable<Identity> identities = identityRepository.findAll();
+
+        LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
+        LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
+        LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
+
+        log.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+
+        identities.forEach(identity -> {
+            LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
+
+            if (lastLoggedIn.isBefore(deletionDate)) {
+                log.info("deleting identity {} ", identity.getEmail());
+                notificationService.send(messageService.createDeletedMessage(identity));
+                experimentalDeleteIdentity(identity.getUid());
+            } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
+                log.info("sending notify {} ", identity.getEmail());
+                notificationService.send(messageService.createDeletionMessage(identity));
+                identity.setDeletionNotificationSent(true);
+                identityRepository.saveAndFlush(identity);
+            } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
+                log.info("deactivating identity {} ", identity.getEmail());
+                notificationService.send(messageService.createSuspensionMessage(identity));
+                identity.setActive(false);
+                identityRepository.saveAndFlush(identity);
             }
         });
 
