@@ -5,10 +5,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: true
 
 server:
   port: 8081
   context-path: /mgmt
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: ${ROOT_LOGGING_LEVEL:INFO}
+    org.apache.http: WARN
+    org.hibernate.sql: DEBUG
 
 security:
   oauth2:

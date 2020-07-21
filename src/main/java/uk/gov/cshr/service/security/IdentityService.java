@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.IdentityLazy;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
+import uk.gov.cshr.repository.IdentityLazyRepository;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
@@ -31,6 +33,8 @@ import java.util.Optional;
 public class IdentityService implements UserDetailsService {
 
     private final IdentityRepository identityRepository;
+
+    private final IdentityLazyRepository identityLazyRepository;
 
     private InviteService inviteService;
 
@@ -62,6 +66,7 @@ public class IdentityService implements UserDetailsService {
                            @Value("${accountPeriodsInMonths.notification}") int notification,
                            @Value("${accountPeriodsInMonths.deletion}") int deletion,
                            IdentityRepository identityRepository,
+                           IdentityLazyRepository identityLazyRepository,
                            PasswordEncoder passwordEncoder,
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
@@ -72,6 +77,7 @@ public class IdentityService implements UserDetailsService {
                            RestTemplate restTemplate,
                            RequestEntityFactory requestEntityFactory) {
         this.identityRepository = identityRepository;
+        this.identityLazyRepository = identityLazyRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
@@ -195,7 +201,7 @@ public class IdentityService implements UserDetailsService {
     @Transactional
     public void experimentalTrackUserActivity() {
         log.info("Staring experimentalTrackUserActivity");
-        Iterable<Identity> identities = identityRepository.findAll();
+        Iterable<IdentityLazy> identities = identityLazyRepository.findAll();
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
@@ -208,18 +214,18 @@ public class IdentityService implements UserDetailsService {
 
             if (lastLoggedIn.isBefore(deletionDate)) {
                 log.info("deleting identity {} ", identity.getEmail());
-                notificationService.send(messageService.createDeletedMessage(identity));
+                notificationService.send(messageService.createDeletedMessage(lazyToIdentity(identity)));
                 experimentalDeleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
                 log.info("sending notify {} ", identity.getEmail());
-                notificationService.send(messageService.createDeletionMessage(identity));
+                notificationService.send(messageService.createDeletionMessage(lazyToIdentity(identity)));
                 identity.setDeletionNotificationSent(true);
-                identityRepository.saveAndFlush(identity);
+                identityLazyRepository.saveAndFlush(identity);
             } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
                 log.info("deactivating identity {} ", identity.getEmail());
-                notificationService.send(messageService.createSuspensionMessage(identity));
+                notificationService.send(messageService.createSuspensionMessage(lazyToIdentity(identity)));
                 identity.setActive(false);
-                identityRepository.saveAndFlush(identity);
+                identityLazyRepository.saveAndFlush(identity);
             }
         });
 
@@ -230,6 +236,10 @@ public class IdentityService implements UserDetailsService {
         }
 
         log.info("Finished experimentalTrackUserActivity");
+    }
+
+    private Identity lazyToIdentity(IdentityLazy lazy) {
+        return new Identity(lazy.getId(), lazy.getUid(), lazy.getEmail(), lazy.getPassword(), lazy.getLastLoggedIn(), lazy.isDeletionNotificationSent(), lazy.isActive(), lazy.isLocked(), lazy.getRoles());
     }
 
     public void clearUserTokens(Identity identity) {
