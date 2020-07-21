@@ -22,11 +22,7 @@ public class Scheduler {
     @Scheduled(cron = "0 0 5 * * *")
     public void trackUserActivity() {
         LOGGER.info("Executing trackUserActivity at {}", dateFormat.format(new Date()));
-
-        LOGGER.info("Skipping trackUserActivity at {}", dateFormat.format(new Date()));
-
-//        identityService.trackUserActivity();
-
+        identityService.trackUserActivity();
         LOGGER.info("trackUserActivity complete at {}", dateFormat.format(new Date()));
     }
 }

@@ -1,7 +1,6 @@
 package uk.gov.cshr.service.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -14,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -25,16 +22,14 @@ import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.TokenService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Optional;
 
 @Service
+@Slf4j
 @Transactional
 public class IdentityService implements UserDetailsService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityService.class);
 
     private final IdentityRepository identityRepository;
 
@@ -103,22 +98,6 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    public void createIdentityFromInviteCode(String code, String password) {
-        Invite invite = inviteService.findByCode(code);
-
-        Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
-        identityRepository.save(identity);
-
-        LOGGER.info("New identity {} successfully created", identity.getEmail());
-    }
-
-    public void lockIdentity(String email) {
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(email);
-        identity.setLocked(true);
-        identityRepository.save(identity);
-    }
-
     @Transactional
     public void deleteIdentity(String uid) {
         ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
@@ -136,6 +115,7 @@ public class IdentityService implements UserDetailsService {
                     resetService.deleteResetsByIdentity(identity);
                     tokenService.deleteTokensByIdentity(identity);
                     identityRepository.delete(identity);
+                    identityRepository.flush();
                 }
             }
         }
@@ -143,33 +123,37 @@ public class IdentityService implements UserDetailsService {
 
     @Transactional
     public void trackUserActivity() {
-        Iterable<Identity> identities = identityRepository.findAll();
+        log.info("Staring trackUserActivity");
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
 
-        LOGGER.info("deactiviation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+        log.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+
+        Iterable<Identity> identities = identityRepository.findByLastLoggedInBefore(deactivationDate.toInstant(ZoneOffset.UTC));
 
         identities.forEach(identity -> {
             LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
 
             if (lastLoggedIn.isBefore(deletionDate)) {
-                LOGGER.info("deleting identity {} ", identity.getEmail());
+                log.info("deleting identity {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletedMessage(identity));
                 deleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
-                LOGGER.info("sending notify {} ", identity.getEmail());
+                log.info("sending notify {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletionMessage(identity));
                 identity.setDeletionNotificationSent(true);
-                identityRepository.save(identity);
+                identityRepository.saveAndFlush(identity);
             } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
-                LOGGER.info("deactivating identity {} ", identity.getEmail());
+                log.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
-                identityRepository.save(identity);
+                identityRepository.saveAndFlush(identity);
             }
         });
+
+        log.info("Finished trackUserActivity");
     }
 
     public void clearUserTokens(Identity identity) {
