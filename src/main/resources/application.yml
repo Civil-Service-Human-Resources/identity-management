@@ -23,6 +23,8 @@ security:
       user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
       reset-uri: ${OAUTH_URL:http://localhost:8080}/reset
 
+identity:
+  url: ${OAUTH_URL:http://localhost:8080}
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
@@ -58,7 +60,7 @@ spring:
   thymeleaf:
     cache: true
   datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=password&useSSL=false}
     platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
