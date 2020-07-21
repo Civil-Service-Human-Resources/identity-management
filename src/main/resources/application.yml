@@ -23,6 +23,8 @@ security:
       user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
       reset-uri: ${OAUTH_URL:http://localhost:8080}/reset
 
+identity:
+  url: ${OAUTH_URL:http://localhost:8080}
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}

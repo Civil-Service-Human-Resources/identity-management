@@ -12,14 +12,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.CSRSService;
-import uk.gov.cshr.service.InviteService;
-import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.TokenService;
+import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.LocalDateTime;
@@ -55,6 +53,10 @@ public class IdentityService implements UserDetailsService {
 
     private final int deletionMonths;
 
+    private final RequestEntityFactory requestEntityFactory;
+
+    private final RestTemplate restTemplate;
+
     public IdentityService(@Value("${accountPeriodsInMonths.deactivation}") int deactivation,
                            @Value("${accountPeriodsInMonths.notification}") int notification,
                            @Value("${accountPeriodsInMonths.deletion}") int deletion,
@@ -65,7 +67,9 @@ public class IdentityService implements UserDetailsService {
                            NotificationService notificationService,
                            MessageService messageService,
                            ResetService resetService,
-                           TokenService tokenService) {
+                           TokenService tokenService,
+                           RestTemplate restTemplate,
+                           RequestEntityFactory requestEntityFactory) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.learnerRecordService = learnerRecordService;
@@ -77,6 +81,8 @@ public class IdentityService implements UserDetailsService {
         this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
+        this.requestEntityFactory = requestEntityFactory;
+        this.restTemplate = restTemplate;
     }
 
     @Autowired
@@ -152,8 +158,16 @@ public class IdentityService implements UserDetailsService {
                 identityRepository.saveAndFlush(identity);
             }
         });
+      
 
-        log.info("Finished trackUserActivity");
+        if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
+            log.info("Management client user logged out after data retention execution");
+        } else {
+            log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
+        }
+      
+      log.info("Finished trackUserActivity");
+
     }
 
     public void clearUserTokens(Identity identity) {

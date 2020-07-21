@@ -1,5 +1,6 @@
 package uk.gov.cshr.service.scheduler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class Scheduler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -24,5 +25,6 @@ public class Scheduler {
         LOGGER.info("Executing trackUserActivity at {}", dateFormat.format(new Date()));
         identityService.trackUserActivity();
         LOGGER.info("trackUserActivity complete at {}", dateFormat.format(new Date()));
+
     }
 }
