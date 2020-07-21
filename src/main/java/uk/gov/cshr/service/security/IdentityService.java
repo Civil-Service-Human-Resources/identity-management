@@ -124,7 +124,7 @@ public class IdentityService implements UserDetailsService {
 
     @Transactional
     public void trackUserActivity() {
-        log.info("Staring trackUserActivity");
+        log.info("Starting trackUserActivity");
 
         LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);

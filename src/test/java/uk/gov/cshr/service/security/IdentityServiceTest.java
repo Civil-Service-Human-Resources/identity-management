@@ -1,21 +1,21 @@
 package uk.gov.cshr.service.security;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.CSRSService;
-import uk.gov.cshr.service.InviteService;
-import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.TokenService;
+import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.Instant;
@@ -66,28 +66,49 @@ public class IdentityServiceTest {
     private NotificationService notificationService;
     @Mock
     private MessageService messageService;
+    @Mock
+    private RestTemplate restTemplate;
+    @Mock
+    private RequestEntityFactory requestEntityFactory;
 
     private IdentityService identityService;
 
+    private RequestEntity requestEntity = RequestEntity.get(null).build();
+    private ResponseEntity responseEntity = ResponseEntity.ok().build();
+
     @Before
     public void createIdentityService() {
-        identityService = new IdentityService(DEACTIVATION_MONTH, NOTIFICATION_MONTH, DELETION_MONTH, identityRepository, learnerRecordService, csrsService, notificationService, messageService, resetService, tokenService);
+        identityService = new IdentityService(DEACTIVATION_MONTH, NOTIFICATION_MONTH, DELETION_MONTH, identityRepository, learnerRecordService, csrsService, notificationService, messageService, resetService, tokenService, restTemplate, requestEntityFactory);
         identityService.setInviteService(inviteService);
+
+        when(requestEntityFactory.createLogoutRequest()).thenReturn(requestEntity);
+        when(restTemplate.exchange(requestEntity, Void.class)).thenReturn(responseEntity);
+    }
+
+    @After
+    public void globalLogoutCheck() {
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_NoActionsWhenNoUsersInRanges() {
 
-        List<Identity> userList = new ArrayList<>();
-        userList.add(new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, Instant.now(), DELETE_NOTIFICATION_NOT_SENT));
+        Identity noActionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, Instant.now(), DELETE_NOTIFICATION_NOT_SENT);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        List<Identity> userList = new ArrayList<>();
+        userList.add(noActionUser);
+
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
 
+        assertTrue(noActionUser.isActive());
+        assertFalse(noActionUser.isDeletionNotificationSent());
     }
 
     @Test
@@ -99,21 +120,19 @@ public class IdentityServiceTest {
         List<Identity> userList = new ArrayList<>();
         userList.add(deactivationUser);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
         when(messageService.createSuspensionMessage(deactivationUser)).thenReturn(deactivationNotification);
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verify(messageService, times(1)).createSuspensionMessage(deactivationUser);
         verify(notificationService, times(1)).send(deactivationNotification);
-        verify(identityRepository, times(1)).save(deactivationUser);
+        verify(identityRepository, times(1)).saveAndFlush(deactivationUser);
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
 
-
         assertFalse(deactivationUser.isActive());
-
     }
 
     @Test
@@ -123,11 +142,11 @@ public class IdentityServiceTest {
         List<Identity> userList = new ArrayList<>();
         userList.add(deactivationUser);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
     }
@@ -144,18 +163,18 @@ public class IdentityServiceTest {
         userList.add(notificationUserDeactivated);
         userList.add(notificationUserActive);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
         when(messageService.createDeletionMessage(notificationUserDeactivated)).thenReturn(deletionWarningNotification);
         when(messageService.createDeletionMessage(notificationUserActive)).thenReturn(deletionWarningNotification);
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verify(messageService, times(1)).createDeletionMessage(notificationUserActive);
         verify(messageService, times(1)).createDeletionMessage(notificationUserDeactivated);
         verify(notificationService, times(2)).send(deletionWarningNotification);
-        verify(identityRepository, times(1)).save(notificationUserDeactivated);
-        verify(identityRepository, times(1)).save(notificationUserActive);
+        verify(identityRepository, times(1)).saveAndFlush(notificationUserDeactivated);
+        verify(identityRepository, times(1)).saveAndFlush(notificationUserActive);
         verifyNoMoreInteractions(identityRepository);
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
@@ -172,11 +191,11 @@ public class IdentityServiceTest {
         List<Identity> userList = new ArrayList<>();
         userList.add(notificationUser);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
     }
 
@@ -187,7 +206,7 @@ public class IdentityServiceTest {
         List<Identity> userList = new ArrayList<>();
         userList.add(deletionUser);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
         when(messageService.createDeletedMessage(deletionUser)).thenReturn(deletionNotification);
         when(learnerRecordService.deleteCivilServant(deletionUser.getUid())).thenReturn(ResponseEntity.noContent().build());
         when(csrsService.deleteCivilServant(deletionUser.getUid())).thenReturn(ResponseEntity.noContent().build());
@@ -195,7 +214,7 @@ public class IdentityServiceTest {
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verify(messageService, times(1)).createDeletedMessage(deletionUser);
         verify(notificationService, times(1)).send(deletionNotification);
         verify(learnerRecordService, times(1)).deleteCivilServant(deletionUser.getUid());
@@ -205,6 +224,7 @@ public class IdentityServiceTest {
         verify(resetService, times(1)).deleteResetsByIdentity(deletionUser);
         verify(tokenService, times(1)).deleteTokensByIdentity(deletionUser);
         verify(identityRepository, times(1)).delete(deletionUser);
+        verify(identityRepository, times(1)).flush();
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
     }
@@ -228,7 +248,7 @@ public class IdentityServiceTest {
         userList.add(notificationUser);
         userList.add(deletionUser);
 
-        when(identityRepository.findAll()).thenReturn(userList);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(userList);
         when(messageService.createSuspensionMessage(deactivationUser)).thenReturn(deactivationNotification);
         when(messageService.createDeletionMessage(notificationUser)).thenReturn(deletionWarningNotification);
         when(messageService.createDeletedMessage(deletionUser)).thenReturn(deletionNotification);
@@ -238,14 +258,14 @@ public class IdentityServiceTest {
 
         identityService.trackUserActivity();
 
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
 
         verify(notificationService, times(1)).send(deactivationNotification);
         verify(notificationService, times(1)).send(deletionWarningNotification);
         verify(notificationService, times(1)).send(deletionNotification);
 
-        verify(identityRepository, times(1)).save(deactivationUser);
-        verify(identityRepository, times(1)).save(notificationUser);
+        verify(identityRepository, times(1)).saveAndFlush(deactivationUser);
+        verify(identityRepository, times(1)).saveAndFlush(notificationUser);
         verify(identityRepository, times(1)).delete(deletionUser);
 
         verify(messageService, times(1)).createSuspensionMessage(deactivationUser);
@@ -258,6 +278,7 @@ public class IdentityServiceTest {
         verify(inviteService, times(1)).deleteInvitesByIdentity(deletionUser);
         verify(resetService, times(1)).deleteResetsByIdentity(deletionUser);
         verify(tokenService, times(1)).deleteTokensByIdentity(deletionUser);
+        verify(identityRepository, times(1)).flush();
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
 
@@ -268,11 +289,11 @@ public class IdentityServiceTest {
 
     @Test
     public void trackUserActivity_NoErrorWhenNoUsers() {
-        when(identityRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(Collections.EMPTY_LIST);
         identityService.trackUserActivity();
 
         verifyZeroInteractions(notificationService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
-        verify(identityRepository, times(1)).findAll();
+        verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verifyNoMoreInteractions(identityRepository);
     }
 }
