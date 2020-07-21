@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -149,6 +150,7 @@ public class IdentityService implements UserDetailsService {
         }
     }
 
+    @Async
     @Transactional
     public void trackUserActivity() {
         Iterable<Identity> identities = identityRepository.findAll();
@@ -186,6 +188,7 @@ public class IdentityService implements UserDetailsService {
         }
     }
 
+    @Async
     @Transactional
     public void experimentalTrackUserActivity() {
         Iterable<Identity> identities = identityRepository.findAll();
