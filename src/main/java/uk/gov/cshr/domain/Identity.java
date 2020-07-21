@@ -34,7 +34,7 @@ public class Identity implements Serializable {
 
     private boolean locked;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "identity_role",
             joinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
