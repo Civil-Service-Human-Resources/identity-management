@@ -18,6 +18,9 @@ import java.util.Arrays;
 @Component
 public class RequestEntityFactory {
 
+    @Value("${identity.url}")
+    private String identityUrl;
+
     @Value("${security.oauth2.client.client-id}")
     private String clientId;
 
@@ -26,7 +29,6 @@ public class RequestEntityFactory {
 
     @Value("${security.oauth2.client.access-token-uri}")
     private String clientUrl;
-
 
     private RequestEntity createDeleteRequest(URI uri) {
         return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
@@ -53,7 +55,6 @@ public class RequestEntityFactory {
     }
 
     private RequestEntity createPutRequest(URI uri, Object body) {
-        getOauth2HeadersFromSecurityContext();
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PUT, uri);
     }
 
@@ -66,8 +67,11 @@ public class RequestEntityFactory {
     }
 
     private RequestEntity createPostRequest(URI uri, Object body) {
-        getOauth2HeadersFromSecurityContext();
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
+    }
+
+    public RequestEntity createGetRequest(URI uri, Object body) {
+        return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
     }
 
     public RequestEntity createPostRequest(String uri, Object body) {
@@ -77,6 +81,15 @@ public class RequestEntityFactory {
             throw new RequestEntityException(e);
         }
     }
+
+    public RequestEntity createLogoutRequest() {
+        try {
+            return createGetRequest(new URI(String.format("%s/oauth/logout", identityUrl)), null);
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
+
 
     private HttpHeaders getOauth2HeadersFromSecurityContext() {
         String token;
