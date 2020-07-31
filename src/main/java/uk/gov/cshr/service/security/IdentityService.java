@@ -10,9 +10,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -99,19 +102,35 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    @Transactional
+    public Identity getIdentity(String uid) {
+        return identityRepository.findFirstByUid(uid)
+                .orElseThrow(ResourceNotFoundException::new);
+    }
+
+    public void updateLocked(String uid) {
+        Identity identity = identityRepository.findFirstByUid(uid)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        if (identity.isLocked()) {
+            identity.setLocked(false);
+        } else {
+            identity.setLocked(true);
+        }
+        identityRepository.save(identity);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void deleteIdentity(String uid) {
-        ResponseEntity response = learnerRecordService.deleteCivilServant(uid);
+        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
 
-        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-            response = csrsService.deleteCivilServant(uid);
+        if (lrResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
+            ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
 
-            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
+            if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
                 Optional<Identity> result = identityRepository.findFirstByUid(uid);
 
                 if (result.isPresent()) {
                     Identity identity = result.get();
-
                     inviteService.deleteInvitesByIdentity(identity);
                     resetService.deleteResetsByIdentity(identity);
                     tokenService.deleteTokensByIdentity(identity);
@@ -140,6 +159,7 @@ public class IdentityService implements UserDetailsService {
             if (lastLoggedIn.isBefore(deletionDate)) {
                 log.info("deleting identity {} ", identity.getEmail());
                 notificationService.send(messageService.createDeletedMessage(identity));
+
                 deleteIdentity(identity.getUid());
             } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
                 log.info("sending notify {} ", identity.getEmail());
@@ -150,17 +170,17 @@ public class IdentityService implements UserDetailsService {
                 log.info("deactivating identity {} ", identity.getEmail());
                 notificationService.send(messageService.createSuspensionMessage(identity));
                 identity.setActive(false);
+                identity.setAgencyTokenUid(null);
                 identityRepository.saveAndFlush(identity);
             }
         });
-      
 
         if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
             log.info("Management client user logged out after data retention execution");
         } else {
             log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
         }
-      
+
       log.info("Finished trackUserActivity");
 
     }

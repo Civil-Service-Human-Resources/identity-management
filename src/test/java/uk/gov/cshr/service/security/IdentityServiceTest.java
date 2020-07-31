@@ -1,9 +1,10 @@
 package uk.gov.cshr.service.security;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.RequestEntity;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
@@ -23,12 +25,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IdentityServiceTest {
+
+    private static final String UID = "UID";
+    private static final Long ID = 1L;
 
     private static final int DEACTIVATION_MONTH = 1;
     private static final int NOTIFICATION_MONTH = 2;
@@ -70,6 +74,8 @@ public class IdentityServiceTest {
     private RestTemplate restTemplate;
     @Mock
     private RequestEntityFactory requestEntityFactory;
+    @Captor
+    private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     private IdentityService identityService;
 
@@ -83,19 +89,76 @@ public class IdentityServiceTest {
 
         when(requestEntityFactory.createLogoutRequest()).thenReturn(requestEntity);
         when(restTemplate.exchange(requestEntity, Void.class)).thenReturn(responseEntity);
+
+        identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
 
-    @After
-    public void globalLogoutCheck() {
-        verify(requestEntityFactory, times(1)).createLogoutRequest();
-        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
-        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
+    @Test
+    public void shouldGetIdentity() {
+        Identity identity = new Identity();
+        identity.setId(ID);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        Identity actualIdentity = identityService.getIdentity(UID);
+
+        assertEquals(ID, actualIdentity.getId());
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void shouldThrowExceptionIfIdentityNotFound() {
+        doThrow(new ResourceNotFoundException()).when(identityRepository).findFirstByUid(UID);
+
+        identityService.getIdentity(UID);
+    }
+
+    @Test
+    public void shouldSetLockedToFalseIfLockedIsTrue() {
+        Identity identity = new Identity();
+        identity.setLocked(true);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        when(identityRepository.save(identity)).thenReturn(identity);
+
+        identityService.updateLocked(UID);
+
+        verify(identityRepository).save(identityArgumentCaptor.capture());
+
+        Identity actualIdentity = identityArgumentCaptor.getValue();
+        assertEquals(false, actualIdentity.isLocked());
+    }
+
+    @Test
+    public void shouldSetLockedToTrueIfLockedIsFalse() {
+        Identity identity = new Identity();
+        identity.setLocked(false);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        when(identityRepository.save(identity)).thenReturn(identity);
+
+        identityService.updateLocked(UID);
+
+        verify(identityRepository).save(identityArgumentCaptor.capture());
+
+        Identity actualIdentity = identityArgumentCaptor.getValue();
+        assertEquals(true, actualIdentity.isLocked());
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void shouldThrowResourceNotFoundIfIdentityDoesNotExistWhenUpdatedLocked() {
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
+
+        identityService.updateLocked(UID);
+
+        verify(identityRepository, times(0)).save(any(Identity.class));
     }
 
     @Test
     public void trackUserActivity_NoActionsWhenNoUsersInRanges() {
 
-        Identity noActionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, Instant.now(), DELETE_NOTIFICATION_NOT_SENT);
+        Identity noActionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, Instant.now(), DELETE_NOTIFICATION_NOT_SENT, UUID.randomUUID().toString());
 
         List<Identity> userList = new ArrayList<>();
         userList.add(noActionUser);
@@ -109,12 +172,16 @@ public class IdentityServiceTest {
 
         assertTrue(noActionUser.isActive());
         assertFalse(noActionUser.isDeletionNotificationSent());
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_DeactivationWhenUserInDeactivationRange() {
 
-        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
+        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, UUID.randomUUID().toString());
         MessageDto deactivationNotification = new MessageDto();
 
         List<Identity> userList = new ArrayList<>();
@@ -133,11 +200,16 @@ public class IdentityServiceTest {
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
 
         assertFalse(deactivationUser.isActive());
+        assertNull(deactivationUser.getAgencyTokenUid());
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_NoDeactivationWhenUserInDeactivationRangeButAlreadyDeactivated() {
-        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
+        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, UUID.randomUUID().toString());
 
         List<Identity> userList = new ArrayList<>();
         userList.add(deactivationUser);
@@ -149,13 +221,17 @@ public class IdentityServiceTest {
         verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
 
     @Test
     public void trackUserActivity_NotificationWhenUserInNotificationRange() {
-        Identity notificationUserDeactivated = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
-        Identity notificationUserActive = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
+        Identity notificationUserDeactivated = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, null);
+        Identity notificationUserActive = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, UUID.randomUUID().toString());
 
         MessageDto deletionWarningNotification = new MessageDto();
 
@@ -182,11 +258,15 @@ public class IdentityServiceTest {
         for (Identity user : userList) {
             assertTrue(user.isDeletionNotificationSent());
         }
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_NoNotificationSentWhenUserInNotificationRangeButNotificationAlreadySent() {
-        Identity notificationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_SENT);
+        Identity notificationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_SENT, null);
 
         List<Identity> userList = new ArrayList<>();
         userList.add(notificationUser);
@@ -197,11 +277,15 @@ public class IdentityServiceTest {
 
         verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_DeletionWhenUserInDeletionRange() {
-        Identity deletionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DELETION_LLIT, DELETE_NOTIFICATION_SENT);
+        Identity deletionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DELETION_LLIT, DELETE_NOTIFICATION_SENT, null);
         MessageDto deletionNotification = new MessageDto();
         List<Identity> userList = new ArrayList<>();
         userList.add(deletionUser);
@@ -227,13 +311,17 @@ public class IdentityServiceTest {
         verify(identityRepository, times(1)).flush();
 
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
     public void trackUserActivity_MixActionWhenUsersInMixRange() {
-        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
-        Identity notificationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT);
-        Identity deletionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DELETION_LLIT, DELETE_NOTIFICATION_SENT);
+        Identity deactivationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_ACTIVE, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DEACTIVATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, UUID.randomUUID().toString());
+        Identity notificationUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, NOTIFICATION_LLIT, DELETE_NOTIFICATION_NOT_SENT, null);
+        Identity deletionUser = new Identity(UUID.randomUUID().toString(), "email", "password", USER_DEACTIVATED, USER_NOT_LOCKED, DEFAULT_ROLE_SET, DELETION_LLIT, DELETE_NOTIFICATION_SENT, null);
 
         MessageDto deactivationNotification = new MessageDto();
         MessageDto deletionWarningNotification = new MessageDto();
@@ -283,8 +371,12 @@ public class IdentityServiceTest {
         verifyNoMoreInteractions(identityRepository, notificationService, messageService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
 
         assertFalse(deactivationUser.isActive());
+        assertNull(deactivationUser.getAgencyTokenUid());
         assertTrue(notificationUser.isDeletionNotificationSent());
 
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 
     @Test
@@ -295,5 +387,9 @@ public class IdentityServiceTest {
         verifyZeroInteractions(notificationService, learnerRecordService, csrsService, inviteService, resetService, tokenService);
         verify(identityRepository, times(1)).findByLastLoggedInBefore(any());
         verifyNoMoreInteractions(identityRepository);
+
+        verify(requestEntityFactory, times(1)).createLogoutRequest();
+        verify(restTemplate, times(1)).exchange(requestEntity, Void.class);
+        verifyNoMoreInteractions(requestEntityFactory, restTemplate);
     }
 }

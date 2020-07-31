@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
 <head>
     <title>Send Invite</title>
 </head>
 <body>
 <section layout:fragment="content">
-    <h4>Send Invite</h4>
+    <h1>Send Invite</h1>
 
     <form autocomplete="off" action="#" th:action="@{/invites}" method="post">
         <div class="form-group">
@@ -20,7 +20,7 @@
                 <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Invite</button>
+        <button type="submit" class="btn btn-primary btn-contrast-fix">Invite</button>
     </form>
 </section>
 </body>

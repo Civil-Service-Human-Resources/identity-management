@@ -13,19 +13,17 @@ import org.springframework.web.client.RestTemplate;
 @EnableOAuth2Sso
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class Application {
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	@Bean
-	public RestTemplate restTemplate() {
-		return new RestTemplate();
-	}
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
-
-
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 }

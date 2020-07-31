@@ -1,13 +1,13 @@
 
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
 <head>
     <title th:text="'Update Role - ' + ${role.name}"></title>
 </head>
 <body>
 <section layout:fragment="content">
-    <h4 th:text="'Update Role - ' + ${role.name}"></h4>
+    <h1 th:text="'Update Role - ' + ${role.name}"></h1>
 
     <form autocomplete="off" action="#" th:action="@{/roles/update}" th:object="${role}" method="post">
         <div class="form-group">
@@ -20,7 +20,7 @@
                    th:field="*{description}"/>
         </div>
         <input type="hidden" th:field="*{id}"/>
-        <button type="submit" class="btn btn-primary">Update</button>
+        <button type="submit" class="btn btn-primary btn-contrast-fix">Update</button>
     </form>
 </section>
 </body>

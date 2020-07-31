@@ -30,7 +30,7 @@ public class RequestEntityFactory {
     @Value("${security.oauth2.client.access-token-uri}")
     private String clientUrl;
 
-    public RequestEntity createDeleteRequest(URI uri) {
+    private RequestEntity createDeleteRequest(URI uri) {
         return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
     }
 
@@ -42,7 +42,31 @@ public class RequestEntityFactory {
         }
     }
 
-    public RequestEntity createPostRequest(URI uri, Object body) {
+    private RequestEntity createGetRequest(URI uri) {
+        return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
+    }
+
+    public RequestEntity createGetRequest(String uri) {
+        try {
+            return createGetRequest(new URI(uri));
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
+
+    private RequestEntity createPutRequest(URI uri, Object body) {
+        return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PUT, uri);
+    }
+
+    public RequestEntity createPutRequest(String uri, Object body) {
+        try {
+            return createPutRequest(new URI(uri), body);
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
+
+    private RequestEntity createPostRequest(URI uri, Object body) {
         return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
     }
 
