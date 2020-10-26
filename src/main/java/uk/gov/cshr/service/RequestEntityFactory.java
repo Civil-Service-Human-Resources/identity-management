@@ -90,6 +90,7 @@ public class RequestEntityFactory {
         }
     }
 
+
     private HttpHeaders getOauth2HeadersFromSecurityContext() {
         String token;
         SecurityContext context = SecurityContextHolder.getContext();
