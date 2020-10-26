@@ -90,6 +90,13 @@ public class RequestEntityFactory {
         }
     }
 
+    public RequestEntity createUserLogoutRequest() {
+        try {
+            return createGetRequest(new URI(String.format("%s/oauth/logout?returnTo=localhost:8081/mgmt", identityUrl)), null);
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
 
     private HttpHeaders getOauth2HeadersFromSecurityContext() {
         String token;

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -187,5 +188,9 @@ public class IdentityService implements UserDetailsService {
 
     public void clearUserTokens(Identity identity) {
         tokenService.deleteTokensByIdentity(identity);
+    }
+
+    public void logoutUser() {
+        restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class);
     }
 }
