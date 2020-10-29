@@ -35,8 +35,8 @@ public class UserControllerTest {
     @Value("${identity.signoutUrl}")
     private String signoutUrl;
 
-    @Value("${identity.returnToUrl}")
-    private String returnToUrl;
+    @Value("${identity.idmLoginUrl}")
+    private String idmLoginUrl;
 
     @Test
     public void userShouldLogoutAndRedirectedToIDMLoginPage() throws Exception {
@@ -45,7 +45,7 @@ public class UserControllerTest {
         mockMvc.perform(
                 get("/sign-out"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(signoutUrl + "?returnTo=" + returnToUrl));
+                .andExpect(redirectedUrl(signoutUrl + "?returnTo=" + idmLoginUrl));
 
     }
 }

@@ -18,8 +18,8 @@ public class UserController {
     @Value("${identity.signoutUrl}")
     private String signoutUrl;
 
-    @Value("${identity.returnToUrl}")
-    private String returnToUrl;
+    @Value("${identity.idmLoginUrl}")
+    private String idmLoginUrl;
 
     public UserController(IdentityService identityService) {
         this.identityService = identityService;
@@ -29,6 +29,6 @@ public class UserController {
     public String logoutUser(Principal principal, HttpServletRequest request) {
         request.getSession().invalidate();
         identityService.logoutUser();
-        return "redirect:" + signoutUrl + "?returnTo=" + returnToUrl;
+        return "redirect:" + signoutUrl + "?returnTo=" + idmLoginUrl;
     }
 }
