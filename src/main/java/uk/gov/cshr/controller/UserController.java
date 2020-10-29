@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.beans.factory.annotation.Value;
 import uk.gov.cshr.service.security.IdentityService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,12 @@ public class UserController {
 
     private IdentityService identityService;
 
+    @Value("${identity.signoutUrl}")
+    private String signoutUrl;
+
+    @Value("${identity.returnToUrl}")
+    private String returnToUrl;
+
     public UserController(IdentityService identityService) {
         this.identityService = identityService;
     }
@@ -25,6 +32,6 @@ public class UserController {
     public String logoutUser(Principal principal, HttpServletRequest request) {
         request.getSession().invalidate();
         identityService.logoutUser();
-        return "redirect:http://localhost:8080/logout?returnTo=http://localhost:8081/mgmt/login";
+        return "redirect:" + signoutUrl + "?returnTo=" + returnToUrl;
     }
 }

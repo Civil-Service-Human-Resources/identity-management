@@ -34,6 +34,8 @@ security:
 
 identity:
   url: ${OAUTH_URL:http://localhost:8080}
+  signoutUrl: ${OAUTH_URL:http://localhost:8080}/logout
+  returnToUrl: ${MGMT_LOGIN_URL:http://localhost:8081}/mgmt/login
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}

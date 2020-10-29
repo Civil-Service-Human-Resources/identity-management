@@ -4,6 +4,7 @@ import org.glassfish.jersey.servlet.WebConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
@@ -25,13 +26,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableSpringDataWebSupport
 public class UserControllerTest {
 
-    private static final String IDM_LOGIN_URL = "http://localhost:8080/logout?returnTo=http://localhost:8081/mgmt/login";
-
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
     private IdentityService identityService;
+
+    @Value("${identity.signoutUrl}")
+    private String signoutUrl;
+
+    @Value("${identity.returnToUrl}")
+    private String returnToUrl;
 
     @Test
     public void userShouldLogoutAndRedirectedToIDMLoginPage() throws Exception {
@@ -40,7 +45,7 @@ public class UserControllerTest {
         mockMvc.perform(
                 get("/sign-out"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDM_LOGIN_URL));
+                .andExpect(redirectedUrl(signoutUrl + "?returnTo=" + returnToUrl));
 
     }
 }
