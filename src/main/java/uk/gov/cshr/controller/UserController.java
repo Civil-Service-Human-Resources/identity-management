@@ -10,9 +10,7 @@ import uk.gov.cshr.service.security.IdentityService;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 
-@Slf4j
 @Controller
-@PreAuthorize("hasPermission(returnObject, 'read')")
 public class UserController {
 
     private IdentityService identityService;
@@ -26,7 +24,6 @@ public class UserController {
     public UserController(IdentityService identityService) {
         this.identityService = identityService;
     }
-
 
     @GetMapping("/sign-out")
     public String logoutUser(Principal principal, HttpServletRequest request) {
