@@ -4,6 +4,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=password&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
   port: 8081
@@ -27,18 +31,18 @@ security:
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
-      access-token-uri: ${OAUTH_URL:http://localhost:8080}/oauth/token
-      user-authorization-uri: ${OAUTH_URL:http://localhost:8080}/oauth/authorize
-      reset-uri: ${OAUTH_URL:http://localhost:8080}/reset
-      reactivation-url: "${OAUTH_URL:http://localhost:8080}/account/reactivate/%s"
+      access-token-uri: ${identity.url}/oauth/token
+      user-authorization-uri: ${identity.url}/oauth/authorize
+      reset-uri: ${identity.url}/reset
+      reactivation-url: "${identity.url}/account/reactivate/%s"
 
 identity:
   url: ${OAUTH_URL:http://localhost:8080}
-  signoutUrl: ${OAUTH_URL:http://localhost:8080}/logout
+  signoutUrl: ${identity.url}/logout
   idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
 
 invite:
-  url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+  url: ${identity.url}/signup/%s
   validityInSeconds: ${INVITE_VALIDITY:259200}
 
 learnerRecord:
