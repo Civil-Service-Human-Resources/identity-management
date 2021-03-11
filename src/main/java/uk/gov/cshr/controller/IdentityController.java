@@ -1,6 +1,7 @@
 package uk.gov.cshr.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,10 +31,11 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@Slf4j
 @Controller
 @PreAuthorize("hasPermission(returnObject, 'read')")
 public class IdentityController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);
 
     public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
     private static final String IDENTITY_ATTRIBUTE = "identity";
@@ -60,7 +62,7 @@ public class IdentityController {
 
     @GetMapping("/identities")
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
-        log.debug("Listing all identities");
+        LOGGER.debug("Listing all identities");
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
         model.addAttribute("page", pages);
@@ -75,7 +77,7 @@ public class IdentityController {
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  Principal principal) {
 
-        log.info("{} editing identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        LOGGER.info("{} editing identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
@@ -87,7 +89,7 @@ public class IdentityController {
             return "identity/edit";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        LOGGER.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -203,7 +205,7 @@ public class IdentityController {
     @GetMapping("/identities/delete/{uid}")
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, Principal principal) {
-        log.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        LOGGER.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
@@ -213,7 +215,7 @@ public class IdentityController {
             return "identity/delete";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        LOGGER.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
