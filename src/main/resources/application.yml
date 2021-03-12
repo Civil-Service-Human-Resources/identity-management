@@ -38,7 +38,7 @@ identity:
   idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
 
 invite:
-  url: ${identity.url}/signup/%s
+  url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: ${INVITE_VALIDITY:259200}
 
 learnerRecord:
