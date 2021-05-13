@@ -188,4 +188,8 @@ public class IdentityService implements UserDetailsService {
     public void clearUserTokens(Identity identity) {
         tokenService.deleteTokensByIdentity(identity);
     }
+
+    public void logoutUser() {
+        restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class);
+    }
 }
