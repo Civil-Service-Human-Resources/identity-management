@@ -1,4 +1,8 @@
 spring:
+  datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=password&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
   thymeleaf:
     cache: false
   jpa:
@@ -23,7 +27,7 @@ security:
     resource:
       prefer-token-info: true
       jwt:
-        key-value: ${jwt_key}
+        key-value: ${jwt_key:dummy}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
