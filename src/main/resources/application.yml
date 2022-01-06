@@ -58,6 +58,10 @@ accountPeriodsInMonths:
   notification: 24
   deletion: 26
 
+dataRetentionJob:
+  cronSchedule: ${DATA_RETENTION_JOB_CRON_SCHEDULE:"0 0 5 * * *"}
+  enabled: ${DATA_RETENTION_JOB_ENABLED:true}
+
 govNotify:
   template:
     invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}

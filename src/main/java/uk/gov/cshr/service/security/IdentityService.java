@@ -141,39 +141,55 @@ public class IdentityService implements UserDetailsService {
         }
     }
 
+    private void deactivateUsersDataRetention() {
+        LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
+        log.info("deactivation date {}", deactivationDate);
+        Iterable<Identity> identities = identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDate.toInstant(ZoneOffset.UTC));
+        identities.forEach(identity -> {
+            log.info("deactivating identity {} ", identity.getEmail());
+            notificationService.send(messageService.createSuspensionMessage(identity));
+            identity.setActive(false);
+            identity.setAgencyTokenUid(null);
+            identityRepository.saveAndFlush(identity);
+        });
+    }
+
+    private void notifyUsersOfDeletionDataRetention() {
+        LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
+        log.info("deleteNotifyDate {}", deletionNotificationDate);
+        Iterable<Identity> identities = identityRepository.findByDeletionNotificationSentFalseAndLastLoggedInBefore(deletionNotificationDate.toInstant(ZoneOffset.UTC));
+        identities.forEach(identity -> {
+            log.info("sending notify {} ", identity.getEmail());
+            notificationService.send(messageService.createDeletionMessage(identity));
+            identity.setDeletionNotificationSent(true);
+            identityRepository.saveAndFlush(identity);
+        });
+    }
+
+    private void deleteUsersDataRetention() {
+        LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
+        log.info("deleteDate {}", deletionDate);
+        Iterable<Identity> identities = identityRepository.findByLastLoggedInBefore(deletionDate.toInstant(ZoneOffset.UTC));
+        identities.forEach(identity -> {
+            log.info("deleting identity {} ", identity.getEmail());
+            notificationService.send(messageService.createDeletedMessage(identity));
+
+            deleteIdentity(identity.getUid());
+        });
+    }
+
     @Transactional
     public void trackUserActivity() {
         log.info("Starting trackUserActivity");
 
-        LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
-        LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
-        LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
+        // First, delete users who haven't logged in for more than 26 months
+        deleteUsersDataRetention();
 
-        log.info("deactivation date {}, deleteNotifyDate {}, deleteDate {}", deactivationDate, deletionNotificationDate, deletionDate);
+        // Next, remind users who haven't logged in for more than 24 months that they will be deleted in 2m months
+        notifyUsersOfDeletionDataRetention();
 
-        Iterable<Identity> identities = identityRepository.findByLastLoggedInBefore(deactivationDate.toInstant(ZoneOffset.UTC));
-
-        identities.forEach(identity -> {
-            LocalDateTime lastLoggedIn = LocalDateTime.ofInstant(identity.getLastLoggedIn(), ZoneOffset.UTC);
-
-            if (lastLoggedIn.isBefore(deletionDate)) {
-                log.info("deleting identity {} ", identity.getEmail());
-                notificationService.send(messageService.createDeletedMessage(identity));
-
-                deleteIdentity(identity.getUid());
-            } else if (lastLoggedIn.isBefore(deletionNotificationDate) && !identity.isDeletionNotificationSent()) {
-                log.info("sending notify {} ", identity.getEmail());
-                notificationService.send(messageService.createDeletionMessage(identity));
-                identity.setDeletionNotificationSent(true);
-                identityRepository.saveAndFlush(identity);
-            } else if (identity.isActive() && lastLoggedIn.isBefore(deactivationDate)) {
-                log.info("deactivating identity {} ", identity.getEmail());
-                notificationService.send(messageService.createSuspensionMessage(identity));
-                identity.setActive(false);
-                identity.setAgencyTokenUid(null);
-                identityRepository.saveAndFlush(identity);
-            }
-        });
+        // Finally, deactivate users who haven't logged in for more than 13 months
+        deactivateUsersDataRetention();
 
         if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
             log.info("Management client user logged out after data retention execution");
