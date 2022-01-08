@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import uk.gov.cshr.service.DataRetentionJobService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.text.SimpleDateFormat;
@@ -19,15 +20,18 @@ public class Scheduler {
     @Value("${dataRetentionJob.enabled}")
     private boolean retentionJobEnabled;
 
-    @Autowired
-    private IdentityService identityService;
+    private final DataRetentionJobService dataRetentionJobService;
+
+    public Scheduler(DataRetentionJobService dataRetentionJobService) {
+        this.dataRetentionJobService = dataRetentionJobService;
+    }
 
     @Scheduled(cron = "${dataRetentionJob.cronSchedule}")
     public void trackUserActivity() {
         if (retentionJobEnabled) {
-            log.info("Executing trackUserActivity at {}", dateFormat.format(new Date()));
-            identityService.trackUserActivity();
-            log.info("trackUserActivity complete at {}", dateFormat.format(new Date()));
+            log.info("Executing data retention job at {}", dateFormat.format(new Date()));
+            dataRetentionJobService.runDataRetentionJob();
+            log.info("data retention job complete at {}", dateFormat.format(new Date()));
         }
     }
 }

@@ -43,28 +43,13 @@ public class IdentityService implements UserDetailsService {
 
     private final CSRSService csrsService;
 
-    private final NotificationService notificationService;
-
-    private final MessageService messageService;
-
-    private final int deactivationMonths;
-
-    private final int notificationMonths;
-
-    private final int deletionMonths;
-
     private final RequestEntityFactory requestEntityFactory;
 
     private final RestTemplate restTemplate;
 
-    public IdentityService(@Value("${accountPeriodsInMonths.deactivation}") int deactivation,
-                           @Value("${accountPeriodsInMonths.notification}") int notification,
-                           @Value("${accountPeriodsInMonths.deletion}") int deletion,
-                           IdentityRepository identityRepository,
+    public IdentityService(IdentityRepository identityRepository,
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
-                           NotificationService notificationService,
-                           MessageService messageService,
                            ResetService resetService,
                            TokenService tokenService,
                            RestTemplate restTemplate,
@@ -72,15 +57,32 @@ public class IdentityService implements UserDetailsService {
         this.identityRepository = identityRepository;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
-        this.notificationService = notificationService;
-        this.messageService = messageService;
-        this.deactivationMonths = deactivation;
-        this.notificationMonths = notification;
-        this.deletionMonths = deletion;
         this.resetService = resetService;
         this.tokenService = tokenService;
         this.requestEntityFactory = requestEntityFactory;
         this.restTemplate = restTemplate;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
+    public void deleteIdentity(String uid) {
+        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
+
+        if (lrResponse != null) {
+            ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
+
+            if (csrsResponse != null) {
+                Optional<Identity> result = identityRepository.findFirstByUid(uid);
+
+                if (result.isPresent()) {
+                    Identity identity = result.get();
+                    inviteService.deleteInvitesByIdentity(identity);
+                    resetService.deleteResetsByIdentity(identity);
+                    tokenService.deleteTokensByIdentity(identity);
+                    identityRepository.delete(identity);
+                    identityRepository.flush();
+                }
+            }
+        }
     }
 
     @Autowired
@@ -119,87 +121,6 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(identity);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
-    public void deleteIdentity(String uid) {
-        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
-
-        if (lrResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
-            ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
-
-            if (csrsResponse.getStatusCode() == HttpStatus.NO_CONTENT) {
-                Optional<Identity> result = identityRepository.findFirstByUid(uid);
-
-                if (result.isPresent()) {
-                    Identity identity = result.get();
-                    inviteService.deleteInvitesByIdentity(identity);
-                    resetService.deleteResetsByIdentity(identity);
-                    tokenService.deleteTokensByIdentity(identity);
-                    identityRepository.delete(identity);
-                    identityRepository.flush();
-                }
-            }
-        }
-    }
-
-    private void deactivateUsersDataRetention() {
-        LocalDateTime deactivationDate = LocalDateTime.now().minusMonths(deactivationMonths);
-        log.info("deactivation date {}", deactivationDate);
-        Iterable<Identity> identities = identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDate.toInstant(ZoneOffset.UTC));
-        identities.forEach(identity -> {
-            log.info("deactivating identity {} ", identity.getEmail());
-            notificationService.send(messageService.createSuspensionMessage(identity));
-            identity.setActive(false);
-            identity.setAgencyTokenUid(null);
-            identityRepository.saveAndFlush(identity);
-        });
-    }
-
-    private void notifyUsersOfDeletionDataRetention() {
-        LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationMonths);
-        log.info("deleteNotifyDate {}", deletionNotificationDate);
-        Iterable<Identity> identities = identityRepository.findByDeletionNotificationSentFalseAndLastLoggedInBefore(deletionNotificationDate.toInstant(ZoneOffset.UTC));
-        identities.forEach(identity -> {
-            log.info("sending notify {} ", identity.getEmail());
-            notificationService.send(messageService.createDeletionMessage(identity));
-            identity.setDeletionNotificationSent(true);
-            identityRepository.saveAndFlush(identity);
-        });
-    }
-
-    private void deleteUsersDataRetention() {
-        LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionMonths);
-        log.info("deleteDate {}", deletionDate);
-        Iterable<Identity> identities = identityRepository.findByLastLoggedInBefore(deletionDate.toInstant(ZoneOffset.UTC));
-        identities.forEach(identity -> {
-            log.info("deleting identity {} ", identity.getEmail());
-            notificationService.send(messageService.createDeletedMessage(identity));
-
-            deleteIdentity(identity.getUid());
-        });
-    }
-
-    @Transactional
-    public void trackUserActivity() {
-        log.info("Starting trackUserActivity");
-
-        // First, delete users who haven't logged in for more than 26 months
-        deleteUsersDataRetention();
-
-        // Next, remind users who haven't logged in for more than 24 months that they will be deleted in 2m months
-        notifyUsersOfDeletionDataRetention();
-
-        // Finally, deactivate users who haven't logged in for more than 13 months
-        deactivateUsersDataRetention();
-
-        if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {
-            log.info("Management client user logged out after data retention execution");
-        } else {
-            log.error("Error logging out management client user after data retention execution, this may cause future executions to be unstable");
-        }
-
-      log.info("Finished trackUserActivity");
-
-    }
 
     public void clearUserTokens(Identity identity) {
         tokenService.deleteTokensByIdentity(identity);
