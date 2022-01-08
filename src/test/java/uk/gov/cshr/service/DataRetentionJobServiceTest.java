@@ -16,6 +16,7 @@ import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.service.dataRetentionJob.DataRetentionJobService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.time.Instant;
@@ -77,7 +78,7 @@ public class DataRetentionJobServiceTest {
 
     @Before
     public void createDataRetentionJobService() {
-        dataRetentionJobService = new DataRetentionJobService(identityRepository, identityService, notificationService, messageService, restTemplate, requestEntityFactory);
+        dataRetentionJobService = new DataRetentionJobService(restTemplate, requestEntityFactory);
 
         when(requestEntityFactory.createLogoutRequest()).thenReturn(requestEntity);
         when(restTemplate.exchange(requestEntity, Void.class)).thenReturn(responseEntity);

@@ -1,12 +1,10 @@
 package uk.gov.cshr.service.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import uk.gov.cshr.service.DataRetentionJobService;
-import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.service.dataRetentionJob.DataRetentionJobService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
