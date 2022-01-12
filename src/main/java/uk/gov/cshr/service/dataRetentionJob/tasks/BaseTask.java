@@ -31,7 +31,7 @@ public abstract class BaseTask {
         try {
             this.updateUser(user);
         } catch (Exception e) {
-            log.error("Failed to process user, exception: %s", e);
+            log.error(String.format("Failed to process user, exception: %s", e));
         }
     }
 }
