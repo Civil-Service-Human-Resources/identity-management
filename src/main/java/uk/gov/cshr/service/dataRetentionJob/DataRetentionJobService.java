@@ -1,24 +1,12 @@
 package uk.gov.cshr.service.dataRetentionJob;
 
-import jdk.vm.ci.meta.Local;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.notifications.service.MessageService;
-import uk.gov.cshr.notifications.service.NotificationService;
-import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionTask;
-import uk.gov.cshr.service.security.IdentityService;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -49,8 +37,13 @@ public class DataRetentionJobService {
 
     public void runDataRetentionJob() {
 
+        log.info("Running delete users task");
         deletionTask.runTask();
+
+        log.info("Running deletion notification task");
         deletionNotificationTask.runTask();
+
+        log.info("Running deactivate users task");
         deactivationTask.runTask();
 
         if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {

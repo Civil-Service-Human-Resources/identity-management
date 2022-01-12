@@ -15,8 +15,12 @@ public abstract class BaseTask {
     public void runTask() {
         try {
             List<Identity> users = fetchUsers();
-            log.info(String.format("Processing %d accounts", users.size()));
-            users.forEach(this::processUser);
+            if (users.size() > 0) {
+                log.info(String.format("Processing %d accounts", users.size()));
+                users.forEach(this::processUser);
+            } else {
+                log.info("Didn't find any users to process");
+            }
         } catch (Exception e) {
             log.error("Error in task: %s", e);
         }

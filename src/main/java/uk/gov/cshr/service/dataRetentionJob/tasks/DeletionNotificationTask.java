@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class DeletionNotificationTask extends BaseTask{
+public class DeletionNotificationTask extends BaseTask {
 
     @Value("${accountPeriodsInMonths.notification}")
     private int notificationPeriodInMonths;
