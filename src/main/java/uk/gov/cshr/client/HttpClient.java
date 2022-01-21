@@ -30,8 +30,7 @@ public class HttpClient {
             } catch (RequestEntityException | RestClientException e) {
                 if (++count == MAX_RETRIES) {
                     log.error(String.format("Failed to send request with %d retries: method: %s, URL: %s", MAX_RETRIES, requestEntity.getMethod(), requestEntity.getUrl()));
-                    log.error(String.format("Exception: %s", e));
-                    return null;
+                    throw e;
                 }
             }
         }

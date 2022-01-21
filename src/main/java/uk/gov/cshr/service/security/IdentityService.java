@@ -60,25 +60,18 @@ public class IdentityService implements UserDetailsService {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void deleteIdentity(String uid) {
         log.info("Deleting from learner-record");
-        ResponseEntity lrResponse = learnerRecordService.deleteCivilServant(uid);
-
-        if (lrResponse != null) {
-            log.info("Deleting from civil-servant-registry");
-            ResponseEntity csrsResponse = csrsService.deleteCivilServant(uid);
-
-            if (csrsResponse != null) {
-                Optional<Identity> result = identityRepository.findFirstByUid(uid);
-
-                if (result.isPresent()) {
-                    log.info("Deleting from identity");
-                    Identity identity = result.get();
-                    inviteService.deleteInvitesByIdentity(identity);
-                    resetService.deleteResetsByIdentity(identity);
-                    tokenService.deleteTokensByIdentity(identity);
-                    identityRepository.delete(identity);
-                    identityRepository.flush();
-                }
-            }
+        learnerRecordService.deleteCivilServant(uid);
+        log.info("Deleting from civil-servant-registry");
+        csrsService.deleteCivilServant(uid);
+        Optional<Identity> result = identityRepository.findFirstByUid(uid);
+        if (result.isPresent()) {
+            log.info("Deleting from identity");
+            Identity identity = result.get();
+            inviteService.deleteInvitesByIdentity(identity);
+            resetService.deleteResetsByIdentity(identity);
+            tokenService.deleteTokensByIdentity(identity);
+            identityRepository.delete(identity);
+            identityRepository.flush();
         }
     }
 
