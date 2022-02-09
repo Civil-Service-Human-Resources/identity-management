@@ -23,7 +23,7 @@ security:
     resource:
       prefer-token-info: true
       jwt:
-        key-value: ${jwt_key}
+        key-value: ${jwt_key:key}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
@@ -57,6 +57,10 @@ accountPeriodsInMonths:
   deactivation: 13
   notification: 24
   deletion: 26
+
+dataRetentionJob:
+  cronSchedule: ${DATA_RETENTION_JOB_CRON_SCHEDULE:0 0 5 * * *}
+  enabled: ${DATA_RETENTION_JOB_ENABLED:true}
 
 govNotify:
   template:
