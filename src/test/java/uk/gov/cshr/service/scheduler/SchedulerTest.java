@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.service.dataRetentionJob.DataRetentionJobService;
 import uk.gov.cshr.service.security.IdentityService;
 
 @RunWith(SpringRunner.class)
@@ -19,11 +20,11 @@ public class SchedulerTest {
   private Scheduler scheduler;
 
   @MockBean
-  private IdentityService identityService;
+  private DataRetentionJobService dataRetentionJobService;
 
   @Test
   public void trackUserActivity_verifyExpectedCalls() {
     scheduler.trackUserActivity();
-    verify(identityService, times(1)).trackUserActivity();
+    verify(dataRetentionJobService, times(1)).runDataRetentionJob();
   }
 }
