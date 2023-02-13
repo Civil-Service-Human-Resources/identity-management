@@ -1,0 +1,42 @@
+trigger:
+  branches:
+    include:
+      - master
+      - idt-develop
+      - idt-feature-LC-*
+      - idt-release-v*
+      - idt-hotfix-v*
+  tags:
+    include:
+      - '*'
+
+variables:
+  - name: acr_repo
+    value: identity-management
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: Maven@4
+    inputs:
+      mavenPOMFile: 'pom.xml'
+      mavenVersionOption: 'Default'
+      jdkVersionOption: '1.8'
+      javaHomeOption: 'JDKVersion'
+      jdkArchitectureOption: 'x64'
+      publishJUnitResults: false
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      goals: 'package'
+    displayName: 'Install Maven@4 and Java@8 and package'
+
+  - task: Docker@2
+    inputs:
+      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
+        containerRegistry: 'csl production ACR'
+      ${{ else }}:
+        containerRegistry: 'csl staging ACR'
+      repository: '${{ variables.acr_repo }}'
+      command: 'buildAndPush'
+      Dockerfile: '**/Dockerfile'
+      tags: '$(Build.SourceBranchName)'
