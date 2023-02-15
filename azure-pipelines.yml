@@ -13,6 +13,13 @@ trigger:
 variables:
   - name: acr_repo
     value: identity-management
+  - name: acr_repo_suffix
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
+      value: 'prod'
+    ${{ else }}:
+      value: 'test'
+
+name: '${{ variables.acr_repo }}.$(SourceBranchName).$(Rev:r)'
 
 pool:
   vmImage: ubuntu-latest
@@ -37,6 +44,14 @@ steps:
       ${{ else }}:
         containerRegistry: 'csl staging ACR'
       repository: '${{ variables.acr_repo }}'
+      command: 'buildAndPush'
+      Dockerfile: '**/Dockerfile'
+      tags: '$(Build.SourceBranchName)'
+
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'lpgregistry ACR'
+      repository: '${{ variables.acr_repo }}/${{ variables.acr_repo_suffix }}'
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'
       tags: '$(Build.SourceBranchName)'
