@@ -39,17 +39,6 @@ steps:
 
   - task: Docker@2
     inputs:
-      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-        containerRegistry: 'csl production ACR'
-      ${{ else }}:
-        containerRegistry: 'csl staging ACR'
-      repository: '${{ variables.acr_repo }}'
-      command: 'buildAndPush'
-      Dockerfile: '**/Dockerfile'
-      tags: '$(Build.SourceBranchName)'
-
-  - task: Docker@2
-    inputs:
       containerRegistry: 'lpgregistry ACR'
       repository: '${{ variables.acr_repo }}/${{ variables.acr_repo_suffix }}'
       command: 'buildAndPush'
