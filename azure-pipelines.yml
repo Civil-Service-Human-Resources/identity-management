@@ -17,7 +17,7 @@ variables:
     ${{ else }}:
       value: 'test'
 
-name: '$(SourceBranchName).$(Rev:r)'
+name: '$(SourceBranchName)-$(Rev:r)'
 
 pool:
   vmImage: ubuntu-latest
