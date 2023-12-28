@@ -30,6 +30,9 @@ public class RequestEntityFactory {
     @Value("${security.oauth2.client.access-token-uri}")
     private String clientUrl;
 
+    @Value("${identity.oauthLogoutEndpoint}")
+    private String oauthLogoutEndpoint;
+
     private RequestEntity createDeleteRequest(URI uri) {
         return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
     }
@@ -84,7 +87,7 @@ public class RequestEntityFactory {
 
     public RequestEntity createLogoutRequest() {
         try {
-            return createGetRequest(new URI(String.format("%s/oauth/logout", identityUrl)), null);
+            return createGetRequest(new URI(identityUrl + oauthLogoutEndpoint), null);
         } catch (URISyntaxException e) {
             throw new RequestEntityException(e);
         }
