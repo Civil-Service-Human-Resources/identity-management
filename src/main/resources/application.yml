@@ -27,8 +27,8 @@ security:
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
-      access-token-uri: ${identity.url}/oauth/token
-      user-authorization-uri: ${identity.url}/oauth/authorize
+      access-token-uri: ${identity.url}${identity.oauthTokenEndpoint}
+      user-authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
       reset-uri: ${identity.url}/reset
       reactivation-url: "${identity.url}/account/reactivate/%s"
 
@@ -36,6 +36,9 @@ identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
   idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
+  oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/oauth/logout}
+  oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth/token}
+  oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth/authorize}
 
 invite:
   url: ${identity.url}/signup/%s
