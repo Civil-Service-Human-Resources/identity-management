@@ -1,3 +1,4 @@
+
 spring:
   thymeleaf:
     cache: false
@@ -74,12 +75,20 @@ govNotify:
     reactivationTemplateId: ${GOV_NOTIFY_REACTIVATION_TEMPLATE_ID:abfb2e5f-3905-4817-b041-c53afd1eb3e5}
 
 ---
+
+database:
+  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
+  name: ${DATABASE_NAME:identity}
+  use-ssl: ${DATABASE_USESSL:false}
+
 spring:
   profiles: test, production
   thymeleaf:
     cache: true
   datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=password&useSSL=false}
+    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:my-secret-pw}
     platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
