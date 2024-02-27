@@ -1,8 +1,5 @@
+
 spring:
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=my-secret-pw&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
   thymeleaf:
     cache: false
   jpa:
@@ -27,12 +24,12 @@ security:
     resource:
       prefer-token-info: true
       jwt:
-        key-value: ${jwt_key:dummy}
+        key-value: ${jwt_key:key}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
-      access-token-uri: ${identity.url}/oauth/token
-      user-authorization-uri: ${identity.url}/oauth/authorize
+      access-token-uri: ${identity.url}${identity.oauthTokenEndpoint}
+      user-authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
       reset-uri: ${identity.url}/reset
       reactivation-url: "${identity.url}/account/reactivate/%s"
 
@@ -40,6 +37,9 @@ identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
   idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
+  oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/oauth/logout}
+  oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth/token}
+  oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth/authorize}
 
 invite:
   url: ${identity.url}/signup/%s
@@ -75,12 +75,20 @@ govNotify:
     reactivationTemplateId: ${GOV_NOTIFY_REACTIVATION_TEMPLATE_ID:abfb2e5f-3905-4817-b041-c53afd1eb3e5}
 
 ---
+
+database:
+  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
+  name: ${DATABASE_NAME:identity}
+  use-ssl: ${DATABASE_USESSL:false}
+
 spring:
   profiles: test, production
   thymeleaf:
     cache: true
   datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=my-secret-pw&useSSL=false}
+    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:my-secret-pw}
     platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
