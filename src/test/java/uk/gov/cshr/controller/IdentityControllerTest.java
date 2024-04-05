@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -70,7 +70,7 @@ public class IdentityControllerTest {
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
 
@@ -84,9 +84,9 @@ public class IdentityControllerTest {
         when(identityService.getIdentity(UID)).thenReturn(identity);
 
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("success", EMAIL + " deactivated successfully"))
@@ -95,8 +95,8 @@ public class IdentityControllerTest {
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertFalse(actualIdentity.isActive());
-        assertNull(actualIdentity.getAgencyTokenUid());
+        assertEquals(false, actualIdentity.isActive());
+        assertEquals(null, actualIdentity.getAgencyTokenUid());
     }
 
     @Test
@@ -109,9 +109,9 @@ public class IdentityControllerTest {
         when(identityService.getIdentity(UID)).thenReturn(identity);
 
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_REACTIVATE_URL + UID));
@@ -129,9 +129,9 @@ public class IdentityControllerTest {
         doThrow(new ResourceNotFoundException()).when(identityService).getIdentity(UID);
 
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
@@ -151,9 +151,9 @@ public class IdentityControllerTest {
         doThrow(new RuntimeException()).when(identityService).getIdentity(UID);
 
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
@@ -172,7 +172,7 @@ public class IdentityControllerTest {
         when(identityService.getIdentity(UID)).thenReturn(identity);
 
         mockMvc.perform(
-                get("/identities/reactivate/" + UID))
+                        get("/identities/reactivate/" + UID))
                 .andExpect(model().attribute("identity", identity))
                 .andExpect(model().attribute("uid", UID))
                 .andExpect(status().is2xxSuccessful())
@@ -196,9 +196,9 @@ public class IdentityControllerTest {
         doNothing().when(reactivationService).sendReactivationEmail(identity, reactivation);
 
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("success", "Reactivation email verification sent to " + EMAIL))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -214,9 +214,9 @@ public class IdentityControllerTest {
         when(identityService.getIdentity(UID)).thenReturn(identity);
 
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -232,9 +232,9 @@ public class IdentityControllerTest {
         doThrow(new ResourceNotFoundException()).when(identityService).getIdentity(UID);
 
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -250,9 +250,9 @@ public class IdentityControllerTest {
         doThrow(new RuntimeException()).when(identityService).getIdentity(UID);
 
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -268,9 +268,9 @@ public class IdentityControllerTest {
         doNothing().when(identityService).updateLocked(UID);
 
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
     }
@@ -285,9 +285,9 @@ public class IdentityControllerTest {
         doThrow(new ResourceNotFoundException()).when(identityService).updateLocked(UID);
 
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -303,9 +303,9 @@ public class IdentityControllerTest {
         doThrow(new RuntimeException()).when(identityService).updateLocked(UID);
 
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -325,13 +325,14 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
+        doNothing().when(identityService).clearUserTokens(identity);
 
         mockMvc.perform(
-                post("/identities/update/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID)
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2"))
+                        post("/identities/update/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -341,7 +342,7 @@ public class IdentityControllerTest {
         Set<Role> rolesSet = new HashSet<>(Arrays.asList(learnerRole, adminRole));
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertTrue(actualIdentity.isActive());
+        assertEquals(true, actualIdentity.isActive());
         assertEquals(AGENCY_UID, actualIdentity.getAgencyTokenUid());
         assertEquals(rolesSet, actualIdentity.getRoles());
     }
@@ -363,12 +364,12 @@ public class IdentityControllerTest {
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID)
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2")
-                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                        post("/identities/update/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2")
+                                .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -387,12 +388,12 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID)
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2")
-                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                        post("/identities/update/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2")
+                                .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
@@ -411,9 +412,9 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
-                        .with(csrf())
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/update/")
+                                .with(csrf())
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
