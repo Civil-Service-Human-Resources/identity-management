@@ -28,7 +28,7 @@ public class IdentityService implements UserDetailsService {
 
     private InviteService inviteService;
 
-    private final ResetService resetService;
+    private ResetService resetService;
 
     private final LearnerRecordService learnerRecordService;
 
@@ -97,7 +97,7 @@ public class IdentityService implements UserDetailsService {
         Identity identity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        if(identity.isLocked()) {
+        if (identity.isLocked()) {
             identity.setLocked(false);
         } else {
             identity.setLocked(true);
