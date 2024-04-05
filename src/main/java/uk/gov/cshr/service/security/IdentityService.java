@@ -3,7 +3,6 @@ package uk.gov.cshr.service.security;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,9 +28,7 @@ public class IdentityService implements UserDetailsService {
 
     private InviteService inviteService;
 
-    private ResetService resetService;
-
-    private TokenService tokenService;
+    private final ResetService resetService;
 
     private final LearnerRecordService learnerRecordService;
 
@@ -45,14 +42,12 @@ public class IdentityService implements UserDetailsService {
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
                            ResetService resetService,
-                           TokenService tokenService,
                            RestTemplate restTemplate,
                            RequestEntityFactory requestEntityFactory) {
         this.identityRepository = identityRepository;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
         this.resetService = resetService;
-        this.tokenService = tokenService;
         this.requestEntityFactory = requestEntityFactory;
         this.restTemplate = restTemplate;
     }
@@ -69,7 +64,6 @@ public class IdentityService implements UserDetailsService {
             Identity identity = result.get();
             inviteService.deleteInvitesByIdentity(identity);
             resetService.deleteResetsByIdentity(identity);
-            tokenService.deleteTokensByIdentity(identity);
             identityRepository.delete(identity);
             identityRepository.flush();
         }
@@ -103,17 +97,12 @@ public class IdentityService implements UserDetailsService {
         Identity identity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);
 
-        if (identity.isLocked()) {
+        if(identity.isLocked()) {
             identity.setLocked(false);
         } else {
             identity.setLocked(true);
         }
         identityRepository.save(identity);
-    }
-
-
-    public void clearUserTokens(Identity identity) {
-        tokenService.deleteTokensByIdentity(identity);
     }
 
     public void logoutUser() {

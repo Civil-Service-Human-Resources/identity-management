@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -70,7 +70,7 @@ public class IdentityControllerTest {
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
 
@@ -95,8 +95,8 @@ public class IdentityControllerTest {
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(false, actualIdentity.isActive());
-        assertEquals(null, actualIdentity.getAgencyTokenUid());
+        assertFalse(actualIdentity.isActive());
+        assertNull(actualIdentity.getAgencyTokenUid());
     }
 
     @Test
@@ -325,7 +325,6 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
-        doNothing().when(identityService).clearUserTokens(identity);
 
         mockMvc.perform(
                 post("/identities/update/")
@@ -342,7 +341,7 @@ public class IdentityControllerTest {
         Set<Role> rolesSet = new HashSet<>(Arrays.asList(learnerRole, adminRole));
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(true, actualIdentity.isActive());
+        assertTrue(actualIdentity.isActive());
         assertEquals(AGENCY_UID, actualIdentity.getAgencyTokenUid());
         assertEquals(rolesSet, actualIdentity.getRoles());
     }
@@ -362,7 +361,6 @@ public class IdentityControllerTest {
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
-        doNothing().when(identityService).clearUserTokens(identity);
 
         mockMvc.perform(
                 post("/identities/update/")
