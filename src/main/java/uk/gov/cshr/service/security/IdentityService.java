@@ -31,8 +31,6 @@ public class IdentityService implements UserDetailsService {
 
     private ResetService resetService;
 
-    private TokenService tokenService;
-
     private final LearnerRecordService learnerRecordService;
 
     private final CSRSService csrsService;
@@ -45,14 +43,12 @@ public class IdentityService implements UserDetailsService {
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
                            ResetService resetService,
-                           TokenService tokenService,
                            RestTemplate restTemplate,
                            RequestEntityFactory requestEntityFactory) {
         this.identityRepository = identityRepository;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
         this.resetService = resetService;
-        this.tokenService = tokenService;
         this.requestEntityFactory = requestEntityFactory;
         this.restTemplate = restTemplate;
     }
@@ -69,7 +65,6 @@ public class IdentityService implements UserDetailsService {
             Identity identity = result.get();
             inviteService.deleteInvitesByIdentity(identity);
             resetService.deleteResetsByIdentity(identity);
-            tokenService.deleteTokensByIdentity(identity);
             identityRepository.delete(identity);
             identityRepository.flush();
         }
@@ -109,11 +104,6 @@ public class IdentityService implements UserDetailsService {
             identity.setLocked(true);
         }
         identityRepository.save(identity);
-    }
-
-
-    public void clearUserTokens(Identity identity) {
-        tokenService.deleteTokensByIdentity(identity);
     }
 
     public void logoutUser() {

@@ -325,7 +325,6 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
-        doNothing().when(identityService).clearUserTokens(identity);
 
         mockMvc.perform(
                 post("/identities/update/")
@@ -362,7 +361,6 @@ public class IdentityControllerTest {
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
-        doNothing().when(identityService).clearUserTokens(identity);
 
         mockMvc.perform(
                 post("/identities/update/")
