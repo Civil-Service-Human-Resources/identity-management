@@ -61,8 +61,6 @@ public class IdentityServiceTest {
     @Mock
     private ResetService resetService;
     @Mock
-    private TokenService tokenService;
-    @Mock
     private LearnerRecordService learnerRecordService;
     @Mock
     private CSRSService csrsService;
@@ -84,7 +82,7 @@ public class IdentityServiceTest {
 
     @Before
     public void createIdentityService() {
-        identityService = new IdentityService(identityRepository, learnerRecordService, csrsService, resetService, tokenService, restTemplate, requestEntityFactory);
+        identityService = new IdentityService(identityRepository, learnerRecordService, csrsService, resetService, restTemplate, requestEntityFactory);
         identityService.setInviteService(inviteService);
 
         when(requestEntityFactory.createLogoutRequest()).thenReturn(requestEntity);
