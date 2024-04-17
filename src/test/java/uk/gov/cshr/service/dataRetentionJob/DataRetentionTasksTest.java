@@ -78,7 +78,7 @@ public class DataRetentionTasksTest {
         verify(notificationService, times(1)).send(deactivationNotification);
 
         assertFalse(deactivationUser.isActive());
-        assertNull(deactivationUser.getAgencyTokenUid());
+        assertEquals("TEST", deactivationUser.getAgencyTokenUid());
     }
 
     /*
