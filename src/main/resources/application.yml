@@ -59,7 +59,7 @@ notifications:
 
 reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
-  removeUserDataUrl: "${REPORTING_SERVICE_URL}/course-completions/remove-user-details"
+  removeUserDataUrl: "${reporting.serviceUrl}/course-completions/remove-user-details"
 
 accountPeriodsInMonths:
   deactivation: 13
