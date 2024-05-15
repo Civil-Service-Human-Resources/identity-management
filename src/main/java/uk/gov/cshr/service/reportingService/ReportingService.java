@@ -6,6 +6,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.client.HttpClient;
+import uk.gov.cshr.domain.RemoveUserDetailsParams;
 import uk.gov.cshr.service.RequestEntityFactory;
 
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ public class ReportingService {
     }
 
     public ResponseEntity<Void> removeUserDetails(List<String> uids){
-        RequestEntity<Void> requestEntity = requestEntityFactory.createPutRequest(removeUserDetailsUrl, uids);
+        RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
+        RequestEntity<Void> requestEntity = requestEntityFactory.createPutRequest(removeUserDetailsUrl, parameters);
         return httpClient.sendRequest(requestEntity);
     }
 
