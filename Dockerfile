@@ -1,11 +1,12 @@
-FROM maven:3.8-openjdk-8
+FROM amazoncorretto:8-alpine
 
-WORKDIR /workspace/app
+ENV SPRING_PROFILES_ACTIVE production
 
-COPY . .
+EXPOSE 8081
 
-USER root
+ADD target/identity-management-0.0.5.jar /data/app.jar
 
-RUN mvn clean package -Dmaven.test.skip
+ADD lib/AI-Agent.xml /opt/appinsights/AI-Agent.xml
+ADD https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.0.3/applicationinsights-agent-3.0.3.jar /opt/appinsights/applicationinsights-agent-3.0.3.jar
 
-CMD java -jar /workspace/app/target/identity-management-0.0.5.jar
+CMD java -javaagent:/opt/appinsights/applicationinsights-agent-3.0.3.jar -jar /data/app.jar
