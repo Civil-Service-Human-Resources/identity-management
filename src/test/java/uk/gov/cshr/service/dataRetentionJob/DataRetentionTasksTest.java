@@ -48,6 +48,10 @@ public class DataRetentionTasksTest {
 
     @Mock
     private LearnerRecordService learnerRecordService;
+    @Mock
+    CSRSService csrsService;
+    @Mock
+    ResetService resetService;
 
     private DeactivationTask getDeactivationTask() {
         return new DeactivationTask(identityRepository, messageService, notificationService);
@@ -150,10 +154,7 @@ public class DataRetentionTasksTest {
         verify(notificationService, times(1)).send(deletedNotification);
     }
 
-    @Mock
-    CSRSService csrsService;
-    @Mock
-    ResetService resetService;
+
 
     @Test
     public void deletionJobRunsReportingServiceRemoveUserDetailsWithDeletedUserUidAsParameter(){
