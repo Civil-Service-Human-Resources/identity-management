@@ -1,0 +1,64 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="identity-management [spring-boot:run]" type="MavenRunConfiguration" factoryName="Maven" nameIsGenerated="true">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings">
+        <MavenRunnerSettings>
+          <option name="delegateBuildToMaven" value="false" />
+          <option name="environmentProperties">
+            <map>
+              <entry key="DATASOURCE" value="jdbc:mysql://localhost:3306/csl_identity?user=root&amp;password=password&amp;useSSL=false" />
+              <entry key="ROOT_LOGGING_LEVEL" value="INFO" />
+              <entry key="jwt_key" value="bJwXRAslLzOtPywnCqBbQujKBKki44LB" />
+              <entry key="CLIENT_ID" value="7fbd4ae2-2db3-44c7-9544-88e80255b56e" />
+              <entry key="CLIENT_SECRET" value="test" />
+              <entry key="OAUTH_URL" value="http://localhost:9005" />
+              <entry key="IDM_URL" value="http://localhost:8081" />
+              <entry key="INVITE_VALIDITY" value="259200" />
+              <entry key="LEARNER_RECORD_URL" value="http://localhost:9000" />
+              <entry key="REGISTRY_SERVICE_URL" value="http://localhost:9002" />
+              <entry key="NOTIFICATION_SERVICE_URL" value="http://localhost:9006" />
+              <entry key="DATA_RETENTION_JOB_CRON_SCHEDULE" value="0 0 5 * * *" />
+              <entry key="DATA_RETENTION_JOB_ENABLED" value="true" />
+              <entry key="GOV_NOTIFY_INVITE_TEMPLATE_ID" value="7ef048a3-5c82-40fd-be4c-a238ce328fea" />
+              <entry key="GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID" value="de47fe22-96fc-448f-a3f0-d105e9f0e0e6" />
+              <entry key="GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID" value="5830199c-a524-458c-a630-c1b64734cf18" />
+              <entry key="GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID" value="f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686" />
+              <entry key="GOV_NOTIFY_REACTIVATION_TEMPLATE_ID" value="abfb2e5f-3905-4817-b041-c53afd1eb3e5" />
+              <entry key="OAUTH_LOGOUT_ENDPOINT" value="/oauth/logout" />
+              <entry key="OAUTH_TOKEN_ENDPOINT" value="/oauth/token" />
+              <entry key="OAUTH_AUTHORIZATION_ENDPOINT" value="/oauth/authorize" />
+            </map>
+          </option>
+          <option name="jreName" value="1.8" />
+          <option name="mavenProperties">
+            <map />
+          </option>
+          <option name="passParentEnv" value="true" />
+          <option name="runMavenInBackground" value="true" />
+          <option name="skipTests" value="false" />
+          <option name="vmOptions" value="" />
+        </MavenRunnerSettings>
+      </option>
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="profiles">
+            <set />
+          </option>
+          <option name="goals">
+            <list>
+              <option value="spring-boot:run" />
+            </list>
+          </option>
+          <option name="pomFileName" />
+          <option name="profilesMap">
+            <map />
+          </option>
+          <option name="resolveToWorkspace" value="false" />
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <method v="2" />
+  </configuration>
+</component>

@@ -191,7 +191,6 @@ public class IdentityController {
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
-            identityService.clearUserTokens(identity);
         } else {
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
