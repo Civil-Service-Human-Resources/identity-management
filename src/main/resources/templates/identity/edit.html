@@ -10,7 +10,7 @@
 
     <h1 class="pb-5" th:text="${'Update Identity - ' + identity.email}"></h1>
     <h2 class="pb-3">Account status</h2>
-    <dl th:if="${profile != null}" class="row">
+    <dl th:if="${identity != null}" class="row">
         <dt class="col-sm-3">Account Active</dt>
         <dd class="col-sm-6" th:text="${identity.active} ? 'Yes' : 'No'"></dd>
         <dd class="col-sm-3">
@@ -41,35 +41,9 @@
         <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getDisplayGrade()}"></dd>
         <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getDisplayLineManagerEmail()}"></dd>
     </dl>
-
-<!--    <div class="pb-4" th:if="${profile != null}">-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Name: ' + ${profile.getFullName()}"></div>-->
-<!--        </div>-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Organisation: ' + ${profile.getOrganisationalUnit().toDisplayString()} "></div>-->
-<!--        </div>-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Primary area of work: ' + ${profile.getProfession().getName()}"></div>-->
-<!--        </div>-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Other areas of work: ' + ${profile.getDisplayOtherAreasOfWork()}"></div>-->
-<!--        </div>-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Interests: ' + ${profile.getDisplayInterests()}"></div>-->
-<!--        </div>-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Grade: ' + ${profile.getGrade().getName()}"></div>-->
-<!--        </div>-->
-<!--        <div class="row">-->
-<!--            <div class="col-sm-8" th:text="'Line manager email: ' + ${profile.getLineManagerEmailAddress()}"></div>-->
-<!--        </div>-->
-<!--    </div>-->
     <p class="pb-4" th:if="${profile == null}">
         User has not set up their profile.
     </p>
-
-
     <h2>Update roles</h2>
     <form autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
         <div class="form-group">
