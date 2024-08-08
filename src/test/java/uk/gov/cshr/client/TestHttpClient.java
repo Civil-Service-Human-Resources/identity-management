@@ -6,11 +6,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.*;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.service.RequestEntityException;
+import uk.gov.cshr.service.RequestEntityFactory;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -20,22 +21,21 @@ public class TestHttpClient {
     private RestTemplate restTemplate;
 
     /*
-    * Test that when all retries are used up, a null value is returned.
+    * Test that when all retries are used up, an exception is thrown
     * */
-    @Test
+    @Test(expected = RequestEntityException.class)
     public void testRetryFail() {
+        RequestEntity requestEntity = mock(RequestEntity.class);
 
-        when(restTemplate.exchange(any(), Void.class))
+        when(restTemplate.exchange(requestEntity, Void.class))
                 .thenThrow(RequestEntityException.class)
                 .thenThrow(RequestEntityException.class)
                 .thenThrow(RequestEntityException.class);
 
         HttpClient clientUnderTest = new HttpClient(restTemplate);
 
-        ResponseEntity<Void> response = clientUnderTest.sendRequest(null, Void.class);
-
-        verify(restTemplate, times(3)).exchange(any(), Void.class);
-        assertNull(response);
+        ResponseEntity<Void> response = clientUnderTest.sendRequest(requestEntity, Void.class);
+        verify(restTemplate, times(3)).exchange(requestEntity, Void.class);
     }
 
 
@@ -53,7 +53,7 @@ public class TestHttpClient {
                 HttpStatus.OK
         );
 
-        when(restTemplate.exchange(any(), Void.class))
+        when(restTemplate.exchange(null, Void.class))
                 .thenThrow(RequestEntityException.class)
                 .thenReturn(responseEntity);
 
@@ -61,7 +61,7 @@ public class TestHttpClient {
 
         ResponseEntity<Void> response = clientUnderTest.sendRequest(null, Void.class);
 
-        verify(restTemplate, times(2)).exchange(any(), Void.class);
+        verify(restTemplate, times(2)).exchange(null, Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

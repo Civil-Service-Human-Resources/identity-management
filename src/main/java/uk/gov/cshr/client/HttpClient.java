@@ -5,6 +5,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.service.RequestEntityException;
 
@@ -31,7 +32,7 @@ public class HttpClient {
         while (true) {
             try {
                 return restTemplate.exchange(requestEntity, responseClass);
-            } catch (RequestEntityException | RestClientException e) {
+            } catch (RequestEntityException | RestClientResponseException e) {
                 if (++count == MAX_RETRIES) {
                     log.error(String.format("Failed to send request with %d retries: method: %s, URL: %s", MAX_RETRIES, requestEntity.getMethod(), requestEntity.getUrl()));
                     throw e;
