@@ -32,7 +32,7 @@ public class TestHttpClient {
 
         HttpClient clientUnderTest = new HttpClient(restTemplate);
 
-        ResponseEntity<Void> response = clientUnderTest.sendRequest(null);
+        ResponseEntity<Void> response = clientUnderTest.sendRequest(null, Void.class);
 
         verify(restTemplate, times(3)).exchange(any(), Void.class);
         assertNull(response);
@@ -59,7 +59,7 @@ public class TestHttpClient {
 
         HttpClient clientUnderTest = new HttpClient(restTemplate);
 
-        ResponseEntity<Void> response = clientUnderTest.sendRequest(null);
+        ResponseEntity<Void> response = clientUnderTest.sendRequest(null, Void.class);
 
         verify(restTemplate, times(2)).exchange(any(), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());

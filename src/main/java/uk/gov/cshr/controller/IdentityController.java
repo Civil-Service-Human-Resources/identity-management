@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,8 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
+import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
@@ -33,6 +36,7 @@ import java.util.Set;
 @Slf4j
 @Controller
 @PreAuthorize("hasPermission(returnObject, 'read')")
+@AllArgsConstructor
 public class IdentityController {
 
     public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
@@ -40,23 +44,12 @@ public class IdentityController {
     private static final String UID_ATTRIBUTE = "uid";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
     private static final String IDENTITY_REACTIVATE_TEMPLATE = "identity/reactivate";
-    private IdentityRepository identityRepository;
 
-    private RoleRepository roleRepository;
-
-    private IdentityService identityService;
-
-    private ReactivationService reactivationService;
-
-    public IdentityController(IdentityRepository identityRepository,
-                              RoleRepository roleRepository,
-                              IdentityService identityService,
-                              ReactivationService reactivationService) {
-        this.identityRepository = identityRepository;
-        this.roleRepository = roleRepository;
-        this.identityService = identityService;
-        this.reactivationService = reactivationService;
-    }
+    private final IdentityRepository identityRepository;
+    private final RoleRepository roleRepository;
+    private final IdentityService identityService;
+    private final ReactivationService reactivationService;
+    private final CSRSService csrsService;
 
     @GetMapping("/identities")
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
@@ -81,9 +74,11 @@ public class IdentityController {
         Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             Identity identity = optionalIdentity.get();
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
+            model.addAttribute("profile", civilServantDto);
             return "identity/edit";
         }
 

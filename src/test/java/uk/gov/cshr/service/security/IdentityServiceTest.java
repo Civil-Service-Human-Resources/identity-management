@@ -13,11 +13,11 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
-import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.*;
+import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 
 import java.time.Instant;

@@ -8,31 +8,91 @@
 <section layout:fragment="content">
     <a href="/mgmt/identities" class="btn btn-link-contrast-fix">Back</a>
 
-    <h1 th:text="${'Update Identity - ' + identity.email}"></h1>
+    <h1 class="pb-5" th:text="${'Update Identity - ' + identity.email}"></h1>
     <h2 class="pb-3">Account status</h2>
-    <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
-        <div class="row pb-3">
-            <div class="col-sm-8" th:text="'Account Active: ' + (${identity.active} ? 'Yes' : 'No')"></div>
-            <div class="col-sm-4">
+    <dl th:if="${profile != null}" class="row">
+        <dt class="col-sm-3">Account Active</dt>
+        <dd class="col-sm-6" th:text="${identity.active} ? 'Yes' : 'No'"></dd>
+        <dd class="col-sm-3">
+            <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
                 <button type="submit" class="btn btn-primary btn-contrast-fix"
                         th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
-            </div>
-        </div>
-        <input type="hidden" th:field="*{uid}"/>
-    </form>
-    <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
-        <div class="row pb-3">
-            <div class="col-sm-8" th:text="'Account Locked: ' + (${identity.locked} ? 'Yes' : 'No')"></div>
-            <div class="col-sm-4">
+                <input type="hidden" th:field="*{uid}"/>
+            </form>
+        </dd>
+        <dt class="col-sm-3">Account Locked</dt>
+        <dd class="col-sm-6" th:text="${identity.locked} ? 'Yes' : 'No' "></dd>
+        <dd class="col-sm-3">
+            <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
                 <button type="submit" class="btn btn-primary btn-contrast-fix"
                         th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
-            </div>
-        </div>
-        <input type="hidden" th:field="*{uid}"/>
-    </form>
-    <div class="row pb-3">
-        <div class="col-sm-8" th:text="'Last logged in: ' + ${identity.getLastLoggedInAsDate()}"></div>
-    </div>
+                <input type="hidden" th:field="*{uid}"/>
+            </form>
+        </dd>
+        <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
+    </dl>
+<!--    <form th:action="@{/identities/active}" method="POST" th:object="${identity}">-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Account Active: ' + (${identity.active} ? 'Yes' : 'No')"></div>-->
+<!--            <div class="col-sm-4">-->
+<!--                <button type="submit" class="btn btn-primary btn-contrast-fix"-->
+<!--                        th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <input type="hidden" th:field="*{uid}"/>-->
+<!--    </form>-->
+<!--    <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Account Locked: ' + (${identity.locked} ? 'Yes' : 'No')"></div>-->
+<!--            <div class="col-sm-4">-->
+<!--                <button type="submit" class="btn btn-primary btn-contrast-fix"-->
+<!--                        th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <input type="hidden" th:field="*{uid}"/>-->
+<!--    </form>-->
+<!--    <div class="row pb-5">-->
+<!--        <div class="col-sm-8" th:text="'Last logged in: ' + ${identity.getLastLoggedInAsDate()}"></div>-->
+<!--    </div>-->
+
+    <h2 class="pb-3">Profile</h2>
+    <dl th:if="${profile != null}" class="row">
+        <dt class="col-sm-3">Name</dt> <dd class="col-sm-9" th:text="${profile.getFullName()}"></dd>
+        <dt class="col-sm-3">Organisation</dt> <dd class="col-sm-9" th:text="${profile.getOrganisationalUnit().toDisplayString()} "></dd>
+        <dt class="col-sm-3">Primary area of work</dt> <dd class="col-sm-9" th:text="${profile.getProfession().getName()}"></dd>
+        <dt class="col-sm-3">Other areas of work</dt> <dd class="col-sm-9" th:text="${profile.getDisplayOtherAreasOfWork()}"></dd>
+        <dt class="col-sm-3">Interests</dt> <dd class="col-sm-9" th:text="${profile.getDisplayInterests()}"></dd>
+        <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getGrade().getName()}"></dd>
+        <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getLineManagerEmailAddress()}"></dd>
+    </dl>
+
+<!--    <div class="pb-4" th:if="${profile != null}">-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Name: ' + ${profile.getFullName()}"></div>-->
+<!--        </div>-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Organisation: ' + ${profile.getOrganisationalUnit().toDisplayString()} "></div>-->
+<!--        </div>-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Primary area of work: ' + ${profile.getProfession().getName()}"></div>-->
+<!--        </div>-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Other areas of work: ' + ${profile.getDisplayOtherAreasOfWork()}"></div>-->
+<!--        </div>-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Interests: ' + ${profile.getDisplayInterests()}"></div>-->
+<!--        </div>-->
+<!--        <div class="row pb-3">-->
+<!--            <div class="col-sm-8" th:text="'Grade: ' + ${profile.getGrade().getName()}"></div>-->
+<!--        </div>-->
+<!--        <div class="row">-->
+<!--            <div class="col-sm-8" th:text="'Line manager email: ' + ${profile.getLineManagerEmailAddress()}"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+    <p class="pb-4" th:if="${profile == null}">
+        User has not set up their profile.
+    </p>
+
 
     <h2>Update roles</h2>
     <form autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
