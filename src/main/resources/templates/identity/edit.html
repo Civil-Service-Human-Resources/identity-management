@@ -31,39 +31,15 @@
         </dd>
         <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
     </dl>
-<!--    <form th:action="@{/identities/active}" method="POST" th:object="${identity}">-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Account Active: ' + (${identity.active} ? 'Yes' : 'No')"></div>-->
-<!--            <div class="col-sm-4">-->
-<!--                <button type="submit" class="btn btn-primary btn-contrast-fix"-->
-<!--                        th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--        <input type="hidden" th:field="*{uid}"/>-->
-<!--    </form>-->
-<!--    <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">-->
-<!--        <div class="row pb-3">-->
-<!--            <div class="col-sm-8" th:text="'Account Locked: ' + (${identity.locked} ? 'Yes' : 'No')"></div>-->
-<!--            <div class="col-sm-4">-->
-<!--                <button type="submit" class="btn btn-primary btn-contrast-fix"-->
-<!--                        th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--        <input type="hidden" th:field="*{uid}"/>-->
-<!--    </form>-->
-<!--    <div class="row pb-5">-->
-<!--        <div class="col-sm-8" th:text="'Last logged in: ' + ${identity.getLastLoggedInAsDate()}"></div>-->
-<!--    </div>-->
-
     <h2 class="pb-3">Profile</h2>
     <dl th:if="${profile != null}" class="row">
         <dt class="col-sm-3">Name</dt> <dd class="col-sm-9" th:text="${profile.getFullName()}"></dd>
-        <dt class="col-sm-3">Organisation</dt> <dd class="col-sm-9" th:text="${profile.getOrganisationalUnit().toDisplayString()} "></dd>
-        <dt class="col-sm-3">Primary area of work</dt> <dd class="col-sm-9" th:text="${profile.getProfession().getName()}"></dd>
+        <dt class="col-sm-3">Organisation</dt> <dd class="col-sm-9" th:text="${profile.getDisplayOrganisation()} "></dd>
+        <dt class="col-sm-3">Primary area of work</dt> <dd class="col-sm-9" th:text="${profile.getDisplayProfession()}"></dd>
         <dt class="col-sm-3">Other areas of work</dt> <dd class="col-sm-9" th:text="${profile.getDisplayOtherAreasOfWork()}"></dd>
         <dt class="col-sm-3">Interests</dt> <dd class="col-sm-9" th:text="${profile.getDisplayInterests()}"></dd>
-        <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getGrade().getName()}"></dd>
-        <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getLineManagerEmailAddress()}"></dd>
+        <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getDisplayGrade()}"></dd>
+        <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getDisplayLineManagerEmail()}"></dd>
     </dl>
 
 <!--    <div class="pb-4" th:if="${profile != null}">-->

@@ -19,11 +19,35 @@ public class CivilServantDto {
     private List<Profession> otherAreasOfWork;
     private List<Interest> interests;
 
+    public String getDisplayLineManagerEmail() {
+        return this.lineManagerEmailAddress == null ? "None" : this.lineManagerEmailAddress;
+    }
+
+    public String getDisplayOrganisation() {
+        return this.organisationalUnit == null ? "None" : this.organisationalUnit.toDisplayString();
+    }
+
+    public String getDisplayGrade() {
+        return this.grade == null ? "None" : this.grade.getName();
+    }
+
+    public String getDisplayProfession() {
+        return this.profession == null ? "None" : this.profession.getName();
+    }
+
     public String getDisplayOtherAreasOfWork() {
-        return otherAreasOfWork.stream().map(Profession::getName).collect(Collectors.joining(", "));
+        if (otherAreasOfWork.size() > 0) {
+            return otherAreasOfWork.stream().map(Profession::getName).collect(Collectors.joining(", "));
+        } else {
+            return "None";
+        }
     }
 
     public String getDisplayInterests() {
-        return interests.stream().map(Interest::getName).collect(Collectors.joining(", "));
+        if (interests.size() > 0) {
+            return interests.stream().map(Interest::getName).collect(Collectors.joining(", "));
+        } {
+            return "None";
+        }
     }
 }
