@@ -9,28 +9,29 @@
     <a href="/mgmt/identities" class="btn btn-link-contrast-fix">Back</a>
 
     <h1 th:text="${'Update Identity - ' + identity.email}"></h1>
-    <h2>Account status</h2>
-    <div class="container">
-        <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
-            <div class="row" style="padding-bottom: 1%">
-                <div class="col-sm-8" th:text="${identity.active} ? 'Account Active: Yes' : 'Account Active: No'"></div>
-                <div class="col-sm-4">
-                    <button type="submit" class="btn btn-primary btn-contrast-fix"
-                            th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
-                </div>
+    <h2 class="pb-3">Account status</h2>
+    <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+        <div class="row pb-3">
+            <div class="col-sm-8" th:text="'Account Active: ' + (${identity.active} ? 'Yes' : 'No')"></div>
+            <div class="col-sm-4">
+                <button type="submit" class="btn btn-primary btn-contrast-fix"
+                        th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
             </div>
-            <input type="hidden" th:field="*{uid}"/>
-        </form>
-        <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
-            <div class="row" style="padding-bottom: 1%">
-                <div class="col-sm-8" th:text="${identity.locked} ? 'Account Locked: Yes' : 'Account Locked: No'"></div>
-                <div class="col-sm-4">
-                    <button type="submit" class="btn btn-primary btn-contrast-fix"
-                            th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
-                </div>
+        </div>
+        <input type="hidden" th:field="*{uid}"/>
+    </form>
+    <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
+        <div class="row pb-3">
+            <div class="col-sm-8" th:text="'Account Locked: ' + (${identity.locked} ? 'Yes' : 'No')"></div>
+            <div class="col-sm-4">
+                <button type="submit" class="btn btn-primary btn-contrast-fix"
+                        th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
             </div>
-            <input type="hidden" th:field="*{uid}"/>
-        </form>
+        </div>
+        <input type="hidden" th:field="*{uid}"/>
+    </form>
+    <div class="row pb-3">
+        <div class="col-sm-8" th:text="'Last logged in: ' + ${identity.getLastLoggedInAsDate()}"></div>
     </div>
 
     <h2>Update roles</h2>

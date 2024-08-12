@@ -8,6 +8,8 @@ import org.hibernate.validator.constraints.Email;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Entity
@@ -46,6 +48,10 @@ public class Identity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> roles;
+
+    public String getLastLoggedInAsDate() {
+        return this.lastLoggedIn.atZone(ZoneId.of("Europe/London")).format(DateTimeFormatter.ofPattern("dd/MM/y"));
+    }
 
     public Identity() {
     }
