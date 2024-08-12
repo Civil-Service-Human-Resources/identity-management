@@ -57,6 +57,10 @@ notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
   email: "${notifications.service}/notifications/email/"
 
+reporting:
+  serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
+  removeUserDataUrl: "${reporting.serviceUrl}/course-completions/remove-user-details"
+
 accountPeriodsInMonths:
   deactivation: 13
   notification: 24

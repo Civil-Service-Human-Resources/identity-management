@@ -39,7 +39,6 @@ public class DeactivationTask extends BaseTask {
     @Override
     protected void updateUser(Identity user) {
         user.setActive(false);
-        user.setAgencyTokenUid(null);
         identityRepository.saveAndFlush(user);
         notificationService.send(messageService.createSuspensionMessage(user));
     }
