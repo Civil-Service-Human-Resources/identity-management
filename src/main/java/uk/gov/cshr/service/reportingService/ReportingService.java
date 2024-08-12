@@ -32,8 +32,8 @@ public class ReportingService {
 
     public ResponseEntity<Void> removeUserDetails(List<String> uids){
         RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
-        RequestEntity<Void> requestEntity = requestEntityFactory.createPutRequest(removeUserDetailsUrl, parameters);
-        return httpClient.sendRequest(requestEntity);
+        RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDetailsUrl, parameters);
+        return httpClient.sendRequest(requestEntity, Void.class);
     }
 
     public ResponseEntity<Void> removeUserDetails(String uid){

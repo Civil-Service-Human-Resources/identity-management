@@ -32,6 +32,6 @@ public class LearnerRecordService {
 
     public ResponseEntity<Void> deleteCivilServant(String uid) {
         RequestEntity<Void> requestEntity = requestEntityFactory.createDeleteRequest(String.format(learnerRecordDeleteUrl, uid));
-        return httpClient.sendRequest(requestEntity);
+        return httpClient.sendRequest(requestEntity, Void.class);
     }
 }

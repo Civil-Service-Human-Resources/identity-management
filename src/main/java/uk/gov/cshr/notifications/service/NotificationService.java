@@ -28,7 +28,7 @@ public class NotificationService {
     public boolean send(MessageDto message) {
         RequestEntity<Void> requestEntity = requestEntityFactory.createPostRequest(emailNotificationUrl, message);
 
-        ResponseEntity<Void> response = httpClient.sendRequest(requestEntity);
+        ResponseEntity<Void> response = httpClient.sendRequest(requestEntity, Void.class);
 
         return response.getStatusCode().is2xxSuccessful();
     }

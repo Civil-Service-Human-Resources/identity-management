@@ -9,6 +9,7 @@ import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.ReactivationRepository;
 
+import java.util.Comparator;
 import java.util.Date;
 
 @Service
@@ -36,5 +37,16 @@ public class ReactivationService {
 
     public void sendReactivationEmail(Identity identity, Reactivation reactivation) {
         notificationService.send(messageService.createReactivationMessage(identity, reactivation));
+    }
+
+    public Date getLatestReactivationForEmail(String email) {
+        Date latestReactivationDate = null;
+        Reactivation latestReactivation = reactivationRepository.findByEmailAndReactivationStatusEquals(email, ReactivationStatus.REACTIVATED)
+                .stream()
+                .max(Comparator.comparing(Reactivation::getReactivatedAt)).orElse(null);
+        if (latestReactivation != null) {
+            latestReactivationDate = latestReactivation.getReactivatedAt();
+        }
+        return latestReactivationDate;
     }
 }
