@@ -40,8 +40,13 @@ public class ReactivationService {
     }
 
     public Date getLatestReactivationForEmail(String email) {
-        return reactivationRepository.findByEmail(email)
-                .stream().max(Comparator.comparing(Reactivation::getReactivatedAt))
-                .map(Reactivation::getReactivatedAt).orElse(null);
+        Date latestReactivationDate = null;
+        Reactivation latestReactivation = reactivationRepository.findByEmailAndReactivationStatusEquals(email, ReactivationStatus.REACTIVATED)
+                .stream()
+                .max(Comparator.comparing(Reactivation::getReactivatedAt)).orElse(null);
+        if (latestReactivation != null) {
+            latestReactivationDate = latestReactivation.getReactivatedAt();
+        }
+        return latestReactivationDate;
     }
 }
