@@ -1,20 +1,14 @@
 package uk.gov.cshr.service.csrs;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.client.HttpClient;
-import uk.gov.cshr.service.RequestEntityException;
 import uk.gov.cshr.service.RequestEntityFactory;
 
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -22,8 +16,8 @@ public class CSRSService {
 
     private final HttpClient httpClient;
     private final RequestEntityFactory requestEntityFactory;
-    private String csrsDeleteUrl;
-    private String csrsGetCivilServantUrl;
+    private final String csrsDeleteUrl;
+    private final String csrsGetCivilServantUrl;
 
     public CSRSService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
                        @Value("${csrs.deleteUrl}") String csrsDeleteUrl,
