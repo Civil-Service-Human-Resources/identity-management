@@ -17,6 +17,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.*;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
+import uk.gov.cshr.service.reportingService.ReportingService;
 
 import java.util.Optional;
 
@@ -35,6 +36,8 @@ public class IdentityService implements UserDetailsService {
 
     private final CSRSService csrsService;
 
+    private final ReportingService reportingService;
+
     private final RequestEntityFactory requestEntityFactory;
 
     private final RestTemplate restTemplate;
@@ -42,12 +45,14 @@ public class IdentityService implements UserDetailsService {
     public IdentityService(IdentityRepository identityRepository,
                            LearnerRecordService learnerRecordService,
                            CSRSService csrsService,
+                           ReportingService reportingService,
                            ResetService resetService,
                            RestTemplate restTemplate,
                            RequestEntityFactory requestEntityFactory) {
         this.identityRepository = identityRepository;
         this.learnerRecordService = learnerRecordService;
         this.csrsService = csrsService;
+        this.reportingService = reportingService;
         this.resetService = resetService;
         this.requestEntityFactory = requestEntityFactory;
         this.restTemplate = restTemplate;
@@ -59,6 +64,7 @@ public class IdentityService implements UserDetailsService {
         learnerRecordService.deleteCivilServant(uid);
         log.info("Deleting from civil-servant-registry");
         csrsService.deleteCivilServant(uid);
+        reportingService.removeUserDetails(uid);
         Optional<Identity> result = identityRepository.findFirstByUid(uid);
         if (result.isPresent()) {
             log.info("Deleting from identity");

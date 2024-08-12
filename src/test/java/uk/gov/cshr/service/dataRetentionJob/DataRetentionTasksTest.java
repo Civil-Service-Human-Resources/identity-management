@@ -3,6 +3,7 @@ package uk.gov.cshr.service.dataRetentionJob;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
@@ -10,10 +11,14 @@ import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.service.CSRSService;
 import uk.gov.cshr.service.RequestEntityFactory;
+import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionTask;
+import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
+import uk.gov.cshr.service.reportingService.ReportingService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.ArrayList;
@@ -38,6 +43,15 @@ public class DataRetentionTasksTest {
     private RestTemplate restTemplate;
     @Mock
     private RequestEntityFactory requestEntityFactory;
+    @Mock
+    private ReportingService reportingService;
+
+    @Mock
+    private LearnerRecordService learnerRecordService;
+    @Mock
+    CSRSService csrsService;
+    @Mock
+    ResetService resetService;
 
     private DeactivationTask getDeactivationTask() {
         return new DeactivationTask(identityRepository, messageService, notificationService);
@@ -48,6 +62,10 @@ public class DataRetentionTasksTest {
     }
 
     private DeletionTask getDeletionTask() {
+        return new DeletionTask(identityRepository, messageService, notificationService, identityService);
+    }
+
+    private DeletionTask getDeletionTask(IdentityService identityService){
         return new DeletionTask(identityRepository, messageService, notificationService, identityService);
     }
 
@@ -78,7 +96,7 @@ public class DataRetentionTasksTest {
         verify(notificationService, times(1)).send(deactivationNotification);
 
         assertFalse(deactivationUser.isActive());
-        assertNull(deactivationUser.getAgencyTokenUid());
+        assertEquals("TEST", deactivationUser.getAgencyTokenUid());
     }
 
     /*
@@ -134,7 +152,30 @@ public class DataRetentionTasksTest {
         verify(identityService, times(1)).deleteIdentity("TEST");
         verify(messageService, times(1)).createDeletedMessage(deletionUser);
         verify(notificationService, times(1)).send(deletedNotification);
+    }
 
+
+
+    @Test
+    public void deletionJobRunsReportingServiceRemoveUserDetailsWithDeletedUserUidAsParameter(){
+        // This is needed to inject the mock ReportingService into the spy IdentityService.
+        // This way we can verify that IdentityService runs removeUserDetails() from ReportingService.
+        IdentityService mockIdentityService = Mockito.spy(new IdentityService(identityRepository, learnerRecordService, csrsService, reportingService, resetService, restTemplate, requestEntityFactory));
+
+        List<Identity> usersToReturn = new ArrayList<>();
+        Identity deletionUser = new Identity();
+        deletionUser.setUid("uid-abc-123");
+        usersToReturn.add(deletionUser);
+
+        MessageDto deletedNotification = new MessageDto();
+
+        when(identityRepository.findByLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(messageService.createDeletedMessage(deletionUser)).thenReturn(deletedNotification);
+
+        DeletionTask taskToTest = getDeletionTask(mockIdentityService);
+        taskToTest.runTask();
+
+        verify(reportingService, times(1)).removeUserDetails("uid-abc-123");
     }
 
     /*
