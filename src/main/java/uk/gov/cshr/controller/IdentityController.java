@@ -76,6 +76,7 @@ public class IdentityController {
         if (optionalIdentity.isPresent()) {
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             Identity identity = optionalIdentity.get();
+            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);

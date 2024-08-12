@@ -30,6 +30,7 @@
             </form>
         </dd>
         <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
+        <dt class="col-sm-3">Last reactivation</dt> <dd class="col-sm-9" th:text="${identity.getLastReactivationAsDate()}"></dd>
     </dl>
     <h2 class="pb-3">Profile</h2>
     <dl th:if="${profile != null}" class="row">
