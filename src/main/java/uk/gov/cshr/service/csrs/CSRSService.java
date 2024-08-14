@@ -18,14 +18,30 @@ public class CSRSService {
     private final RequestEntityFactory requestEntityFactory;
     private final String csrsDeleteUrl;
     private final String csrsGetCivilServantUrl;
+    private final String agencyTokensUrl;
 
     public CSRSService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
                        @Value("${csrs.deleteUrl}") String csrsDeleteUrl,
-                       @Value("${csrs.getCivilServant}") String csrsGetCivilServantUrl) {
+                       @Value("${csrs.getCivilServant}") String csrsGetCivilServantUrl,
+                       @Value("${csrs.getAgencyToken}") String agencyTokensUrl) {
         this.httpClient = httpClient;
         this.requestEntityFactory = requestEntityFactory;
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsGetCivilServantUrl = csrsGetCivilServantUrl;
+        this.agencyTokensUrl = agencyTokensUrl;
+    }
+
+    public AgencyTokenDto getAgencyToken(String uid) {
+        String url = String.format("%s?uid=%s", agencyTokensUrl, uid);
+        RequestEntity<Void> requestEntity = requestEntityFactory.createGetRequest(url);
+        try {
+            return httpClient.sendRequestNoRetries(requestEntity, AgencyTokenDto.class).getBody();
+        } catch (RestClientResponseException e) {
+            if (e.getRawStatusCode() == 404) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     public ResponseEntity<Void> deleteCivilServant(String uid) {

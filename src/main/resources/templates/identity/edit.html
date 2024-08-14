@@ -41,6 +41,7 @@
         <dt class="col-sm-3">Interests</dt> <dd class="col-sm-9" th:text="${profile.getDisplayInterests()}"></dd>
         <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getDisplayGrade()}"></dd>
         <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getDisplayLineManagerEmail()}"></dd>
+        <dt class="col-sm-3">Token</dt> <dd class="col-sm-9" th:text="${token}"></dd>
     </dl>
     <p class="pb-4" th:if="${profile == null}">
         User has not set up their profile.
