@@ -45,6 +45,67 @@
     <p class="pb-4" th:if="${profile == null}">
         User has not set up their profile.
     </p>
+
+    <h2 class="pb-3">Required Learning</h2>
+    <ul class="list-group mb-5">
+        <li class="list-group-item" th:each="requiredCourse: ${requiredCourses}">
+            <a th:href="'#' + ${requiredCourse.getCourseTitleAsId()}" th:text="${requiredCourse.getCourseTitle()}"></a>
+        </li>
+    </ul>
+    <div th:each="requiredCourse : ${requiredCourses}">
+        <div class="mb-5">
+            <h3 th:id="${requiredCourse.getCourseTitleAsId()}" th:text="${requiredCourse.getCourseTitle()}"></h3>
+            <dl class="row lead">
+                <div class="col-sm-3">
+                    <dt>Audience</dt>
+                    <dd th:text="${requiredCourse.getAudience().getOrganisation()}"></dd>
+                </div>
+                <div class="col-sm-3">
+                    <dt>Frequency</dt>
+                    <dd th:text="${requiredCourse.getAudience().getFrequency()}"></dd>
+                </div>
+                <div class="col-sm-3">
+                    <dt>Previous due date</dt>
+                    <dd th:text="${requiredCourse.getAudience().getDisplayPreviousDueDate()}"></dd>
+                </div>
+                <div class="col-sm-3">
+                    <dt>Next due date</dt>
+                    <dd th:text="${requiredCourse.getAudience().getDisplayNextDueDate()}"></dd>
+                </div>
+            </dl>
+            <h4>Learner record</h4>
+            <p class="lead">
+                User has completed <strong th:with="completedModules=${requiredCourse.getRequiredModuleCount()}" th:text="${completedModules[0]} + ' out of ' + ${completedModules[1]}"></strong> required modules in the current learning period for this
+                course
+            </p>
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Module title</th>
+                        <th scope="col">Required</th>
+                        <th scope="col">Last updated</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Completion date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:classappend="${!module.isCompleted() and !module.isOptional()} ? 'table-warning' : ''" th:each="module : ${requiredCourse.getModules()}">
+                        <td th:text="${module.getModuleTitle()}"></td>
+                        <td th:text="${!module.isOptional()}"></td>
+                        <td th:text="${module.getDisplayLastUpdated()}"></td>
+                        <td th:text="${module.getDisplayStatus()}"></td>
+                        <td th:text="${module.getDisplayCompletionDate()}"></td>
+                    </tr>
+                    <tr class="table-info">
+                        <th scope="row" colspan="2">Course Summary</th>
+                        <td th:text="${requiredCourse.getDisplayLastUpdated()}"></td>
+                        <td th:text="${requiredCourse.getStatus()}"></td>
+                        <td th:text="${requiredCourse.getDisplayCompletionDate()}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <h2>Update roles</h2>
     <form autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
         <div class="form-group">

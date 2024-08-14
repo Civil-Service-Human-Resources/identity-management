@@ -8,10 +8,10 @@ import org.hibernate.validator.constraints.Email;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Set;
+
+import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
 @Entity
 @Data
@@ -53,16 +53,12 @@ public class Identity implements Serializable {
     )
     private Set<Role> roles;
 
-    private String getFrontendDateTime(Instant date) {
-        return date.atZone(ZoneId.of("Europe/London")).format(DateTimeFormatter.ofPattern("dd/MM/y HH:mm:ss"));
-    }
-
     public String getLastLoggedInAsDate() {
-        return this.lastLoggedIn == null ? "User has never logged in" : getFrontendDateTime(this.lastLoggedIn);
+        return this.lastLoggedIn == null ? "User has never logged in" : formatDatetimeForFE(this.lastLoggedIn);
     }
 
     public String getLastReactivationAsDate() {
-        return this.lastReactivation == null ? "No reactivations found" : getFrontendDateTime(this.lastReactivation.toInstant());
+        return this.lastReactivation == null ? "No reactivations found" : formatDatetimeForFE(this.lastReactivation.toInstant());
     }
 
     public Identity() {

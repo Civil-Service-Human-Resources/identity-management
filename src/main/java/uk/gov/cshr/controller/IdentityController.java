@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
@@ -28,10 +26,8 @@ import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -78,6 +74,9 @@ public class IdentityController {
             Identity identity = optionalIdentity.get();
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+            model.addAttribute("requiredCourses", Arrays.asList(new RequiredCourse("abc", "Course title (course title)", "ShortDesc",
+                    Instant.now(), Instant.now(), Instant.now(), "Completed", new Audience("Cabinet Office", "1 year", Instant.now(), Instant.now()),
+                    Arrays.asList(new Module("id", "Module title", "Module description", false, null, null, "NOT_STARTED")))));
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             return "identity/edit";
