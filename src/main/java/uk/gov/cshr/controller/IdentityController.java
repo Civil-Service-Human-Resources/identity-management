@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.domain.*;
+import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.Reactivation;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.AgencyTokenDto;
@@ -27,8 +30,10 @@ import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Controller
@@ -47,6 +52,7 @@ public class IdentityController {
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
     private final CSRSService csrsService;
+    private final CslService cslService;
 
     @GetMapping("/identities")
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
@@ -83,9 +89,7 @@ public class IdentityController {
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            model.addAttribute("requiredCourses", Arrays.asList(new RequiredCourse("abc", "Course title (course title)", "ShortDesc",
-                    Instant.now(), Instant.now(), Instant.now(), "Completed", new Audience("Cabinet Office", "1 year", Instant.now(), Instant.now()),
-                    Arrays.asList(new Module("id", "Module title", "Module description", false, null, null, "NOT_STARTED")))));
+            model.addAttribute("requiredCourses", cslService.getRequiredLearningForUser(uid).getCourses());
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);

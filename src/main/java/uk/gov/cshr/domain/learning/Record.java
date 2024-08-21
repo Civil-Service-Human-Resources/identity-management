@@ -1,4 +1,4 @@
-package uk.gov.cshr.domain;
+package uk.gov.cshr.domain.learning;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,18 +8,14 @@ import java.time.Instant;
 
 import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Module {
+@Data
+public class Record {
 
-    private String id;
-    private String moduleTitle;
-    private String shortDescription;
-    private boolean optional;
-    private Instant lastUpdated;
-    private Instant completionDate;
-    private String status;
+    protected Instant lastUpdated;
+    protected Instant completionDate;
+    protected State status;
 
     public String getDisplayLastUpdated() {
         return formatDatetimeForFE(lastUpdated);
@@ -30,23 +26,24 @@ public class Module {
     }
 
     public boolean isCompleted() {
-        return status.equals("COMPLETED");
+        return status.equals(State.COMPLETED);
     }
 
     public boolean isInProgress() {
-        return status.equals("IN_PROGRESS");
+        return status.equals(State.IN_PROGRESS);
     }
 
     public boolean isStarted() {
-        return this.isCompleted() || this.isInProgress();
+        return !status.equals(State.NULL);
     }
 
     public String getDisplayStatus() {
-        switch (status) {
-            case "COMPLETED": return "Completed";
-            case "IN_PROGRESS": return "In progress";
-            default: return "Not started";
+        if (!isStarted()) {
+            return "Not started";
+        } else if (isCompleted()) {
+            return "Completed";
+        } else {
+            return "In progress";
         }
     }
-
 }

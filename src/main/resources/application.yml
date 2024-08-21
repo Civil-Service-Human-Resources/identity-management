@@ -55,6 +55,10 @@ csrs:
   getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
   getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
 
+cslService:
+  serviceUrl: ${CSL_SERVICE_URL:http:localhost:9003}
+  getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
+
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
   email: "${notifications.service}/notifications/email/"
