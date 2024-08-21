@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
@@ -13,8 +13,8 @@ import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 @Data
 public class Record {
 
-    protected Instant lastUpdated;
-    protected Instant completionDate;
+    protected LocalDateTime lastUpdated;
+    protected LocalDateTime completionDate;
     protected State status;
 
     public String getDisplayLastUpdated() {
