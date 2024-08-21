@@ -20,6 +20,7 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -60,6 +61,9 @@ public class IdentityControllerTest {
 
     @MockBean
     private CSRSService csrsService;
+
+    @MockBean
+    private CslService cslService;
 
     @MockBean
     private RoleRepository roleRepository;
