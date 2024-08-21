@@ -18,11 +18,11 @@ public class LearningPeriod implements Serializable {
     private LocalDate endDate;
 
     public String getDisplayPreviousDueDate() {
-        return formatDateForFE(startDate);
+        return startDate == null ? "None" : formatDateForFE(startDate);
     }
 
     public String getDisplayNextDueDate() {
-        return formatDateForFE(endDate);
+        return endDate == null ? "None" : formatDateForFE(endDate);
     }
 
 }

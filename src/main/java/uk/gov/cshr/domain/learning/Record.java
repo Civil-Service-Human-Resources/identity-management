@@ -14,18 +14,18 @@ import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 @Data
 public class Record {
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     protected Instant lastUpdated;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     protected Instant completionDate;
     protected State status;
 
     public String getDisplayLastUpdated() {
-        return formatDatetimeForFE(lastUpdated);
+        return lastUpdated == null ? "Never" : formatDatetimeForFE(lastUpdated);
     }
 
     public String getDisplayCompletionDate() {
-        return formatDatetimeForFE(completionDate);
+        return completionDate == null ? "Never" : formatDatetimeForFE(completionDate);
     }
 
     public boolean isCompleted() {
@@ -36,13 +36,16 @@ public class Record {
         return status.equals(State.IN_PROGRESS);
     }
 
-    public boolean isStarted() {
-        return !status.equals(State.NULL);
+    public boolean isNull() {
+        return status.equals(State.NULL);
     }
 
     public String getDisplayStatus() {
-        if (!isStarted()) {
-            return "Not started";
+        if (isNull()) {
+            if (lastUpdated == null) {
+                return "Not started";
+            }
+            return "No progress in current learning period";
         } else if (isCompleted()) {
             return "Completed";
         } else {
