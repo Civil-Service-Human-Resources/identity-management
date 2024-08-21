@@ -20,6 +20,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
+import uk.gov.cshr.service.csrs.AgencyTokenDto;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
@@ -70,8 +71,16 @@ public class IdentityController {
         Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             Identity identity = optionalIdentity.get();
+            String tokenUid = identity.getAgencyTokenUid();
+            String agencyToken = "None";
+            if (tokenUid != null) {
+                AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
+                if (agencyTokenDto != null) {
+                    agencyToken = agencyTokenDto.getToken();
+                }
+            }
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("requiredCourses", Arrays.asList(new RequiredCourse("abc", "Course title (course title)", "ShortDesc",
@@ -79,6 +88,7 @@ public class IdentityController {
                     Arrays.asList(new Module("id", "Module title", "Module description", false, null, null, "NOT_STARTED")))));
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
+            model.addAttribute("token", agencyToken);
             return "identity/edit";
         }
 
