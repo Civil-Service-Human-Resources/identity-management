@@ -21,7 +21,7 @@ public class DateUtil {
     }
 
     public static String formatDatetimeForFE(LocalDateTime date) {
-        return date == null ? "N/A" : date.format(DateTimeFormatter.ofPattern("dd/MM/y"));
+        return date == null ? "N/A" : date.atZone(ZoneId.of("Europe/London")).format(DateTimeFormatter.ofPattern("dd/MM/y HH:mm:ss"));
     }
 
 }

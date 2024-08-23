@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
@@ -13,16 +14,18 @@ import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 @Data
 public class Record {
 
+//    @JsonFormat(timezone = "UTC", shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSS")
     protected LocalDateTime lastUpdated;
+//    @JsonFormat(timezone = "UTC", shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSS")
     protected LocalDateTime completionDate;
     protected State status;
 
     public String getDisplayLastUpdated() {
-        return lastUpdated == null ? "Never" : formatDatetimeForFE(lastUpdated);
+        return lastUpdated == null ? "Never" : formatDatetimeForFE(lastUpdated.toInstant(ZoneOffset.UTC));
     }
 
     public String getDisplayCompletionDate() {
-        return completionDate == null ? "Never" : formatDatetimeForFE(completionDate);
+        return completionDate == null ? "Never" : formatDatetimeForFE(completionDate.toInstant(ZoneOffset.UTC));
     }
 
     public boolean isCompleted() {
