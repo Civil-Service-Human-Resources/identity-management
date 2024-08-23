@@ -1,11 +1,10 @@
 package uk.gov.cshr.domain.learning;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
@@ -14,10 +13,8 @@ import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 @Data
 public class Record {
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
-    protected Instant lastUpdated;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
-    protected Instant completionDate;
+    protected LocalDateTime lastUpdated;
+    protected LocalDateTime completionDate;
     protected State status;
 
     public String getDisplayLastUpdated() {
