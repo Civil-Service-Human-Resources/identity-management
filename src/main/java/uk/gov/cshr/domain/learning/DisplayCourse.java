@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
 import java.util.List;
+
+import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -27,6 +30,8 @@ public class DisplayCourse extends Record {
         return URLEncoder.encode(courseTitle, StandardCharsets.UTF_8.toString());
     }
 
-
-
+    @Override
+    public String getDisplayCompletionDate() {
+        return completionDate == null ? "" : formatDatetimeForFE(completionDate.toInstant(ZoneOffset.UTC));
+    }
 }
