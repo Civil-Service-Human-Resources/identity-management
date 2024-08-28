@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DisplayAudience {
 
-    private String organisation;
+    private String name;
     private String frequency;
     private LearningPeriod learningPeriod;
 
