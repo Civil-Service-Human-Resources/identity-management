@@ -53,6 +53,7 @@ csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
   getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
+  getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
