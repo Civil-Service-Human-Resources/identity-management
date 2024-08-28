@@ -48,7 +48,10 @@
     </p>
 
     <h2 class="pb-3">Required Learning</h2>
-    <ul class="list-group mb-5">
+    <p class="pb-4" th:if="${requiredCourses.isEmpty()}">
+        No required learning found.
+    </p>
+    <ul th:if="${!requiredCourses.isEmpty()}" class="list-group mb-5">
         <li class="list-group-item" th:each="requiredCourse: ${requiredCourses}">
             <a th:href="'#' + ${requiredCourse.getCourseTitleAsId()}" th:text="${requiredCourse.getCourseTitle()}"></a>
         </li>
