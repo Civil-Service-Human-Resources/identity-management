@@ -20,6 +20,7 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.AgencyTokenDto;
@@ -51,6 +52,7 @@ public class IdentityController {
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
     private final CSRSService csrsService;
+    private final CslService cslService;
 
     @GetMapping("/identities")
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
@@ -87,6 +89,7 @@ public class IdentityController {
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+            model.addAttribute("requiredCourses", cslService.getRequiredLearningForUser(uid).getCourses());
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);

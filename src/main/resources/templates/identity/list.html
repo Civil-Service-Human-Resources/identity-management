@@ -41,23 +41,12 @@
         </thead>
         <tbody>
         <tr th:each="identity : ${page.getContent()}">
+            <td th:text="${identity.locked} ? 'Yes' : 'No' "></td>
+            <td th:text="${identity.active} ? 'Yes' : 'No'"></td>
             <td>
-                <div class="form-check">
-                    <input class="form-check-input position-static" type="checkbox" aria-labelledby="activeheader" th:checked="${identity.active}"
-                           readonly="true"/>
-                </div>
+                <a th:text="${identity.email}" th:href="@{|/identities/update/${identity.uid}|}" th:alt="'View user ' + ${identity.email}"></a>
             </td>
             <td>
-                <div class="form-check">
-                    <input class="form-check-input position-static" type="checkbox" aria-labelledby="lockedheader" th:checked="${identity.locked}"
-                           readonly="true"/>
-                </div>
-            </td>
-            <td th:text="${identity.email}"></td>
-            <td>
-                <a class="btn btn-primary btn-contrast-fix btn-sm" th:href="@{|/identities/update/${identity.uid}|}">
-                    Update
-                </a>
                 <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
                     Delete
                 </a>
