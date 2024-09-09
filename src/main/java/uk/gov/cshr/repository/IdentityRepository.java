@@ -15,7 +15,7 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
     Identity findFirstByActiveTrueAndEmailEquals(String email);
 
-    List<Identity> findByLastLoggedInBefore(Instant date);
+    List<Identity> findByActiveFalseAndLastLoggedInBefore(Instant date);
 
     List<Identity> findByActiveTrueAndLastLoggedInBefore(Instant date);
 
