@@ -13,5 +13,5 @@ public interface ReactivationRepository extends CrudRepository<Reactivation, Lon
 
     List<Reactivation> findByEmailAndReactivationStatusEquals(String email, ReactivationStatus status);
 
-    List<Reactivation> findByReactivatedAtAfter(Instant reactivatedAfter);
+    List<Reactivation> findByReactivatedAtAfter(Instant reactivatedAt);
 }
