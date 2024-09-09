@@ -7,10 +7,12 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.ReactivationRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
 import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.csrs.CSRSService;
@@ -38,6 +40,8 @@ public class DataRetentionTasksTest {
     private NotificationService notificationService;
     @Mock
     private MessageService messageService;
+    @Mock
+    private ReactivationRepository reactivationRepository;
 
     @Mock
     private RestTemplate restTemplate;
@@ -54,7 +58,7 @@ public class DataRetentionTasksTest {
     ResetService resetService;
 
     private DeactivationTask getDeactivationTask() {
-        return new DeactivationTask(identityRepository, messageService, notificationService);
+        return new DeactivationTask(identityRepository, messageService, notificationService, reactivationRepository);
     }
 
     private DeletionNotificationTask getDeletionNotificationTask() {
@@ -76,27 +80,48 @@ public class DataRetentionTasksTest {
     @Test
     public void deactivationUpdatesSuccessfullyApplied() {
 
-        List<Identity> usersToReturn = new ArrayList<>();
-        Identity deactivationUser = new Identity();
-        deactivationUser.setActive(true);
-        deactivationUser.setAgencyTokenUid("TEST");
-        usersToReturn.add(deactivationUser);
+        List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate = new ArrayList<>();
+        List<Reactivation> reactivationAfterDeactivationDate = new ArrayList<>();
+
+        Identity deactivationUser1 = new Identity();
+        deactivationUser1.setEmail("DeactivationUser1@example.com");
+        deactivationUser1.setActive(true);
+        deactivationUser1.setAgencyTokenUid("TEST");
+        activeIdentitiesLastLoggedInBeforeDeactivationDate.add(deactivationUser1);
+
+        Identity deactivationUser2 = new Identity();
+        deactivationUser2.setEmail("DeactivationUser2@example.com");
+        deactivationUser2.setActive(false);
+        deactivationUser2.setAgencyTokenUid("TEST");
+        activeIdentitiesLastLoggedInBeforeDeactivationDate.add(deactivationUser2);
+
+        Reactivation reactivation1 = new Reactivation();
+        reactivation1.setEmail("deactivationuser2@Example.Com");
+        reactivationAfterDeactivationDate.add(reactivation1);
+
+        Reactivation reactivation2 = new Reactivation();
+        reactivation2.setEmail("Deactivationuser3@Example.Com");
+        reactivationAfterDeactivationDate.add(reactivation2);
 
         MessageDto deactivationNotification = new MessageDto();
 
-        when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
-        when(messageService.createSuspensionMessage(deactivationUser)).thenReturn(deactivationNotification);
+        when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any()))
+                .thenReturn(activeIdentitiesLastLoggedInBeforeDeactivationDate);
+        when(reactivationRepository.findByReactivatedAtAfter(any()))
+                .thenReturn(reactivationAfterDeactivationDate);
+        when(messageService.createSuspensionMessage(deactivationUser1)).thenReturn(deactivationNotification);
 
         DeactivationTask taskToTest = getDeactivationTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveTrueAndLastLoggedInBefore(any());
-        verify(identityRepository, times(1)).saveAndFlush(deactivationUser);
-        verify(messageService, times(1)).createSuspensionMessage(deactivationUser);
+        verify(reactivationRepository, times(1)).findByReactivatedAtAfter(any());
+        verify(identityRepository, times(1)).saveAndFlush(deactivationUser1);
+        verify(messageService, times(1)).createSuspensionMessage(deactivationUser1);
         verify(notificationService, times(1)).send(deactivationNotification);
 
-        assertFalse(deactivationUser.isActive());
-        assertEquals("TEST", deactivationUser.getAgencyTokenUid());
+        assertFalse(deactivationUser1.isActive());
+        assertEquals("TEST", deactivationUser1.getAgencyTokenUid());
     }
 
     /*
