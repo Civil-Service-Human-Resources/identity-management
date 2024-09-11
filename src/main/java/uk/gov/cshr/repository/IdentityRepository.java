@@ -19,7 +19,7 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
     List<Identity> findByActiveTrueAndLastLoggedInBefore(Instant lastLoggedIn);
 
-    List<Identity> findByDeletionNotificationSentFalseAndLastLoggedInBefore(Instant lastLoggedIn);
+    List<Identity> findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(Instant lastLoggedIn);
 
     Page<Identity> findAllByEmailContains(Pageable pageable, String email);
 

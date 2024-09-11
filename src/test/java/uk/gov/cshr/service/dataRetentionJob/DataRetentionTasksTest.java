@@ -138,13 +138,13 @@ public class DataRetentionTasksTest {
 
         MessageDto deletionNotification = new MessageDto();
 
-        when(identityRepository.findByDeletionNotificationSentFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
         when(messageService.createDeletionMessage(deletionNotificationUser)).thenReturn(deletionNotification);
 
         DeletionNotificationTask taskToTest = getDeletionNotificationTask();
         taskToTest.runTask();
 
-        verify(identityRepository, times(1)).findByDeletionNotificationSentFalseAndLastLoggedInBefore(any());
+        verify(identityRepository, times(1)).findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any());
         verify(identityRepository, times(1)).saveAndFlush(deletionNotificationUser);
         verify(messageService, times(1)).createDeletionMessage(deletionNotificationUser);
         verify(notificationService, times(1)).send(deletionNotification);
@@ -248,7 +248,7 @@ public class DataRetentionTasksTest {
         MessageDto genericNotification = new MessageDto();
 
         when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenThrow(RuntimeException.class);
-        when(identityRepository.findByDeletionNotificationSentFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
         when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
 
         when(messageService.createDeletionMessage(genericUser)).thenReturn(genericNotification);

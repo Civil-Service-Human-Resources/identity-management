@@ -9,8 +9,9 @@ import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
+
+import static java.time.ZoneOffset.*;
 
 @Slf4j
 @Service
@@ -33,7 +34,8 @@ public class DeletionNotificationTask extends BaseTask {
     protected List<Identity> fetchUsers() {
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationPeriodInMonths);
         log.info("Fetching users for deletion notification. Cutoff date: {}", deletionNotificationDate);
-        return identityRepository.findByDeletionNotificationSentFalseAndLastLoggedInBefore(deletionNotificationDate.toInstant(ZoneOffset.UTC));
+        return identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(
+                deletionNotificationDate.toInstant(UTC));
     }
 
     @Override
