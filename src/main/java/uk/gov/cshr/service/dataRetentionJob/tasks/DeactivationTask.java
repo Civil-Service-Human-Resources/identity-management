@@ -41,44 +41,44 @@ public class DeactivationTask extends BaseTask {
     @Override
     protected List<Identity> fetchUsers() {
         Instant deactivationDateTime = now().minusMonths(deactivationPeriodInMonths).toInstant(UTC);
-        log.info("Deactivation cutoff date: {}", deactivationDateTime);
+        log.info("DeactivationTask: Deactivation cutoff date: {}", deactivationDateTime);
 
-        log.info("Fetching identities who have last logged-in before deactivation date");
+        log.info("DeactivationTask: Fetching identities who have last logged-in before deactivation date");
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate =
                 identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDateTime);
 
-        log.info("Identities who have last logged-in before deactivation date: {}",
+        log.info("DeactivationTask: Identities who have last logged-in before deactivation date: {}",
                 activeIdentitiesLastLoggedInBeforeDeactivationDate);
 
         int numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate
                 = activeIdentitiesLastLoggedInBeforeDeactivationDate.size();
-        log.info("Number of identities logged-in before deactivation cutoff date {}: {}",
+        log.info("DeactivationTask: Number of identities logged-in before deactivation cutoff date {}: {}",
                 deactivationDateTime, numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate);
 
-        log.info("Fetching re-activations done after deactivation date");
+        log.info("DeactivationTask: Fetching re-activations done after deactivation date");
         List<Reactivation> reactivationAfterDeactivationDate =
                 reactivationRepository.findByReactivatedAtAfter(deactivationDateTime);
-        log.info("Re-activations done after deactivation date: {}", reactivationAfterDeactivationDate);
+        log.info("DeactivationTask: Re-activations done after deactivation date: {}", reactivationAfterDeactivationDate);
 
-        log.info("Preparing emails list from the re-activations done after deactivation date");
+        log.info("DeactivationTask: Preparing emails list from the re-activations done after deactivation date");
         Set<String> reactivatedEmailsLowerCase = reactivationAfterDeactivationDate
                 .stream()
                 .map(r -> r.getEmail().toLowerCase())
                 .collect(Collectors.toSet());
-        log.info("Emails list from the re-activations done after deactivation date: {}", reactivatedEmailsLowerCase);
+        log.info("DeactivationTask: Emails list from the re-activations done after deactivation date: {}", reactivatedEmailsLowerCase);
 
-        log.info("Preparing identities list which are eligible for the deactivation");
+        log.info("DeactivationTask: Preparing identities list which are eligible for the deactivation");
         List<Identity> identitiesToBeDeactivate = activeIdentitiesLastLoggedInBeforeDeactivationDate
                 .stream()
                 .filter(i -> !reactivatedEmailsLowerCase.contains(i.getEmail().toLowerCase()))
                 .collect(Collectors.toList());
-        log.info("Identities list which are eligible for the deactivation: {}", identitiesToBeDeactivate);
+        log.info("DeactivationTask: Identities list which are eligible for the deactivation: {}", identitiesToBeDeactivate);
 
         int numberOfIdentitiesToBeDeactivate = identitiesToBeDeactivate.size();
-        log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
+        log.info("DeactivationTask: Number of identities activated after deactivation cutoff date {} but did not login: {}",
                 deactivationDateTime,
                 numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate - numberOfIdentitiesToBeDeactivate);
-        log.info("Number of identities to be deactivated: {}", numberOfIdentitiesToBeDeactivate);
+        log.info("DeactivationTask: Number of identities to be deactivated: {}", numberOfIdentitiesToBeDeactivate);
 
         return identitiesToBeDeactivate;
     }
