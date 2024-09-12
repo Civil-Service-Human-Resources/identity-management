@@ -41,45 +41,39 @@ public class DeactivationTask extends BaseTask {
 
     @Override
     protected List<Identity> fetchUsers() {
-
         Instant deactivationDateTime = now().minusMonths(deactivationPeriodInMonths).toInstant(UTC);
-        log.info("DeactivationTask: Deactivation cutoff date: {}", deactivationDateTime);
+        log.info("Deactivation cutoff date: {}", deactivationDateTime);
 
-        log.info("DeactivationTask: Fetching identities who have last logged-in before deactivation date");
+        log.debug("Fetching identities who have last logged-in before deactivation date");
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate =
                 identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDateTime);
-        log.info("DeactivationTask: Identities who have last logged-in before deactivation date: {}",
-                activeIdentitiesLastLoggedInBeforeDeactivationDate);
-
         int numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate
                 = activeIdentitiesLastLoggedInBeforeDeactivationDate.size();
-        log.info("DeactivationTask: Number of identities logged-in before deactivation cutoff date {}: {}",
+        log.info("Number of identities logged-in before deactivation cutoff date {}: {}",
                 deactivationDateTime, numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate);
 
-        log.info("DeactivationTask: Fetching re-activations done after deactivation date");
+        log.debug("Fetching re-activations done after deactivation date");
         List<Reactivation> reactivationAfterDeactivationDate =
                 reactivationRepository.findByReactivatedAtAfter(Date.from(deactivationDateTime));
-        log.info("DeactivationTask: Re-activations done after deactivation date: {}", reactivationAfterDeactivationDate);
 
-        log.info("DeactivationTask: Preparing emails list from the re-activations done after deactivation date");
+        log.debug("Preparing emails list from the re-activations done after deactivation date");
         Set<String> reactivatedEmailsLowerCase = reactivationAfterDeactivationDate
                 .stream()
                 .map(r -> r.getEmail().toLowerCase())
                 .collect(Collectors.toSet());
-        log.info("DeactivationTask: Emails list from the re-activations done after deactivation date: {}", reactivatedEmailsLowerCase);
+        log.debug("Number of emails reactivated after deactivation date: {}", reactivatedEmailsLowerCase.size());
 
-        log.info("DeactivationTask: Preparing identities list which are eligible for the deactivation");
+        log.debug("Preparing identities list which are eligible for the deactivation");
         List<Identity> identitiesToBeDeactivate = activeIdentitiesLastLoggedInBeforeDeactivationDate
                 .stream()
                 .filter(i -> !reactivatedEmailsLowerCase.contains(i.getEmail().toLowerCase()))
                 .collect(Collectors.toList());
-        log.info("DeactivationTask: Identities list which are eligible for the deactivation: {}", identitiesToBeDeactivate);
-
         int numberOfIdentitiesToBeDeactivate = identitiesToBeDeactivate.size();
-        log.info("DeactivationTask: Number of identities activated after deactivation cutoff date {} but did not login: {}",
+        log.info("Number of identities to be deactivated: {}", numberOfIdentitiesToBeDeactivate);
+
+        log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
                 deactivationDateTime,
                 numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate - numberOfIdentitiesToBeDeactivate);
-        log.info("DeactivationTask: Number of identities to be deactivated: {}", numberOfIdentitiesToBeDeactivate);
 
         return identitiesToBeDeactivate;
     }
