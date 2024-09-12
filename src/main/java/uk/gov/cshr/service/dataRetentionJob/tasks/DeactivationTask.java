@@ -43,32 +43,32 @@ public class DeactivationTask extends BaseTask {
         Instant deactivationDateTime = now().minusMonths(deactivationPeriodInMonths).toInstant(UTC);
         log.info("Deactivation cutoff date: {}", deactivationDateTime);
 
-        log.debug("Fetching identities who have last logged-in before deactivation date");
+        log.info("Fetching identities who have last logged-in before deactivation date");
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate =
                 identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDateTime);
 
-        log.debug("Fetching re-activations done after deactivation date");
+        int numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate
+                = activeIdentitiesLastLoggedInBeforeDeactivationDate.size();
+        log.info("Number of identities logged-in before deactivation cutoff date {}: {}",
+                deactivationDateTime, numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate);
+
+        log.info("Fetching re-activations done after deactivation date");
         List<Reactivation> reactivationAfterDeactivationDate =
                 reactivationRepository.findByReactivatedAtAfter(deactivationDateTime);
 
-        log.debug("Preparing emails list from the re-activations done after deactivation date");
+        log.info("Preparing emails list from the re-activations done after deactivation date");
         Set<String> reactivatedEmailsLowerCase = reactivationAfterDeactivationDate
                 .stream()
                 .map(r -> r.getEmail().toLowerCase())
                 .collect(Collectors.toSet());
 
-        log.debug("Preparing identities list which are eligible for the deactivation");
+        log.info("Preparing identities list which are eligible for the deactivation");
         List<Identity> identitiesToBeDeactivate = activeIdentitiesLastLoggedInBeforeDeactivationDate
                 .stream()
                 .filter(i -> !reactivatedEmailsLowerCase.contains(i.getEmail().toLowerCase()))
                 .collect(Collectors.toList());
 
-        int numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate
-                = activeIdentitiesLastLoggedInBeforeDeactivationDate.size();
         int numberOfIdentitiesToBeDeactivate = identitiesToBeDeactivate.size();
-
-        log.info("Number of identities logged-in before deactivation cutoff date {}: {}",
-                deactivationDateTime, numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate);
         log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
                 deactivationDateTime,
                 numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate - numberOfIdentitiesToBeDeactivate);
