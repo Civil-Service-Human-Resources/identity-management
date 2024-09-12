@@ -33,7 +33,7 @@ public class DeletionNotificationTask extends BaseTask {
     @Override
     protected List<Identity> fetchUsers() {
         LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationPeriodInMonths);
-        log.info("Fetching users for deletion notification. Cutoff date: {}", deletionNotificationDate);
+        log.info("Fetching inactive users for deletion notification. Cutoff date: {}", deletionNotificationDate);
         return identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(
                 deletionNotificationDate.toInstant(UTC));
     }
