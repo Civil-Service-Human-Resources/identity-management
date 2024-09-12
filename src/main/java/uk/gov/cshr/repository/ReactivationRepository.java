@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.ReactivationStatus;
 
-import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -13,5 +13,5 @@ public interface ReactivationRepository extends CrudRepository<Reactivation, Lon
 
     List<Reactivation> findByEmailAndReactivationStatusEquals(String email, ReactivationStatus status);
 
-    List<Reactivation> findByReactivatedAtAfter(Instant reactivatedAt);
+    List<Reactivation> findByReactivatedAtAfter(Date reactivatedAt);
 }

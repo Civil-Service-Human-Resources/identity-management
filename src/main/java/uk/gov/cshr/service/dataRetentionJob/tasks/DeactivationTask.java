@@ -11,6 +11,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ReactivationRepository;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,13 +41,13 @@ public class DeactivationTask extends BaseTask {
 
     @Override
     protected List<Identity> fetchUsers() {
+
         Instant deactivationDateTime = now().minusMonths(deactivationPeriodInMonths).toInstant(UTC);
         log.info("DeactivationTask: Deactivation cutoff date: {}", deactivationDateTime);
 
         log.info("DeactivationTask: Fetching identities who have last logged-in before deactivation date");
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate =
                 identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDateTime);
-
         log.info("DeactivationTask: Identities who have last logged-in before deactivation date: {}",
                 activeIdentitiesLastLoggedInBeforeDeactivationDate);
 
@@ -57,7 +58,7 @@ public class DeactivationTask extends BaseTask {
 
         log.info("DeactivationTask: Fetching re-activations done after deactivation date");
         List<Reactivation> reactivationAfterDeactivationDate =
-                reactivationRepository.findByReactivatedAtAfter(deactivationDateTime);
+                reactivationRepository.findByReactivatedAtAfter(Date.from(deactivationDateTime));
         log.info("DeactivationTask: Re-activations done after deactivation date: {}", reactivationAfterDeactivationDate);
 
         log.info("DeactivationTask: Preparing emails list from the re-activations done after deactivation date");
