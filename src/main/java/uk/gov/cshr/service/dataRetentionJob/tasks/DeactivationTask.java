@@ -47,6 +47,9 @@ public class DeactivationTask extends BaseTask {
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate =
                 identityRepository.findByActiveTrueAndLastLoggedInBefore(deactivationDateTime);
 
+        log.info("Identities who have last logged-in before deactivation date: {}",
+                activeIdentitiesLastLoggedInBeforeDeactivationDate);
+
         int numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate
                 = activeIdentitiesLastLoggedInBeforeDeactivationDate.size();
         log.info("Number of identities logged-in before deactivation cutoff date {}: {}",
@@ -55,18 +58,21 @@ public class DeactivationTask extends BaseTask {
         log.info("Fetching re-activations done after deactivation date");
         List<Reactivation> reactivationAfterDeactivationDate =
                 reactivationRepository.findByReactivatedAtAfter(deactivationDateTime);
+        log.info("Re-activations done after deactivation date: {}", reactivationAfterDeactivationDate);
 
         log.info("Preparing emails list from the re-activations done after deactivation date");
         Set<String> reactivatedEmailsLowerCase = reactivationAfterDeactivationDate
                 .stream()
                 .map(r -> r.getEmail().toLowerCase())
                 .collect(Collectors.toSet());
+        log.info("Emails list from the re-activations done after deactivation date: {}", reactivatedEmailsLowerCase);
 
         log.info("Preparing identities list which are eligible for the deactivation");
         List<Identity> identitiesToBeDeactivate = activeIdentitiesLastLoggedInBeforeDeactivationDate
                 .stream()
                 .filter(i -> !reactivatedEmailsLowerCase.contains(i.getEmail().toLowerCase()))
                 .collect(Collectors.toList());
+        log.info("Identities list which are eligible for the deactivation: {}", identitiesToBeDeactivate);
 
         int numberOfIdentitiesToBeDeactivate = identitiesToBeDeactivate.size();
         log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
