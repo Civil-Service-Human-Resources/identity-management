@@ -64,7 +64,7 @@ public class IdentityService implements UserDetailsService {
         learnerRecordService.deleteCivilServant(uid);
         log.info("Deleting from civil-servant-registry");
         csrsService.deleteCivilServant(uid);
-        log.info("Deleting from reporting");
+        log.info("Removing details from reporting");
         reportingService.removeUserDetails(uid);
         Optional<Identity> result = identityRepository.findFirstByUid(uid);
         if (result.isPresent()) {
