@@ -27,12 +27,12 @@ import uk.gov.cshr.service.csrs.AgencyTokenDto;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
-import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
 @Controller
@@ -54,10 +54,12 @@ public class IdentityController {
     private final CslService cslService;
 
     @GetMapping("/identities")
-    public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
+    public String identities(Model model, Pageable pageable,
+                             @RequestParam(value = "query", required = false) String query) {
         log.debug("Listing all identities");
 
-        Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
+        Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable)
+                : identityRepository.findAllByEmailContains(pageable, query);
         model.addAttribute("page", pages);
         model.addAttribute("query", query == null ? "" : query);
         model.addAttribute("pagination", Pagination.generateList(pages.getNumber(), pages.getTotalPages()));
@@ -89,7 +91,8 @@ public class IdentityController {
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
 
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
-            List<?> requiredCourses = civilServantDto == null ? emptyList() : cslService.getRequiredLearningForUser(uid).getCourses();
+            List<?> requiredCourses = civilServantDto == null ? emptyList()
+                    : cslService.getRequiredLearningForUser(uid).getCourses();
 
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("requiredCourses", requiredCourses);
@@ -114,17 +117,18 @@ public class IdentityController {
                 identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
 
-                redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
+                        String.format("%s deactivated successfully", identity.getEmail()));
 
                 return REDIRECT_IDENTITIES_LIST;
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
             }
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -145,21 +149,20 @@ public class IdentityController {
                                  RedirectAttributes redirectAttributes) {
         try {
             Identity identity = identityService.getIdentity(uid);
-
-            if (!identity.isActive()) {
-                Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
-                reactivationService.sendReactivationEmail(identity, reactivationRequest);
-                redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("Reactivation email verification sent to %s", identity.getEmail()));
-                return REDIRECT_IDENTITIES_LIST;
-            } else {
-                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR);
+            if (identity.isActive()) {
+                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
                 return REDIRECT_IDENTITIES_LIST;
             }
+            Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
+            reactivationService.sendReactivationEmail(identity, reactivationRequest);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
+                    String.format("Reactivation email verification sent to %s", identity.getEmail()));
+            return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -172,10 +175,10 @@ public class IdentityController {
 
             return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -197,14 +200,14 @@ public class IdentityController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
-                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
                     return REDIRECT_IDENTITIES_LIST;
                 }
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
         } else {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
 
@@ -233,7 +236,6 @@ public class IdentityController {
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
         identityService.deleteIdentity(uid);
-
         return REDIRECT_IDENTITIES_LIST;
     }
 }
