@@ -30,10 +30,9 @@ import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
 
 @Slf4j
 @Controller
@@ -86,17 +85,21 @@ public class IdentityController {
                     agencyToken = agencyTokenDto.getToken();
                 }
             }
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
+
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+            List<?> requiredCourses = civilServantDto == null ? emptyList() : cslService.getRequiredLearningForUser(uid).getCourses();
+
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            model.addAttribute("requiredCourses", cslService.getRequiredLearningForUser(uid).getCourses());
+            model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
             return "identity/edit";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        log.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -221,7 +224,7 @@ public class IdentityController {
             return "identity/delete";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        log.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
