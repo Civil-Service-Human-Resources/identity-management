@@ -85,13 +85,10 @@ public class IdentityController {
                     agencyToken = agencyTokenDto.getToken();
                 }
             }
-
-            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
-
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             List<?> requiredCourses = civilServantDto == null ? emptyList()
                     : cslService.getRequiredLearningForUser(uid).getCourses();
-
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute("roles", roles);
