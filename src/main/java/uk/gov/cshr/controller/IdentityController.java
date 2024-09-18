@@ -27,12 +27,12 @@ import uk.gov.cshr.service.csrs.AgencyTokenDto;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
 @Controller
@@ -111,17 +111,17 @@ public class IdentityController {
                 identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
 
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
+                redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
 
                 return REDIRECT_IDENTITIES_LIST;
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
             }
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -143,19 +143,19 @@ public class IdentityController {
         try {
             Identity identity = identityService.getIdentity(uid);
             if (identity.isActive()) {
-                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR);
                 return REDIRECT_IDENTITIES_LIST;
             }
             Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
             reactivationService.sendReactivationEmail(identity, reactivationRequest);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
+            redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE,
                     String.format("Reactivation email verification sent to %s", identity.getEmail()));
             return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -168,10 +168,10 @@ public class IdentityController {
 
             return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -193,14 +193,14 @@ public class IdentityController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
-                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
                     return REDIRECT_IDENTITIES_LIST;
                 }
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
         } else {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
 
