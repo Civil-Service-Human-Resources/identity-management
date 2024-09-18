@@ -40,17 +40,17 @@ public class ReportingService {
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
+    public ResponseEntity<Void> removeUserDetailsDataRetentionJob(List<String> uids){
+        RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
+        RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDataFromReportUrl, parameters);
+        return httpClient.sendRequest(requestEntity, Void.class);
+    }
+
     public ResponseEntity<Void> removeUserDetails(String uid, boolean dataRetentionJob){
         List<String> uidList = new ArrayList<>(singletonList(uid));
         if(dataRetentionJob) {
             return removeUserDetailsDataRetentionJob(uidList);
         }
         return removeUserDetails(uidList);
-    }
-
-    public ResponseEntity<Void> removeUserDetailsDataRetentionJob(List<String> uids){
-        RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
-        RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDataFromReportUrl, parameters);
-        return httpClient.sendRequest(requestEntity, Void.class);
     }
 }
