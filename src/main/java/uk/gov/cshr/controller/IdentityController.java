@@ -54,12 +54,10 @@ public class IdentityController {
     private final CslService cslService;
 
     @GetMapping("/identities")
-    public String identities(Model model, Pageable pageable,
-                             @RequestParam(value = "query", required = false) String query) {
+    public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
         log.debug("Listing all identities");
 
-        Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable)
-                : identityRepository.findAllByEmailContains(pageable, query);
+        Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
         model.addAttribute("page", pages);
         model.addAttribute("query", query == null ? "" : query);
         model.addAttribute("pagination", Pagination.generateList(pages.getNumber(), pages.getTotalPages()));
@@ -117,8 +115,7 @@ public class IdentityController {
                 identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
 
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
-                        String.format("%s deactivated successfully", identity.getEmail()));
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
 
                 return REDIRECT_IDENTITIES_LIST;
             } else {
@@ -236,6 +233,7 @@ public class IdentityController {
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
         identityService.deleteIdentity(uid);
+
         return REDIRECT_IDENTITIES_LIST;
     }
 }
