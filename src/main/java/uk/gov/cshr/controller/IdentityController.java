@@ -228,7 +228,7 @@ public class IdentityController {
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
-        identityService.deleteIdentity(uid);
+        identityService.deleteIdentity(uid, false);
 
         return REDIRECT_IDENTITIES_LIST;
     }

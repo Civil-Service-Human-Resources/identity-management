@@ -10,8 +10,9 @@ import uk.gov.cshr.domain.RemoveUserDetailsParams;
 import uk.gov.cshr.service.RequestEntityFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 @Service
 @Slf4j
@@ -19,15 +20,18 @@ public class ReportingService {
     private final HttpClient httpClient;
     private final RequestEntityFactory requestEntityFactory;
     private final String removeUserDetailsUrl;
+    private final String removeUserDataFromReportUrl;
 
     public ReportingService(
             HttpClient httpClient,
             RequestEntityFactory requestEntityFactory,
-            @Value("${reporting.removeUserDataUrl}") String removeUserDetailsUrl
+            @Value("${reporting.removeUserDataUrl}") String removeUserDetailsUrl,
+            @Value("${reporting.removeUserDataFromReportUrl}") String removeUserDataFromReportUrl
     ) {
         this.httpClient = httpClient;
         this.requestEntityFactory = requestEntityFactory;
         this.removeUserDetailsUrl = removeUserDetailsUrl;
+        this.removeUserDataFromReportUrl = removeUserDataFromReportUrl;
     }
 
     public ResponseEntity<Void> removeUserDetails(List<String> uids){
@@ -36,10 +40,17 @@ public class ReportingService {
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-    public ResponseEntity<Void> removeUserDetails(String uid){
-        List<String> uidList = new ArrayList<>(Arrays.asList(uid));
-        return removeUserDetails(uidList);
+    public ResponseEntity<Void> removeUserDetailsDataRetentionJob(List<String> uids){
+        RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
+        RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDataFromReportUrl, parameters);
+        return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-
+    public ResponseEntity<Void> removeUserDetails(String uid, boolean dataRetentionJob){
+        List<String> uidList = new ArrayList<>(singletonList(uid));
+        if(dataRetentionJob) {
+            return removeUserDetailsDataRetentionJob(uidList);
+        }
+        return removeUserDetails(uidList);
+    }
 }

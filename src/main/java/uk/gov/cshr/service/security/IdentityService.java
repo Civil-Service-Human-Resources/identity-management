@@ -60,13 +60,13 @@ public class IdentityService implements UserDetailsService {
     }
 
     @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
-    public void deleteIdentity(String uid) {
+    public void deleteIdentity(String uid, Boolean dataRetentionJob) {
         log.info("Deleting from learner-record");
         learnerRecordService.deleteCivilServant(uid);
         log.info("Deleting from civil-servant-registry");
         csrsService.deleteCivilServant(uid);
         log.info("Removing details from reporting");
-        reportingService.removeUserDetails(uid);
+        reportingService.removeUserDetails(uid, dataRetentionJob);
         Optional<Identity> result = identityRepository.findFirstByUid(uid);
         if (result.isPresent()) {
             log.info("Deleting from identity");
