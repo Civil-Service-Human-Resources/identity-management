@@ -36,8 +36,10 @@ public class DeletionTask extends BaseTask {
     @Override
     protected List<Identity> fetchUsers() {
         LocalDateTime deletionDate = LocalDateTime.now().minusMonths(deletionPeriodInMonths);
-        log.info("Fetching inactive users for deletion who have logged-in before deletion cutoff date: {}", deletionDate);
-        return identityRepository.findByActiveFalseAndLastLoggedInBefore(deletionDate.toInstant(ZoneOffset.UTC));
+        List<Identity> identitiesToBeDeleted = identityRepository.findByActiveFalseAndLastLoggedInBefore(deletionDate.toInstant(ZoneOffset.UTC));
+        log.info("Number of inactive users for deletion who have logged-in before deletion cutoff date {}: {}",
+                deletionDate, identitiesToBeDeleted.size());
+        return identitiesToBeDeleted;
     }
 
     @Override

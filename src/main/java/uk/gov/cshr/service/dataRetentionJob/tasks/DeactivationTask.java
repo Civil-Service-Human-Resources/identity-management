@@ -69,7 +69,8 @@ public class DeactivationTask extends BaseTask {
                 .filter(i -> !reactivatedEmailsLowerCase.contains(i.getEmail().toLowerCase()))
                 .collect(Collectors.toList());
         int numberOfIdentitiesToBeDeactivate = identitiesToBeDeactivate.size();
-        log.info("Number of identities to be deactivated: {}", numberOfIdentitiesToBeDeactivate);
+        log.info("Number of identities to be deactivated who have not logged-in or not activated since the deactivation cutoff date {}: {}",
+                deactivationDateTime, numberOfIdentitiesToBeDeactivate);
 
         log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
                 deactivationDateTime,
