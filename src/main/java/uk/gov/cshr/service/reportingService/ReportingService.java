@@ -34,19 +34,21 @@ public class ReportingService {
         this.removeUserDataFromReportUrl = removeUserDataFromReportUrl;
     }
 
-    public ResponseEntity<Void> removeUserDetails(List<String> uids){
+    public ResponseEntity<Void> removeUserDetails(List<String> uids) {
+        log.debug("ReportingService:removeUserDetails: uids: {}", uids);
         RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
         RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDetailsUrl, parameters);
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-    public ResponseEntity<Void> removeUserDetailsDataRetentionJob(List<String> uids){
+    public ResponseEntity<Void> removeUserDetailsDataRetentionJob(List<String> uids) {
+        log.debug("ReportingService:removeUserDetailsDataRetentionJob: uids: {}", uids);
         RemoveUserDetailsParams parameters = new RemoveUserDetailsParams(uids);
         RequestEntity<RemoveUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDataFromReportUrl, parameters);
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-    public ResponseEntity<Void> removeUserDetails(String uid, Boolean dataRetentionJob){
+    public ResponseEntity<Void> removeUserDetails(String uid, Boolean dataRetentionJob) {
         List<String> uidList = new ArrayList<>(singletonList(uid));
         if(dataRetentionJob) {
             return removeUserDetailsDataRetentionJob(uidList);
