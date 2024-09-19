@@ -11,7 +11,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.ZoneOffset.*;
+import static java.time.ZoneOffset.UTC;
 
 @Slf4j
 @Service

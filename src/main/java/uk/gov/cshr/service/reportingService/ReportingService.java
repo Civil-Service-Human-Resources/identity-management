@@ -46,7 +46,7 @@ public class ReportingService {
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-    public ResponseEntity<Void> removeUserDetails(String uid, boolean dataRetentionJob){
+    public ResponseEntity<Void> removeUserDetails(String uid, Boolean dataRetentionJob){
         List<String> uidList = new ArrayList<>(singletonList(uid));
         if(dataRetentionJob) {
             return removeUserDetailsDataRetentionJob(uidList);

@@ -31,8 +31,8 @@ public class DeactivationTask extends BaseTask {
     private final NotificationService notificationService;
     private final ReactivationRepository reactivationRepository;
 
-    public DeactivationTask(IdentityRepository identityRepository, MessageService messageService,
-                            NotificationService notificationService, ReactivationRepository reactivationRepository) {
+    public DeactivationTask(IdentityRepository identityRepository, MessageService messageService, NotificationService notificationService,
+                            ReactivationRepository reactivationRepository) {
         this.identityRepository = identityRepository;
         this.messageService = messageService;
         this.notificationService = notificationService;
