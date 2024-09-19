@@ -42,7 +42,7 @@ public class DeletionTask extends BaseTask {
 
     @Override
     protected void updateUser(Identity user) {
-        log.info("deleting identity {} ", user.getEmail());
+        log.info("Deleting identity {} ", user.getEmail());
         identityService.deleteIdentity(user.getUid(), true);
         notificationService.send(messageService.createDeletedMessage(user));
     }
