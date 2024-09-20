@@ -72,7 +72,7 @@ public class DeactivationTask extends BaseTask {
         log.info("Number of identities to be deactivated who have not logged-in or not activated since the deactivation cutoff date {}: {}",
                 deactivationDateTime, numberOfIdentitiesToBeDeactivated);
 
-        log.info("Number of identities activated after deactivation cutoff date {} but did not login: {}",
+        log.info("Number of identities activated but did not login after deactivation cutoff date {}: {}",
                 deactivationDateTime,
                 numberOfActiveIdentitiesLastLoggedInBeforeDeactivationDate - numberOfIdentitiesToBeDeactivated);
 
