@@ -7,8 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
@@ -21,6 +19,9 @@ import uk.gov.cshr.service.reportingService.ReportingService;
 
 import java.util.Optional;
 
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+import static org.springframework.transaction.annotation.Propagation.REQUIRED;
+
 @Service
 @Slf4j
 @Transactional
@@ -30,7 +31,7 @@ public class IdentityService implements UserDetailsService {
 
     private InviteService inviteService;
 
-    private ResetService resetService;
+    private final ResetService resetService;
 
     private final LearnerRecordService learnerRecordService;
 
@@ -58,13 +59,30 @@ public class IdentityService implements UserDetailsService {
         this.restTemplate = restTemplate;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
+    @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
     public void deleteIdentity(String uid) {
+        deleteFromLearnerRecordAndCsrs(uid);
+        log.info("Removing details from reporting");
+        reportingService.removeUserDetails(uid);
+        deleteInviteResetAndIdentity(uid);
+    }
+
+    @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
+    public void deleteIdentityByDataRetentionJob(String uid) {
+        deleteFromLearnerRecordAndCsrs(uid);
+        log.info("Removing details from reporting");
+        reportingService.removeUserDetailsByDataRetentionJob(uid);
+        deleteInviteResetAndIdentity(uid);
+    }
+
+    private void deleteFromLearnerRecordAndCsrs(String uid) {
         log.info("Deleting from learner-record");
         learnerRecordService.deleteCivilServant(uid);
         log.info("Deleting from civil-servant-registry");
         csrsService.deleteCivilServant(uid);
-        reportingService.removeUserDetails(uid);
+    }
+
+    private void deleteInviteResetAndIdentity(String uid) {
         Optional<Identity> result = identityRepository.findFirstByUid(uid);
         if (result.isPresent()) {
             log.info("Deleting from identity");
@@ -103,12 +121,7 @@ public class IdentityService implements UserDetailsService {
     public void updateLocked(String uid) {
         Identity identity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);
-
-        if (identity.isLocked()) {
-            identity.setLocked(false);
-        } else {
-            identity.setLocked(true);
-        }
+        identity.setLocked(!identity.isLocked());
         identityRepository.save(identity);
     }
 

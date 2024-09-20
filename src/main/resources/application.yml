@@ -15,6 +15,7 @@ logging:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
+    uk.gov.cshr: ${CSHR_LOGGING_LEVEL:INFO}
     org.springframework: INFO
     org.apache: INFO
     org.hibernate: INFO
@@ -66,6 +67,7 @@ notifications:
 reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
   removeUserDataUrl: "${reporting.serviceUrl}/course-completions/remove-user-details"
+  removeUserDataFromReportUrl: "${reporting.serviceUrl}/api/report/remove-user-details"
 
 accountPeriodsInMonths:
   deactivation: 13

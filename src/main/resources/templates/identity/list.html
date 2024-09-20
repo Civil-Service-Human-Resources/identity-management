@@ -41,8 +41,8 @@
         </thead>
         <tbody>
         <tr th:each="identity : ${page.getContent()}">
-            <td th:text="${identity.locked} ? 'Yes' : 'No' "></td>
             <td th:text="${identity.active} ? 'Yes' : 'No'"></td>
+            <td th:text="${identity.locked} ? 'Yes' : 'No' "></td>
             <td>
                 <a th:text="${identity.email}" th:href="@{|/identities/update/${identity.uid}|}" th:alt="'View user ' + ${identity.email}"></a>
             </td>
