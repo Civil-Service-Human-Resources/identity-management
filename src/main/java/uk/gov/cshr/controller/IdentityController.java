@@ -176,7 +176,6 @@ public class IdentityController {
         }
     }
 
-
     @PostMapping("/identities/update")
     public String identityUpdate(@RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  @RequestParam(UID_ATTRIBUTE) String uid,
@@ -228,8 +227,7 @@ public class IdentityController {
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
-        identityService.deleteIdentity(uid, false);
-
+        identityService.deleteIdentity(uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 }

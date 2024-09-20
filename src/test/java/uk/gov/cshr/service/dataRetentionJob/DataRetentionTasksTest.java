@@ -176,7 +176,7 @@ public class DataRetentionTasksTest {
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
-        verify(identityService, times(1)).deleteIdentity("TEST", true);
+        verify(identityService, times(1)).deleteIdentityByDataRetentionJob("TEST");
         verify(messageService, times(1)).createDeletedMessage(deletionUser);
         verify(notificationService, times(1)).send(deletedNotification);
     }
@@ -203,7 +203,7 @@ public class DataRetentionTasksTest {
         DeletionTask taskToTest = getDeletionTask(mockIdentityService);
         taskToTest.runTask();
 
-        verify(reportingService, times(1)).removeUserDetails("uid-abc-123", true);
+        verify(reportingService, times(1)).removeUserDetailsByDataRetentionJob("uid-abc-123");
     }
 
     /*
@@ -233,7 +233,7 @@ public class DataRetentionTasksTest {
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
-        verify(identityService, times(2)).deleteIdentity(any(), any());
+        verify(identityService, times(2)).deleteIdentityByDataRetentionJob(any());
         verify(messageService, times(2)).createDeletedMessage(any());
         // Should only be called ONCE, for the SECOND user
         verify(notificationService, times(1)).send(deletedNotification);

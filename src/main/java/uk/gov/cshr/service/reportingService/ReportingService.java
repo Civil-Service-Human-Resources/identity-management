@@ -48,11 +48,13 @@ public class ReportingService {
         return httpClient.sendRequest(requestEntity, Void.class);
     }
 
-    public ResponseEntity<Void> removeUserDetails(String uid, Boolean dataRetentionJob) {
+    public ResponseEntity<Void> removeUserDetails(String uid) {
         List<String> uidList = new ArrayList<>(singletonList(uid));
-        if(dataRetentionJob) {
-            return removeUserDetailsDataRetentionJob(uidList);
-        }
         return removeUserDetails(uidList);
+    }
+
+    public ResponseEntity<Void> removeUserDetailsByDataRetentionJob(String uid) {
+        List<String> uidList = new ArrayList<>(singletonList(uid));
+        return removeUserDetailsDataRetentionJob(uidList);
     }
 }
