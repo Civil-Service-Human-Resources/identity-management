@@ -16,9 +16,6 @@ logging:
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
     uk.gov.cshr: ${CSHR_LOGGING_LEVEL:INFO}
-    org.springframework: INFO
-    org.apache: INFO
-    org.hibernate: INFO
 
 security:
   oauth2:
