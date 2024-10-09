@@ -1,14 +1,17 @@
 package uk.gov.cshr.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
-import lombok.AllArgsConstructor;
 import org.hibernate.validator.constraints.Email;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
+
+import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 
 @Entity
 @Data
@@ -32,6 +35,9 @@ public class Identity implements Serializable {
 
     private Instant lastLoggedIn;
 
+    @Transient
+    private Date lastReactivation;
+
     private boolean deletionNotificationSent;
 
     private boolean active;
@@ -46,6 +52,14 @@ public class Identity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> roles;
+
+    public String getLastLoggedInAsDate() {
+        return this.lastLoggedIn == null ? "User has never logged in" : formatDatetimeForFE(this.lastLoggedIn);
+    }
+
+    public String getLastReactivationAsDate() {
+        return this.lastReactivation == null ? "No reactivations found" : formatDatetimeForFE(this.lastReactivation.toInstant());
+    }
 
     public Identity() {
     }

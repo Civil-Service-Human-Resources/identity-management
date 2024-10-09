@@ -15,9 +15,7 @@ logging:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
-    org.springframework: INFO
-    org.apache: INFO
-    org.hibernate: INFO
+    uk.gov.cshr: ${CSHR_LOGGING_LEVEL:INFO}
 
 security:
   oauth2:
@@ -52,10 +50,21 @@ learnerRecord:
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
+  getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
+  getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
+
+cslService:
+  serviceUrl: ${CSL_SERVICE_URL:http:localhost:9003}
+  getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
   email: "${notifications.service}/notifications/email/"
+
+reporting:
+  serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
+  removeUserDataUrl: "${reporting.serviceUrl}/course-completions/remove-user-details"
+  removeUserDataFromReportUrl: "${reporting.serviceUrl}/api/report/remove-user-details"
 
 accountPeriodsInMonths:
   deactivation: 13

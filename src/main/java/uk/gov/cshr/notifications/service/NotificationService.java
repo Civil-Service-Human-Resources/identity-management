@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.client.HttpClient;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.service.RequestEntityFactory;
@@ -26,9 +25,9 @@ public class NotificationService {
     }
 
     public boolean send(MessageDto message) {
-        RequestEntity<Void> requestEntity = requestEntityFactory.createPostRequest(emailNotificationUrl, message);
+        RequestEntity<MessageDto> requestEntity = requestEntityFactory.createPostRequest(emailNotificationUrl, message);
 
-        ResponseEntity<Void> response = httpClient.sendRequest(requestEntity);
+        ResponseEntity<Void> response = httpClient.sendRequest(requestEntity, Void.class);
 
         return response.getStatusCode().is2xxSuccessful();
     }

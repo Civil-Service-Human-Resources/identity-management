@@ -33,11 +33,11 @@ public class RequestEntityFactory {
     @Value("${identity.oauthLogoutEndpoint}")
     private String oauthLogoutEndpoint;
 
-    private RequestEntity createDeleteRequest(URI uri) {
-        return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
+    private <T> RequestEntity <T> createDeleteRequest(URI uri) {
+        return new RequestEntity<>(getOauth2HeadersFromSecurityContext(), HttpMethod.DELETE, uri);
     }
 
-    public RequestEntity createDeleteRequest(String uri) {
+    public <T> RequestEntity <T> createDeleteRequest(String uri) {
         try {
             return createDeleteRequest(new URI(uri));
         } catch (URISyntaxException e) {
@@ -45,11 +45,11 @@ public class RequestEntityFactory {
         }
     }
 
-    private RequestEntity createGetRequest(URI uri) {
-        return new RequestEntity(getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
+    private <T> RequestEntity <T> createGetRequest(URI uri) {
+        return new RequestEntity<>(getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
     }
 
-    public RequestEntity createGetRequest(String uri) {
+    public <T> RequestEntity <T> createGetRequest(String uri) {
         try {
             return createGetRequest(new URI(uri));
         } catch (URISyntaxException e) {
@@ -57,11 +57,11 @@ public class RequestEntityFactory {
         }
     }
 
-    private RequestEntity createPutRequest(URI uri, Object body) {
-        return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PUT, uri);
+    private <T> RequestEntity <T> createPutRequest(URI uri, T body) {
+        return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PUT, uri);
     }
 
-    public RequestEntity createPutRequest(String uri, Object body) {
+    public <T> RequestEntity <T> createPutRequest(String uri, T body) {
         try {
             return createPutRequest(new URI(uri), body);
         } catch (URISyntaxException e) {
@@ -69,15 +69,15 @@ public class RequestEntityFactory {
         }
     }
 
-    private RequestEntity createPostRequest(URI uri, Object body) {
-        return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
+    private <T> RequestEntity <T> createPostRequest(URI uri, T body) {
+        return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.POST, uri);
     }
 
-    public RequestEntity createGetRequest(URI uri, Object body) {
-        return new RequestEntity(body, getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
+    public <T> RequestEntity <T> createGetRequest(URI uri, T body) {
+        return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.GET, uri);
     }
 
-    public RequestEntity createPostRequest(String uri, Object body) {
+    public <T> RequestEntity <T> createPostRequest(String uri, T body) {
         try {
             return createPostRequest(new URI(uri), body);
         } catch (URISyntaxException e) {
@@ -85,7 +85,7 @@ public class RequestEntityFactory {
         }
     }
 
-    public RequestEntity createLogoutRequest() {
+    public <T> RequestEntity <T> createLogoutRequest() {
         try {
             return createGetRequest(new URI(identityUrl + oauthLogoutEndpoint), null);
         } catch (URISyntaxException e) {

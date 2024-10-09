@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,20 +20,24 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
+import uk.gov.cshr.service.csrs.AgencyTokenDto;
+import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
-import uk.gov.cshr.utils.ApplicationConstants;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
 @Controller
 @PreAuthorize("hasPermission(returnObject, 'read')")
+@AllArgsConstructor
 public class IdentityController {
 
     public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
@@ -40,23 +45,13 @@ public class IdentityController {
     private static final String UID_ATTRIBUTE = "uid";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
     private static final String IDENTITY_REACTIVATE_TEMPLATE = "identity/reactivate";
-    private IdentityRepository identityRepository;
 
-    private RoleRepository roleRepository;
-
-    private IdentityService identityService;
-
-    private ReactivationService reactivationService;
-
-    public IdentityController(IdentityRepository identityRepository,
-                              RoleRepository roleRepository,
-                              IdentityService identityService,
-                              ReactivationService reactivationService) {
-        this.identityRepository = identityRepository;
-        this.roleRepository = roleRepository;
-        this.identityService = identityService;
-        this.reactivationService = reactivationService;
-    }
+    private final IdentityRepository identityRepository;
+    private final RoleRepository roleRepository;
+    private final IdentityService identityService;
+    private final ReactivationService reactivationService;
+    private final CSRSService csrsService;
+    private final CslService cslService;
 
     @GetMapping("/identities")
     public String identities(Model model, Pageable pageable, @RequestParam(value = "query", required = false) String query) {
@@ -82,12 +77,26 @@ public class IdentityController {
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
+            String tokenUid = identity.getAgencyTokenUid();
+            String agencyToken = "None";
+            if (tokenUid != null) {
+                AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
+                if (agencyTokenDto != null) {
+                    agencyToken = agencyTokenDto.getToken();
+                }
+            }
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
+            List<?> requiredCourses = civilServantDto == null ? emptyList() : cslService.getRequiredLearningForUser(uid).getCourses();
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+            model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute("roles", roles);
+            model.addAttribute("profile", civilServantDto);
+            model.addAttribute("token", agencyToken);
             return "identity/edit";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        log.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -102,17 +111,17 @@ public class IdentityController {
                 identity.setAgencyTokenUid(null);
                 identityRepository.save(identity);
 
-                redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
 
                 return REDIRECT_IDENTITIES_LIST;
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
             }
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -133,21 +142,20 @@ public class IdentityController {
                                  RedirectAttributes redirectAttributes) {
         try {
             Identity identity = identityService.getIdentity(uid);
-
-            if (!identity.isActive()) {
-                Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
-                reactivationService.sendReactivationEmail(identity, reactivationRequest);
-                redirectAttributes.addFlashAttribute(ApplicationConstants.SUCCESS_ATTRIBUTE, String.format("Reactivation email verification sent to %s", identity.getEmail()));
-                return REDIRECT_IDENTITIES_LIST;
-            } else {
-                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR);
+            if (identity.isActive()) {
+                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
                 return REDIRECT_IDENTITIES_LIST;
             }
+            Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
+            reactivationService.sendReactivationEmail(identity, reactivationRequest);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
+                    String.format("Reactivation email verification sent to %s", identity.getEmail()));
+            return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
@@ -160,14 +168,13 @@ public class IdentityController {
 
             return REDIRECT_IDENTITIES_LIST;
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
     }
-
 
     @PostMapping("/identities/update")
     public String identityUpdate(@RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
@@ -185,14 +192,14 @@ public class IdentityController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
-                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
                     return REDIRECT_IDENTITIES_LIST;
                 }
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
         } else {
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SYSTEM_ERROR);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
             return REDIRECT_IDENTITIES_LIST;
         }
 
@@ -212,7 +219,7 @@ public class IdentityController {
             return "identity/delete";
         }
 
-        log.info("No identity found for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
+        log.info("No identity found for uid {}", uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -221,7 +228,6 @@ public class IdentityController {
     @PreAuthorize("hasPermission(returnObject, 'delete')")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
         identityService.deleteIdentity(uid);
-
         return REDIRECT_IDENTITIES_LIST;
     }
 }
