@@ -1,0 +1,21 @@
+FROM maven:3.8-openjdk-8 as debug
+
+WORKDIR /workspace/app
+
+COPY . .
+
+FROM debug as build
+
+USER root
+
+RUN mvn clean package -Dmaven.test.skip
+
+CMD java -jar /workspace/app/target/identity-management-0.0.5.jar
+
+FROM openjdk:8-jre-alpine as production
+
+ARG JAR_DIR=/workspace/app/target
+
+COPY --from=build ${JAR_DIR}/identity-management-0.0.5.jar /data/app.jar
+
+CMD java -jar /data/app.jar
