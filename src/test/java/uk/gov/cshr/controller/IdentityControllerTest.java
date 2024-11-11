@@ -14,6 +14,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.cshr.config.FrontendAuthService;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
@@ -42,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebMvcTest(IdentityController.class)
 @WithMockUser(username = "user")
-@ContextConfiguration(classes = {WebConfig.class, IdentityController.class})
+@ContextConfiguration(classes = {WebConfig.class, IdentityController.class, FrontendAuthService.class})
 @EnableSpringDataWebSupport
 public class IdentityControllerTest {
 
