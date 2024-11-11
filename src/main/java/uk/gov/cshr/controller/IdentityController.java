@@ -36,7 +36,7 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
 @Controller
-@PreAuthorize("hasPermission(returnObject, 'read')")
+@PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).READ_IDENTITY)")
 @AllArgsConstructor
 public class IdentityController {
 
@@ -207,7 +207,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/delete/{uid}")
-    @PreAuthorize("hasPermission(returnObject, 'delete')")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
     public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, Principal principal) {
         log.info("{} deleting identity for uid {}", ((OAuth2Authentication) principal).getPrincipal(), uid);
 
@@ -225,7 +225,7 @@ public class IdentityController {
 
     @Transactional
     @PostMapping("/identities/delete")
-    @PreAuthorize("hasPermission(returnObject, 'delete')")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid) {
         identityService.deleteIdentity(uid);
         return REDIRECT_IDENTITIES_LIST;

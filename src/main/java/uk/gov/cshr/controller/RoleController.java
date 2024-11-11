@@ -1,9 +1,6 @@
 package uk.gov.cshr.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,17 +15,19 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/roles")
-@PreAuthorize("hasPermission(returnObject, 'read')")
+@Slf4j
+@PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ROLES)")
 public class RoleController {
+    
+    private final RoleRepository roleRepository;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
-
-    @Autowired
-    private RoleRepository roleRepository;
+    public RoleController(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     @GetMapping
     public String roles(Model model) {
-        LOGGER.info("Listing all roles");
+        log.info("Listing all roles");
 
         Iterable<Role> roles = roleRepository.findAll();
 
@@ -41,7 +40,7 @@ public class RoleController {
     @PostMapping("/create")
     public String roleCreate(@ModelAttribute("role") Role role, Principal principal) {
 
-        LOGGER.info("{} created new role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} created new role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         if (role.getId() == null) {
             roleRepository.save(role);
@@ -53,7 +52,7 @@ public class RoleController {
     @GetMapping("/update/{id}")
     public String roleUpdate(Model model,
                              @PathVariable("id") long id, Principal principal) {
-        LOGGER.info("{} updating role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
+        log.info("{} updating role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
 
         Optional<Role> optionalRole = roleRepository.findById(id);
 
@@ -63,7 +62,7 @@ public class RoleController {
             return "role/edit";
         }
 
-        LOGGER.info("No role found for id {}", id);
+        log.info("No role found for id {}", id);
         return "redirect:/roles";
     }
 
@@ -72,7 +71,7 @@ public class RoleController {
     public String roleUpdate(@ModelAttribute("role") Role role, Principal principal) {
         roleRepository.save(role);
 
-        LOGGER.info("{} updated role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} updated role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         return "redirect:/roles";
     }
@@ -80,7 +79,7 @@ public class RoleController {
     @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
                              @PathVariable("id") long id, Principal principal) {
-        LOGGER.info("{} deleting role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
+        log.info("{} deleting role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
 
         Optional<Role> role = roleRepository.findById(id);
 
@@ -89,7 +88,7 @@ public class RoleController {
             return "role/delete";
         }
 
-        LOGGER.info("No role found for id {}", id);
+        log.info("No role found for id {}", id);
         return "redirect:/roles";
     }
 
@@ -97,7 +96,7 @@ public class RoleController {
     public String roleDelete(@ModelAttribute("role") Role role, Principal principal) {
         roleRepository.delete(role);
 
-        LOGGER.info("{} deleted role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} deleted role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
 
         return "redirect:/roles";
     }
