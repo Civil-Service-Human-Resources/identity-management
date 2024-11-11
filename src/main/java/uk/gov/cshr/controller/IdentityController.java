@@ -198,10 +198,10 @@ public class IdentityController {
                                  @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  @RequestParam(UID_ATTRIBUTE) String uid,
                                  RedirectAttributes redirectAttributes) {
-        log.info("{} attempting to set the following roles on identity {}: {}", principal.getName(), uid, String.join(", ", roleId));
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent() && roleId != null) {
+            log.info("{} attempting to set the following roles on identity {}: {}", principal.getName(), uid, String.join(", ", roleId));
             Identity identity = optionalIdentity.get();
 
             Set<Role> roleSet = new HashSet<>();
