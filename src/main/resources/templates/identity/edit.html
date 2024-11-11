@@ -2,35 +2,43 @@
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="layout">
 <head>
-    <title th:text="${'Update Identity - ' + identity.email}"></title>
+    <title th:text="${'View Identity - ' + identity.email}"></title>
 </head>
 <body>
 <section layout:fragment="content">
     <a href="/mgmt/identities" class="btn btn-link-contrast-fix">Back</a>
 
-    <h1 class="pb-5" th:text="${'Update Identity - ' + identity.email}"></h1>
+    <h1 class="pb-5" th:text="${'View Identity - ' + identity.email}"></h1>
     <h2 class="pb-3">Account status</h2>
-    <dl th:if="${identity != null}" class="row">
-        <dt class="col-sm-3">Account Active</dt>
-        <dd class="col-sm-6" th:text="${identity.active} ? 'Yes' : 'No'"></dd>
-        <dd class="col-sm-3">
-            <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
-                <button type="submit" class="btn btn-primary btn-contrast-fix"
-                        th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
-                <input type="hidden" th:field="*{uid}"/>
-            </form>
-        </dd>
-        <dt class="col-sm-3">Account Locked</dt>
-        <dd class="col-sm-6" th:text="${identity.locked} ? 'Yes' : 'No' "></dd>
-        <dd class="col-sm-3">
-            <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
-                <button type="submit" class="btn btn-primary btn-contrast-fix"
-                        th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
-                <input type="hidden" th:field="*{uid}"/>
-            </form>
-        </dd>
-        <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
-        <dt class="col-sm-3">Last reactivation</dt> <dd class="col-sm-9" th:text="${identity.getLastReactivationAsDate()}"></dd>
+    <dl th:if="${identity != null}">
+        <div class="row">
+            <dt class="col-sm-3">Account Active</dt>
+            <dd class="col-sm-6" th:text="${identity.active} ? 'Yes' : 'No'"></dd>
+            <dd class="col-sm-3" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
+                            th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
+                    <input type="hidden" th:field="*{uid}"/>
+                </form>
+            </dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Account Locked</dt>
+            <dd class="col-sm-6" th:text="${identity.locked} ? 'Yes' : 'No' "></dd>
+            <dd class="col-sm-3" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
+                            th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
+                    <input type="hidden" th:field="*{uid}"/>
+                </form>
+            </dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Last reactivation</dt> <dd class="col-sm-9" th:text="${identity.getLastReactivationAsDate()}"></dd>
+        </div>
     </dl>
     <h2 class="pb-3">Profile</h2>
     <dl th:if="${profile != null}" class="row">
@@ -110,8 +118,8 @@
             </table>
         </div>
     </div>
-    <h2>Update roles</h2>
-    <form autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
+    <h2 class="pb-3">Roles</h2>
+    <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
         <div class="form-group">
             <select aria-label="User roles" class="form-control" multiple="multiple" name="roleId" id="roleId" size="25" style="height: 100%;">
                 <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
@@ -121,6 +129,9 @@
         <input type="hidden" th:field="*{uid}"/>
         <button type="submit" class="btn btn-primary btn-contrast-fix">Update Roles</button>
     </form>
+    <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" class="list-group mb-5">
+        <li class="list-group-item" th:each="role : ${identity.getRoles()}" th:value="${role.id}" th:text="${role.name}"></li>
+    </ul>
 </section>
 </body>
 </html>
