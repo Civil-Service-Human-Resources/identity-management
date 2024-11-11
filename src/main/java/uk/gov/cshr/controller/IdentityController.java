@@ -58,6 +58,7 @@ public class IdentityController {
         log.debug("Listing all identities");
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
+
         model.addAttribute("page", pages);
         model.addAttribute("query", query == null ? "" : query);
         model.addAttribute("pagination", Pagination.generateList(pages.getNumber(), pages.getTotalPages()));

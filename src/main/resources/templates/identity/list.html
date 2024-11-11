@@ -36,7 +36,7 @@
             <th scope="col" id="activeheader">Active</th>
             <th scope="col" id="lockedheader">Locked</th>
             <th scope="col">Email</th>
-            <th scope="col">Action</th>
+            <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)}">Action</th>
         </tr>
         </thead>
         <tbody>
@@ -46,7 +46,7 @@
             <td>
                 <a th:text="${identity.email}" th:href="@{|/identities/update/${identity.uid}|}" th:alt="'View user ' + ${identity.email}"></a>
             </td>
-            <td>
+            <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)}">
                 <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
                     Delete
                 </a>
