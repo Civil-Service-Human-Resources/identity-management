@@ -58,6 +58,7 @@ public class IdentityController {
         log.debug("Listing all identities");
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
+
         model.addAttribute("page", pages);
         model.addAttribute("query", query == null ? "" : query);
         model.addAttribute("pagination", Pagination.generateList(pages.getNumber(), pages.getTotalPages()));
@@ -87,9 +88,12 @@ public class IdentityController {
             }
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
-            List<?> requiredCourses = civilServantDto == null ? emptyList() : cslService.getRequiredLearningForUser(uid).getCourses();
-            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+            List<?> requiredCourses = emptyList();
+            if (civilServantDto != null && civilServantDto.getOrganisationalUnit() != null) {
+                requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+            }
             model.addAttribute("requiredCourses", requiredCourses);
+            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
