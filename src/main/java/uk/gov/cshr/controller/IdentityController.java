@@ -73,13 +73,13 @@ public class IdentityController {
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
 
-        log.info("{} viewing identity for uid {}", auth.getUserEmail(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
+            log.info("{} viewing identity for uid {}", auth.getUserEmail(), identity.getEmail());
             String tokenUid = identity.getAgencyTokenUid();
             String agencyToken = "None";
             if (tokenUid != null) {
@@ -111,9 +111,9 @@ public class IdentityController {
     public String updateActive(CustomOAuth2Authentication auth,
                                @RequestParam(UID_ATTRIBUTE) String uid,
                                RedirectAttributes redirectAttributes) {
-        log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), uid);
         try {
             Identity identity = identityService.getIdentity(uid);
+            log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), identity.getEmail());
 
             if (identity.isActive()) {
                 identity.setActive(false);
