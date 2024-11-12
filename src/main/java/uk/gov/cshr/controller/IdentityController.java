@@ -105,6 +105,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/active")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
     public String updateActive(@RequestParam(UID_ATTRIBUTE) String uid,
                                RedirectAttributes redirectAttributes) {
         try {
@@ -131,6 +132,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/reactivate/{uid}")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
     public String reactivateUser(@PathVariable(UID_ATTRIBUTE) String uid,
                                  Model model) {
         Identity identity = identityService.getIdentity(uid);
@@ -142,6 +144,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/reactivate")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
     public String reactivateUser(@RequestParam("uid") String uid,
                                  RedirectAttributes redirectAttributes) {
         try {
@@ -165,6 +168,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/locked")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
     public String updatedLocked(@RequestParam(UID_ATTRIBUTE) String uid,
                                 RedirectAttributes redirectAttributes) {
         try {
@@ -181,6 +185,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/update")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
     public String identityUpdate(@RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  @RequestParam(UID_ATTRIBUTE) String uid,
                                  RedirectAttributes redirectAttributes) {
