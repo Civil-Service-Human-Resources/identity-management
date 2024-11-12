@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.config.CustomOAuth2Authentication;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
@@ -27,7 +28,6 @@ import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.csrs.CivilServantDto;
 import uk.gov.cshr.service.security.IdentityService;
 
-import java.security.Principal;
 import java.util.*;
 
 import static com.mysql.cj.util.StringUtils.isNullOrEmpty;
@@ -55,9 +55,9 @@ public class IdentityController {
     private final CslService cslService;
 
     @GetMapping("/identities")
-    public String identities(Principal principal, Model model, Pageable pageable,
+    public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
                              @RequestParam(value = "query", required = false) String query) {
-        log.info(format("User %s searching for identities", principal.getName()) + (!isNullOrEmpty(query) ? format(" with query '%s'", query) : ""));
+        log.info(format("User %s searching for identities", auth.getUserEmail()) + (!isNullOrEmpty(query) ? format(" with query '%s'", query) : ""));
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
 
@@ -71,9 +71,9 @@ public class IdentityController {
     @GetMapping("/identities/update/{uid}")
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
-                                 Principal principal) {
+                                 CustomOAuth2Authentication auth) {
 
-        log.info("{} viewing identity for uid {}", principal.getName(), uid);
+        log.info("{} viewing identity for uid {}", auth.getUserEmail(), uid);
 
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
@@ -91,7 +91,7 @@ public class IdentityController {
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             List<?> requiredCourses = emptyList();
-            if (civilServantDto != null && civilServantDto.getOrganisationalUnit() != null) {
+            if (civilServantDto != null && civilServantDto.isProfileComplete()) {
                 requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
             }
             model.addAttribute("requiredCourses", requiredCourses);
@@ -108,10 +108,10 @@ public class IdentityController {
 
     @PostMapping("/identities/active")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updateActive(Principal principal,
+    public String updateActive(CustomOAuth2Authentication auth,
                                @RequestParam(UID_ATTRIBUTE) String uid,
                                RedirectAttributes redirectAttributes) {
-        log.info("{} attempting to deactivate identity {}", principal.getName(), uid);
+        log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), uid);
         try {
             Identity identity = identityService.getIdentity(uid);
 
@@ -149,12 +149,12 @@ public class IdentityController {
 
     @PostMapping("/identities/reactivate")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String reactivateUser(Principal principal,
+    public String reactivateUser(CustomOAuth2Authentication auth,
                                  @RequestParam("uid") String uid,
                                  RedirectAttributes redirectAttributes) {
         try {
-            log.info("{} attempting to activate identity {}", principal.getName(), uid);
             Identity identity = identityService.getIdentity(uid);
+            log.info("{} attempting to activate identity {}", auth.getUserEmail(), identity.getEmail());
             if (identity.isActive()) {
                 redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
                 return REDIRECT_IDENTITIES_LIST;
@@ -175,10 +175,10 @@ public class IdentityController {
 
     @PostMapping("/identities/locked")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updatedLocked(Principal principal,
+    public String updatedLocked(CustomOAuth2Authentication auth,
                                 @RequestParam(UID_ATTRIBUTE) String uid,
                                 RedirectAttributes redirectAttributes) {
-        log.info("{} attempting to lock identity {}", principal.getName(), uid);
+        log.info("{} attempting to lock identity {}", auth.getUserEmail(), uid);
         try {
             identityService.updateLocked(uid);
 
@@ -194,15 +194,16 @@ public class IdentityController {
 
     @PostMapping("/identities/update")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String identityUpdate(Principal principal,
+    public String identityUpdate(CustomOAuth2Authentication auth,
                                  @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  @RequestParam(UID_ATTRIBUTE) String uid,
                                  RedirectAttributes redirectAttributes) {
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent() && roleId != null) {
-            log.info("{} attempting to set the following roles on identity {}: {}", principal.getName(), uid, String.join(", ", roleId));
             Identity identity = optionalIdentity.get();
+            log.info("{} attempting to set the following roles on identity {}: {}", auth.getUserEmail(),
+                    identity.getEmail(), String.join(", ", roleId));
 
             Set<Role> roleSet = new HashSet<>();
             for (String id : roleId) {
@@ -242,8 +243,8 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, Principal principal) {
-        log.info("{} deleting identity {}", principal.getName(), uid);
+    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+        log.info("{} deleting identity {}", auth.getUserEmail(), uid);
         identityService.deleteIdentity(uid);
         return REDIRECT_IDENTITIES_LIST;
     }
