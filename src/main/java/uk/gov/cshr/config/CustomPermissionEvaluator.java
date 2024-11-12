@@ -24,7 +24,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 
     private boolean hasPermission(Authentication auth, Permission permission) {
         if (auth != null) {
-            log.debug(format("Evaluating user %s against permission %s", auth.getPrincipal(), permission));
+            log.debug(format("Evaluating user %s against permission %s (Role: %s)", auth.getPrincipal(), permission, permission.getMappedRole()));
             return auth.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(permission.getMappedRole()));
         }
         return false;
