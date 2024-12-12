@@ -50,4 +50,8 @@ public class CivilServantDto {
             return "None";
         }
     }
+
+    public boolean isProfileComplete() {
+        return this.organisationalUnit != null && this.profession != null && this.fullName != null && (this.otherAreasOfWork != null && this.otherAreasOfWork.size() > 0);
+    }
 }

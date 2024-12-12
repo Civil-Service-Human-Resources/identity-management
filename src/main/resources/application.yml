@@ -35,13 +35,9 @@ identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
   idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
-  oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/oauth/logout}
-  oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth/token}
-  oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth/authorize}
-
-invite:
-  url: ${identity.url}/signup/%s
-  validityInSeconds: ${INVITE_VALIDITY:259200}
+  oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/logout}
+  oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth2/token}
+  oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth2/authorize}
 
 learnerRecord:
   serviceUrl: ${LEARNER_RECORD_URL:http://localhost:9000}
@@ -77,7 +73,6 @@ dataRetentionJob:
 
 govNotify:
   template:
-    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
     accountSuspension: ${GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID:de47fe22-96fc-448f-a3f0-d105e9f0e0e6}
     accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
     accountDeleted: ${GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID:f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686}

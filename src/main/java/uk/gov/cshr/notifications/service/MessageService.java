@@ -3,7 +3,6 @@ package uk.gov.cshr.notifications.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
@@ -20,8 +19,6 @@ public class MessageService {
 
     private final String deletionMessageTemplateId;
 
-    private final String invitationMessageTemplateId;
-
     private final String deletedMessageTemplateId;
 
     private final String reactivationTemplateId;
@@ -30,12 +27,8 @@ public class MessageService {
 
     private final String reactivationUrl;
 
-    @Value("${invite.url}")
-    private String signupUrlFormat;
-
     public MessageService(@Value("${govNotify.template.accountSuspension}") String suspensionMessageTemplateId,
                           @Value("${govNotify.template.accountDeletion}") String deletionMessageTemplateId,
-                          @Value("${govNotify.template.invite}") String invitationMessageTemplateId,
                           @Value("${govNotify.template.accountDeleted}") String deletedMessageTemplateId,
                           @Value("${govNotify.template.reactivationTemplateId}") String reactivationTemplateId,
                           @Value("${security.oauth2.client.reset-uri}") String resetUrl,
@@ -45,22 +38,10 @@ public class MessageService {
         this.messageDtoFactory = messageDtoFactory;
         this.suspensionMessageTemplateId = suspensionMessageTemplateId;
         this.deletionMessageTemplateId = deletionMessageTemplateId;
-        this.invitationMessageTemplateId = invitationMessageTemplateId;
         this.deletedMessageTemplateId = deletedMessageTemplateId;
         this.reactivationTemplateId = reactivationTemplateId;
         this.resetUrl = resetUrl;
         this.reactivationUrl = reactivationUrl;
-    }
-
-    public MessageDto createInvitationnMessage(Invite invite) {
-        String activationUrl = String.format(signupUrlFormat, invite.getCode());
-
-        Map<String, String> map = new HashMap<>();
-
-        map.put("email", invite.getForEmail());
-        map.put("activationUrl", activationUrl);
-
-        return messageDtoFactory.create(invite.getForEmail(), invitationMessageTemplateId, map);
     }
 
     public MessageDto createSuspensionMessage(Identity identity) {

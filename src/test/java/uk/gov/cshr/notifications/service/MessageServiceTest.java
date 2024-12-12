@@ -3,7 +3,6 @@ package uk.gov.cshr.notifications.service;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Value;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
@@ -27,17 +26,12 @@ public class MessageServiceTest {
 
     private String deletionMessageTemplateId = "deletionMessageTemplateId";
 
-    private String invitationMessageTemplateId = "invitationMessageTemplateId";
-
     private String deletedMessageTemplateId = "deletedMessageTemplateId";
 
     private String reactivationTemplateId = "reactivationTemplateId";
 
     private String resetUrl = "resetUrl";
     private String reactivationUrl = "www.example.com/reactivate/";
-
-    @Value("${invite.url}")
-    private String signupUrlFormat;
 
     private MessageService messageService;
 
@@ -47,7 +41,6 @@ public class MessageServiceTest {
         this.messageService = new MessageService(
                 suspensionMessageTemplateId,
                 deletionMessageTemplateId,
-                invitationMessageTemplateId,
                 deletedMessageTemplateId,
                 reactivationTemplateId,
                 resetUrl,
