@@ -26,6 +26,7 @@ import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.AgencyTokenDto;
 import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.csrs.CivilServantDto;
+import uk.gov.cshr.service.csrs.FormattedOrganisationalUnitNames;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
@@ -94,6 +95,8 @@ public class IdentityController {
             if (civilServantDto != null && civilServantDto.isProfileComplete()) {
                 requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
             }
+            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames);
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
