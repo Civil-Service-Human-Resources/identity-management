@@ -118,6 +118,49 @@
             </table>
         </div>
     </div>
+    <div th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+        <h2 class="pb-3">Other Organisation Access</h2>
+        <div class="row">
+            <dt class="col-sm-3">Search organisation</dt>
+        </div>
+        <div class="row">
+            <dd class="col-sm-9">Search Input Text Field Here</dd>
+            <dd class="col-sm-3">
+                <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+                    <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
+                </form>
+            </dd>
+        </div>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Department</th>
+                    <th scope="col">Access</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="Department1"></td>
+                    <td th:text="Yes"></td>
+                    <td>
+                        <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+                            <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td th:text="Department2"></td>
+                    <td th:text="Yes"></td>
+                    <td>
+                        <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+                            <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <h2 class="pb-3">Roles</h2>
     <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
         <div class="form-group">
