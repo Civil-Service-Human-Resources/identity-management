@@ -65,6 +65,7 @@ csrs:
 cslService:
   serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
   getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
+  getFormattedOrganisationNames: "${cslService.serviceUrl}/api/organisations/formatted_list"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
