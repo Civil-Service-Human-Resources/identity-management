@@ -50,7 +50,7 @@ csrs:
   getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
 
 cslService:
-  serviceUrl: ${CSL_SERVICE_URL:http:localhost:9003}
+  serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
   getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
 
 notifications:
