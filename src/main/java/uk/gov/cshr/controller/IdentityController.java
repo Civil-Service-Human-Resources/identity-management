@@ -23,10 +23,7 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.csrs.AgencyTokenDto;
-import uk.gov.cshr.service.csrs.CSRSService;
-import uk.gov.cshr.service.csrs.CivilServantDto;
-import uk.gov.cshr.service.csrs.FormattedOrganisationalUnitNames;
+import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
@@ -96,12 +93,20 @@ public class IdentityController {
                 requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
             }
             FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames);
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
+
+            //TODO: implement assignedOrganisations
+            List<FormattedOrganisationalUnitName> assignedOtherOrganisations = emptyList();
+            FormattedOrganisationalUnitName assignedOrg1 = new FormattedOrganisationalUnitName(1L, "AssignedOrg1");
+            assignedOtherOrganisations.add(assignedOrg1);
+            FormattedOrganisationalUnitName assignedOrg2 = new FormattedOrganisationalUnitName(2L, "AssignedOrg2");
+            assignedOtherOrganisations.add(assignedOrg2);
+            model.addAttribute("assignedOtherOrganisations", assignedOtherOrganisations);
             return "identity/edit";
         }
 
@@ -249,6 +254,28 @@ public class IdentityController {
     public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
         log.info("{} deleting identity {}", auth.getUserEmail(), uid);
         identityService.deleteIdentity(uid);
+        return REDIRECT_IDENTITIES_LIST;
+    }
+
+    @Transactional
+    @PostMapping("/identities/otherOrganisation/add")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
+    public String assignOtherOrganisation(CustomOAuth2Authentication auth,
+                                          @RequestParam("otherOrgIdToAdd") String otherOrgIdToAdd,
+                                          @RequestParam(UID_ATTRIBUTE) String uid,
+                                          RedirectAttributes redirectAttributes) {
+        log.info("{} adding Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToAdd, uid);
+        return REDIRECT_IDENTITIES_LIST;
+    }
+
+    @Transactional
+    @PostMapping("/identities/otherOrganisation/remove")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
+    public String removeOtherOrganisation(CustomOAuth2Authentication auth,
+                                          @RequestParam("otherOrgIdToRemove") String otherOrgIdToRemove,
+                                          @RequestParam(UID_ATTRIBUTE) String uid,
+                                          RedirectAttributes redirectAttributes) {
+        log.info("{} removing Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToRemove, uid);
         return REDIRECT_IDENTITIES_LIST;
     }
 }
