@@ -161,12 +161,12 @@
             <tbody>
                 <div th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}">
                     <tr>
-                        <td th:text="Department1"></td>
+                        <td th:text="${assignedOtherOrganisation.getName()}"></td>
                         <td th:text="Yes"></td>
                         <td>
-                            <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}">
-                                <input type="hidden" name="otherOrgIdToRemove" th:field="${assignedOtherOrganisation.getId()}"/>
+                            <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
                                 <input type="hidden" th:field="*{uid}"/>
+                                <input type="hidden" name="otherOrgIdToRemove" th:value="${assignedOtherOrganisation.id}"/>
                                 <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
                             </form>
                         </td>
@@ -176,8 +176,8 @@
         </table>
     </div>
     <div>
-        <ul th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}" class="list-group mb-5">
-            <li class="list-group-item" th:each="formattedOrganisationName : ${formattedOrganisationNames}" th:value="${formattedOrganisationName.id}" th:text="${formattedOrganisationName.name}"></li>
+        <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}" class="list-group mb-5">
+            <li class="list-group-item" th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}" th:value="${assignedOtherOrganisation.id}" th:text="${assignedOtherOrganisation.name}"></li>
         </ul>
     </div>
     <h2 class="pb-3">Roles</h2>

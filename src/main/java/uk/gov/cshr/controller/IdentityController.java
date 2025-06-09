@@ -101,10 +101,10 @@ public class IdentityController {
             model.addAttribute("token", agencyToken);
 
             //TODO: implement assignedOrganisations
-            List<FormattedOrganisationalUnitName> assignedOtherOrganisations = emptyList();
-            FormattedOrganisationalUnitName assignedOrg1 = new FormattedOrganisationalUnitName(1L, "AssignedOrg1");
+            List<FormattedOrganisationalUnitName> assignedOtherOrganisations = new ArrayList<>();
+            FormattedOrganisationalUnitName assignedOrg1 = new FormattedOrganisationalUnitName(1L, "Cabinet Office");
             assignedOtherOrganisations.add(assignedOrg1);
-            FormattedOrganisationalUnitName assignedOrg2 = new FormattedOrganisationalUnitName(2L, "AssignedOrg2");
+            FormattedOrganisationalUnitName assignedOrg2 = new FormattedOrganisationalUnitName(2L, "Department of Health & Social Care)");
             assignedOtherOrganisations.add(assignedOrg2);
             model.addAttribute("assignedOtherOrganisations", assignedOtherOrganisations);
             return "identity/edit";
