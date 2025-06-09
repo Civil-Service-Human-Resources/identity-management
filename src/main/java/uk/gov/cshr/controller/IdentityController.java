@@ -100,7 +100,7 @@ public class IdentityController {
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
 
-            //TODO: implement assignedOrganisations
+            //TODO: fetch assignedOrganisations from the DB
             List<FormattedOrganisationalUnitName> assignedOtherOrganisations = new ArrayList<>();
             FormattedOrganisationalUnitName assignedOrg1 = new FormattedOrganisationalUnitName(1L, "Cabinet Office");
             assignedOtherOrganisations.add(assignedOrg1);
@@ -265,6 +265,7 @@ public class IdentityController {
                                           @RequestParam(UID_ATTRIBUTE) String uid,
                                           RedirectAttributes redirectAttributes) {
         log.info("{} adding Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToAdd, uid);
+        //TODO: update the db
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -276,6 +277,7 @@ public class IdentityController {
                                           @RequestParam(UID_ATTRIBUTE) String uid,
                                           RedirectAttributes redirectAttributes) {
         log.info("{} removing Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToRemove, uid);
+        //TODO: update the db
         return REDIRECT_IDENTITIES_LIST;
     }
 }
