@@ -27,10 +27,12 @@ import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mysql.cj.util.StringUtils.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toMap;
 import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
@@ -92,21 +94,28 @@ public class IdentityController {
             if (civilServantDto != null && civilServantDto.isProfileComplete()) {
                 requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
             }
-            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
 
-            //TODO: fetch assignedOrganisations from the DB
-            List<FormattedOrganisationalUnitName> assignedOtherOrganisations = new ArrayList<>();
-            FormattedOrganisationalUnitName assignedOrg1 = new FormattedOrganisationalUnitName(1L, "Cabinet Office");
-            assignedOtherOrganisations.add(assignedOrg1);
-            FormattedOrganisationalUnitName assignedOrg2 = new FormattedOrganisationalUnitName(2L, "Department of Health & Social Care)");
-            assignedOtherOrganisations.add(assignedOrg2);
-            model.addAttribute("assignedOtherOrganisations", assignedOtherOrganisations);
+            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+
+            List<?> assignedFormattedOrganisationNames = emptyList();
+            if(civilServantDto != null && civilServantDto.getOtherOrganisationalUnits() != null) {
+                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                        .stream()
+                        .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
+                Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
+                assignedFormattedOrganisationNames = assignedOtherOrganisations
+                        .stream()
+                        .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                        .collect(Collectors.toList());
+            }
+            model.addAttribute("assignedOtherOrganisations", assignedFormattedOrganisationNames);
+
             return "identity/edit";
         }
 
@@ -264,8 +273,8 @@ public class IdentityController {
                                           @RequestParam("otherOrgIdToAdd") String otherOrgIdToAdd,
                                           @RequestParam(UID_ATTRIBUTE) String uid,
                                           RedirectAttributes redirectAttributes) {
-        log.info("{} adding Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToAdd, uid);
-        //TODO: update the db
+        log.info("{} adding other organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToAdd, uid);
+        //TODO: invoke csrs api to update the db
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -276,8 +285,8 @@ public class IdentityController {
                                           @RequestParam("otherOrgIdToRemove") String otherOrgIdToRemove,
                                           @RequestParam(UID_ATTRIBUTE) String uid,
                                           RedirectAttributes redirectAttributes) {
-        log.info("{} removing Other Organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToRemove, uid);
-        //TODO: update the db
+        log.info("{} removing other organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToRemove, uid);
+        //TODO: invoke csrs api to update the db
         return REDIRECT_IDENTITIES_LIST;
     }
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout">
+      layout:decorator="layout" xmlns="http://www.w3.org/1999/html">
 <head>
     <title th:text="${'View Identity - ' + identity.email}"></title>
     <script type="text/javascript" src="/js/accessible-autocomplete.min.js"></script>
@@ -128,58 +128,47 @@
             </table>
         </div>
     </div>
-    <div th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
-        <h2 class="pb-3">Other Organisation Access</h2>
-        <div class="row">
-            <dt class="col-sm-3">Search organisation</dt>
-        </div>
-        <div class="row">
-            <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
-                <dd class="col-sm-9">
-                    <div class="form-group">
-                        <span id="organisation-hint" class="form-hint">Start typing to find your organisation name</span>
-                        <select aria-label="Other Organisations" class="form-control" id="otherOrgIdToAdd" name="otherOrgIdToAdd">
-                            <option value=""></option>
-                            <option th:each="formattedOrganisationName : ${formattedOrganisationNames}" th:value="${formattedOrganisationName.id}" th:text="${formattedOrganisationName.name}" th:label="${formattedOrganisationName.name}"></option>
-                        </select>
-                    </div>
-                    <input type="hidden" th:field="*{uid}"/>
-                </dd>
-                <dd class="col-sm-3">
-                    <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
-                </dd>
-            </form>
-        </div>
-        <table class="table">
-            <thead class="thead-dark">
+    <h2 class="pb-3">Other Organisation Access</h2>
+    <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+        <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
+        <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
+            <div class="form-group">
+                <select aria-label="Other Organisations" class="form-control" id="otherOrgIdToAdd" name="otherOrgIdToAdd">
+                    <option value=""></option>
+                    <option th:each="formattedOrganisationName : ${formattedOrganisationNames}" th:value="${formattedOrganisationName.id}" th:text="${formattedOrganisationName.name}" th:label="${formattedOrganisationName.name}"></option>
+                </select>
+            </div>
+            <input type="hidden" th:field="*{uid}"/>
+            <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
+        </form>
+    </p>
+    <p class="pb-4" th:if="${assignedOtherOrganisations.isEmpty()}">
+        No other organisations assigned.
+    </p>
+    <table class="table" th:if="!${assignedOtherOrganisations.isEmpty()}">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Department</th>
+                <th scope="col">Access</th>
+                <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <div th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}">
                 <tr>
-                    <th scope="col">Department</th>
-                    <th scope="col">Access</th>
-                    <th scope="col">Actions</th>
+                    <td th:text="${assignedOtherOrganisation.getName()}"></td>
+                    <td th:text="Yes"></td>
+                    <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+                        <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
+                            <input type="hidden" th:field="*{uid}"/>
+                            <input type="hidden" name="otherOrgIdToRemove" th:value="${assignedOtherOrganisation.id}"/>
+                            <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
+                        </form>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <div th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}">
-                    <tr>
-                        <td th:text="${assignedOtherOrganisation.getName()}"></td>
-                        <td th:text="Yes"></td>
-                        <td>
-                            <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
-                                <input type="hidden" th:field="*{uid}"/>
-                                <input type="hidden" name="otherOrgIdToRemove" th:value="${assignedOtherOrganisation.id}"/>
-                                <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
-                            </form>
-                        </td>
-                    </tr>
-                </div>
-            </tbody>
-        </table>
-    </div>
-    <div>
-        <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}" class="list-group mb-5">
-            <li class="list-group-item" th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}" th:value="${assignedOtherOrganisation.id}" th:text="${assignedOtherOrganisation.name}"></li>
-        </ul>
-    </div>
+            </div>
+        </tbody>
+    </table>
     <h2 class="pb-3">Roles</h2>
     <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
         <div class="form-group">
