@@ -270,11 +270,16 @@ public class IdentityController {
     @PostMapping("/identities/otherOrganisation/add")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
     public String assignOtherOrganisation(CustomOAuth2Authentication auth,
-                                          @RequestParam("otherOrgIdToAdd") String otherOrgIdToAdd,
-                                          @RequestParam(UID_ATTRIBUTE) String uid,
-                                          RedirectAttributes redirectAttributes) {
-        log.info("{} adding other organisation id {} for identity id {}", auth.getUserEmail(), otherOrgIdToAdd, uid);
+                  @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
+                  @RequestParam(UID_ATTRIBUTE) String uid,
+                  RedirectAttributes redirectAttributes) {
+        log.info("{} adding other organisation ids {} for identity id {}", auth.getUserEmail(), otherOrgIdsToAdd, uid);
         //TODO: invoke csrs api to update the db
+        if(otherOrgIdsToAdd != null) {
+            for (String otherOrgIdToAdd : otherOrgIdsToAdd) {
+                log.info("other organisation id to add: {}", otherOrgIdToAdd);
+            }
+        }
         return REDIRECT_IDENTITIES_LIST;
     }
 

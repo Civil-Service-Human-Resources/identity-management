@@ -133,8 +133,7 @@
         <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
         <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
             <div class="form-group">
-                <select aria-label="Other Organisations" class="form-control" id="otherOrgIdToAdd" name="otherOrgIdToAdd">
-                    <option value=""></option>
+                <select aria-label="Other Organisations" class="form-control" multiple="multiple" size="5" id="otherOrgIdsToAdd" name="otherOrgIdsToAdd" style="height: 100%;">
                     <option th:each="formattedOrganisationName : ${formattedOrganisationNames}" th:value="${formattedOrganisationName.id}" th:text="${formattedOrganisationName.name}" th:label="${formattedOrganisationName.name}"></option>
                 </select>
             </div>
