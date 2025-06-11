@@ -3,9 +3,9 @@ package uk.gov.cshr.service.reportingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.client.HttpClient;
+import uk.gov.cshr.domain.DeleteUserResults;
 import uk.gov.cshr.domain.UpdateUserDetailsParams;
 import uk.gov.cshr.domain.UpdateUserResult;
 import uk.gov.cshr.service.RequestEntityFactory;
@@ -33,17 +33,22 @@ public class ReportingService {
         this.removeUserDataFromReportUrl = removeUserDataFromReportUrl;
     }
 
-    public ResponseEntity<UpdateUserResult> deactivateRegisteredLearners(List<String> uids) {
+    public UpdateUserResult deactivateRegisteredLearners(List<String> uids) {
+        log.info("Deactivating registered learners in report service: {}", uids);
         UpdateUserDetailsParams parameters = new UpdateUserDetailsParams(uids);
         RequestEntity<UpdateUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(deactivateRegisteredLearnersUrl, parameters);
-        return httpClient.sendRequest(requestEntity, UpdateUserResult.class);
+        UpdateUserResult response = httpClient.sendRequest(requestEntity, UpdateUserResult.class).getBody();
+        log.info("Updated rows from deactivating registered learners: {}", response.getAffectedRows());
+        return response;
     }
 
-    public ResponseEntity<Void> removeUserDetails(String uid) {
+    public DeleteUserResults removeUserDetails(String uid) {
         log.info("Removing user details from report service: {}", uid);
         UpdateUserDetailsParams parameters = new UpdateUserDetailsParams(Collections.singletonList(uid));
         RequestEntity<UpdateUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(removeUserDataFromReportUrl, parameters);
-        return httpClient.sendRequest(requestEntity, Void.class);
+        DeleteUserResults response = httpClient.sendRequest(requestEntity, DeleteUserResults.class).getBody();
+        log.info("Response from remove user details request: {}", response);
+        return response;
     }
 
 }
