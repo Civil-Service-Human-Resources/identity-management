@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
-    Identity findFirstByActiveTrueAndEmailEquals(String email);
-
     List<Identity> findByActiveFalseAndLastLoggedInBefore(Instant lastLoggedIn);
 
     List<Identity> findByActiveTrueAndLastLoggedInBefore(Instant lastLoggedIn);

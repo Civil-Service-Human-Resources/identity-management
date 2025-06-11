@@ -28,26 +28,6 @@ public class IdentityService {
         this.restTemplate = restTemplate;
     }
 
-//    @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
-//    public void deleteIdentity(Identity identity, boolean adminDeletion) {
-//        String uid = identity.getUid();
-//        log.info("Deleting from learner-record");
-//        learnerRecordService.deleteCivilServant(uid);
-//        log.info("Deleting from civil-servant-registry");
-//        csrsService.deleteCivilServant(uid);
-//        reportingService.removeUserDetails(uid, adminDeletion);
-//        inviteService.deleteInvitesByIdentity(identity);
-//        resetService.deleteResetsByIdentity(identity);
-//        identityRepository.delete(identity);
-//    }
-//
-//    @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
-//    public void deactivateIdentities(List<Identity> identities, boolean adminDeactivation) {
-//        identities.forEach(u -> u.setActive(false));
-//        identityRepository.save(identities);
-//        reportingService.deactivateRegisteredLearners(identities.stream().map(Identity::getUid).collect(Collectors.toList()), adminDeactivation);
-//    }
-
     public Identity getIdentity(String uid) {
         return identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);

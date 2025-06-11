@@ -7,7 +7,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ReactivationRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
@@ -87,8 +86,6 @@ public class DataRetentionTasksTest {
         Reactivation reactivation2 = new Reactivation();
         reactivation2.setEmail("Deactivationuser3@Example.Com");
         reactivationAfterDeactivationDate.add(reactivation2);
-
-        MessageDto deactivationNotification = new MessageDto();
 
         when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any()))
                 .thenReturn(activeIdentitiesLastLoggedInBeforeDeactivationDate);
