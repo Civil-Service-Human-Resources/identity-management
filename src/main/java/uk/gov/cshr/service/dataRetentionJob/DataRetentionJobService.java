@@ -37,13 +37,8 @@ public class DataRetentionJobService {
 
     public void runDataRetentionJob() {
 
-        log.info("Running delete users task");
         deletionTask.runTask();
-
-        log.info("Running deletion notification task");
         deletionNotificationTask.runTask();
-
-        log.info("Running deactivate users task");
         deactivationTask.runTask();
 
         if (restTemplate.exchange(requestEntityFactory.createLogoutRequest(), Void.class).getStatusCode().is2xxSuccessful()) {

@@ -23,8 +23,6 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
     Page<Identity> findAllByEmailContains(Pageable pageable, String email);
 
-    boolean existsByEmail(String email);
-
     Optional<Identity> findFirstByUid(String uid);
 
 }

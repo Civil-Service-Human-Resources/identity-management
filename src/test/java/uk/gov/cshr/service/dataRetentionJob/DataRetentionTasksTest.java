@@ -3,30 +3,26 @@ package uk.gov.cshr.service.dataRetentionJob;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.MessageDto;
-import uk.gov.cshr.notifications.service.MessageService;
-import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ReactivationRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
-import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.csrs.CSRSService;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionTask;
-import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
-import uk.gov.cshr.service.reportingService.ReportingService;
-import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.service.security.IdentityManagementService;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,42 +31,31 @@ public class DataRetentionTasksTest {
     @Mock
     private IdentityRepository identityRepository;
     @Mock
-    private IdentityService identityService;
-    @Mock
-    private NotificationService notificationService;
-    @Mock
-    private MessageService messageService;
-    @Mock
     private ReactivationRepository reactivationRepository;
+    @Mock
+    private IdentityManagementService identityManagementService;
 
     @Mock
     private RestTemplate restTemplate;
     @Mock
     private RequestEntityFactory requestEntityFactory;
-    @Mock
-    private ReportingService reportingService;
 
-    @Mock
-    private LearnerRecordService learnerRecordService;
-    @Mock
-    CSRSService csrsService;
-    @Mock
-    ResetService resetService;
+    private final Clock clock = Clock.fixed(Instant.parse("2024-01-01T10:00:00.000Z"), ZoneId.of("UTC"));
 
     private DeactivationTask getDeactivationTask() {
-        return new DeactivationTask(identityRepository, messageService, notificationService, reactivationRepository);
+        return new DeactivationTask(clock, identityRepository, reactivationRepository, identityManagementService);
     }
 
     private DeletionNotificationTask getDeletionNotificationTask() {
-        return new DeletionNotificationTask(identityRepository, messageService, notificationService);
+        return new DeletionNotificationTask(clock, identityRepository, identityManagementService);
     }
 
     private DeletionTask getDeletionTask() {
-        return new DeletionTask(identityRepository, messageService, notificationService, identityService);
+        return getDeletionTask(identityManagementService);
     }
 
-    private DeletionTask getDeletionTask(IdentityService identityService){
-        return new DeletionTask(identityRepository, messageService, notificationService, identityService);
+    private DeletionTask getDeletionTask(IdentityManagementService identityManagementService){
+        return new DeletionTask(clock, identityRepository, identityManagementService);
     }
 
     /*
@@ -109,19 +94,13 @@ public class DataRetentionTasksTest {
                 .thenReturn(activeIdentitiesLastLoggedInBeforeDeactivationDate);
         when(reactivationRepository.findByReactivatedAtAfter(any()))
                 .thenReturn(reactivationAfterDeactivationDate);
-        when(messageService.createSuspensionMessage(deactivationUser1)).thenReturn(deactivationNotification);
 
         DeactivationTask taskToTest = getDeactivationTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveTrueAndLastLoggedInBefore(any());
         verify(reactivationRepository, times(1)).findByReactivatedAtAfter(any());
-        verify(identityRepository, times(1)).saveAndFlush(deactivationUser1);
-        verify(messageService, times(1)).createSuspensionMessage(deactivationUser1);
-        verify(notificationService, times(1)).send(deactivationNotification);
-
-        assertFalse(deactivationUser1.isActive());
-        assertEquals("TEST", deactivationUser1.getAgencyTokenUid());
+        verify(identityManagementService, times(1)).deactivateIdentities(Collections.singletonList(deactivationUser1));
     }
 
     /*
@@ -136,22 +115,15 @@ public class DataRetentionTasksTest {
         deletionNotificationUser.setDeletionNotificationSent(false);
         usersToReturn.add(deletionNotificationUser);
 
-        MessageDto deletionNotification = new MessageDto();
-
         when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any()))
                 .thenReturn(usersToReturn);
-        when(messageService.createDeletionMessage(deletionNotificationUser)).thenReturn(deletionNotification);
 
         DeletionNotificationTask taskToTest = getDeletionNotificationTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1))
                 .findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any());
-        verify(identityRepository, times(1)).saveAndFlush(deletionNotificationUser);
-        verify(messageService, times(1)).createDeletionMessage(deletionNotificationUser);
-        verify(notificationService, times(1)).send(deletionNotification);
-
-        assertTrue(deletionNotificationUser.isDeletionNotificationSent());
+        verify(identityManagementService, times(1)).markUsersForDeletion(usersToReturn);
     }
 
     /*
@@ -167,43 +139,13 @@ public class DataRetentionTasksTest {
         deletionUser.setUid("TEST");
         usersToReturn.add(deletionUser);
 
-        MessageDto deletedNotification = new MessageDto();
-
         when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
-        when(messageService.createDeletedMessage(deletionUser)).thenReturn(deletedNotification);
 
         DeletionTask taskToTest = getDeletionTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
-        verify(identityService, times(1)).deleteIdentityByDataRetentionJob("TEST");
-        verify(messageService, times(1)).createDeletedMessage(deletionUser);
-        verify(notificationService, times(1)).send(deletedNotification);
-    }
-
-
-
-    @Test
-    public void deletionJobRunsReportingServiceRemoveUserDetailsWithDeletedUserUidAsParameter(){
-        // This is needed to inject the mock ReportingService into the spy IdentityService.
-        // This way we can verify that IdentityService runs removeUserDetails() from ReportingService.
-        IdentityService mockIdentityService = Mockito.spy(new IdentityService(identityRepository, learnerRecordService,
-                csrsService, reportingService, resetService, restTemplate, requestEntityFactory));
-
-        List<Identity> usersToReturn = new ArrayList<>();
-        Identity deletionUser = new Identity();
-        deletionUser.setUid("uid-abc-123");
-        usersToReturn.add(deletionUser);
-
-        MessageDto deletedNotification = new MessageDto();
-
-        when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
-        when(messageService.createDeletedMessage(deletionUser)).thenReturn(deletedNotification);
-
-        DeletionTask taskToTest = getDeletionTask(mockIdentityService);
-        taskToTest.runTask();
-
-        verify(reportingService, times(1)).removeUserDetailsByDataRetentionJob("uid-abc-123");
+        verify(identityManagementService, times(1)).deleteIdentity(deletionUser);
     }
 
     /*
@@ -221,22 +163,16 @@ public class DataRetentionTasksTest {
         secondDeletionUser.setUid("TEST02");
         usersToReturn.add(secondDeletionUser);
 
-        MessageDto deletedNotification = new MessageDto();
-
         when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
-        // Simulate the createDeletedMessage method failing on the FIRST user
-        when(messageService.createDeletedMessage(any()))
-                .thenThrow(RuntimeException.class)
-                .thenReturn(deletedNotification);
+        // Simulate the deleteIdentity method failing for the FIRST user
+        doThrow(new RuntimeException()).when(identityManagementService).deleteIdentity(firstDeletionUser);
 
         DeletionTask taskToTest = getDeletionTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
-        verify(identityService, times(2)).deleteIdentityByDataRetentionJob(any());
-        verify(messageService, times(2)).createDeletedMessage(any());
-        // Should only be called ONCE, for the SECOND user
-        verify(notificationService, times(1)).send(deletedNotification);
+        // Should be called once
+        verify(identityManagementService, times(1)).deleteIdentity(secondDeletionUser);
     }
 
     /*
@@ -248,15 +184,13 @@ public class DataRetentionTasksTest {
         Identity genericUser = new Identity();
         usersToReturn.add(genericUser);
 
-        MessageDto genericNotification = new MessageDto();
-
-        when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenThrow(RuntimeException.class);
+        // Deletion job
+        doThrow(new RuntimeException()).when(identityRepository).findByActiveFalseAndLastLoggedInBefore(any());
+        // Deletion notification job
         when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any()))
                 .thenReturn(usersToReturn);
+        // Deactivation job
         when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
-
-        when(messageService.createDeletionMessage(genericUser)).thenReturn(genericNotification);
-        when(messageService.createSuspensionMessage(genericUser)).thenReturn(genericNotification);
 
         DeactivationTask deactivationTask = getDeactivationTask();
         DeletionTask deletionTask = getDeletionTask();
@@ -266,8 +200,8 @@ public class DataRetentionTasksTest {
                 deactivationTask, deletionNotificationTask, deletionTask);
         service.runDataRetentionJob();
 
-        // Perform a simple validation on the email send function
-        // (the last thing to happen in the two tasks that didn't fail)
-        verify(notificationService, times(2)).send(genericNotification);
+        verify(identityManagementService, times(0)).deleteIdentity(any());
+        verify(identityManagementService, times(1)).markUsersForDeletion(usersToReturn);
+        verify(identityManagementService, times(1)).deactivateIdentities(usersToReturn);
     }
 }

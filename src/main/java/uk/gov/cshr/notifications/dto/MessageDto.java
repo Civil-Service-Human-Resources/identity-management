@@ -8,5 +8,5 @@ import java.util.Map;
 public class MessageDto {
     private Map<String, String> personalisation;
     private String recipient;
-    private String templateId;
+    private String name;
 }

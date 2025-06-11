@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.notifications.service.MessageService;
-import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.service.security.IdentityManagementService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,18 +21,18 @@ public class DeletionNotificationTask extends BaseTask {
     private int notificationPeriodInMonths;
 
     private final IdentityRepository identityRepository;
-    private final MessageService messageService;
-    private final NotificationService notificationService;
+    private final IdentityManagementService identityManagementService;
 
-    public DeletionNotificationTask(IdentityRepository identityRepository, MessageService messageService, NotificationService notificationService) {
+
+    public DeletionNotificationTask(Clock clock, IdentityRepository identityRepository, IdentityManagementService identityManagementService) {
+        super(clock);
         this.identityRepository = identityRepository;
-        this.messageService = messageService;
-        this.notificationService = notificationService;
+        this.identityManagementService = identityManagementService;
     }
 
     @Override
     protected List<Identity> fetchUsers() {
-        LocalDateTime deletionNotificationDate = LocalDateTime.now().minusMonths(notificationPeriodInMonths);
+        LocalDateTime deletionNotificationDate = LocalDateTime.now(clock).minusMonths(notificationPeriodInMonths);
         List<Identity> identitiesToSendDeletionNotification = identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(
                 deletionNotificationDate.toInstant(UTC));
         log.info("Number of inactive users for deletion notification who have logged-in before deletion notification cutoff date {}: {}",
@@ -41,9 +41,12 @@ public class DeletionNotificationTask extends BaseTask {
     }
 
     @Override
-    protected void updateUser(Identity user) {
-        user.setDeletionNotificationSent(true);
-        identityRepository.saveAndFlush(user);
-        notificationService.send(messageService.createDeletionMessage(user));
+    protected void updateUsers(List<Identity> users) {
+        identityManagementService.markUsersForDeletion(users);
+    }
+
+    @Override
+    protected String getTaskName() {
+        return "deletion notification";
     }
 }
