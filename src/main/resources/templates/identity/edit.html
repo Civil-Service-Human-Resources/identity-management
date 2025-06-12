@@ -123,12 +123,12 @@
         <p class="pb-4">Search organisation - Start typing to find organisation name</p>
         <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
             <div class="form-group">
-                <input type="text" class="form-control typeahead" id="otherOrganisationInput" placeholder="Organisation Name" autocomplete="off" />
+                <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
+                       aria-label="Other Organisations" autocomplete="on" spellcheck="false"/>
             </div>
             <input type="hidden" th:field="*{uid}"/>
             <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
             <input type="hidden" name="alreadyAssignedOrgs" th:value="${assignedOtherOrganisations}"/>
-<!--            <input type="hidden" name="formattedOrganisationNames" th:value="${formattedOrganisationNames}"/>-->
             <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
         </form>
     </p>
@@ -177,8 +177,15 @@
         /*<![CDATA[*/
         $(document).ready(function () {
             const formattedOrganisationNames = [[${formattedOrganisationNames}]];
+
             $('#otherOrganisationInput').typeahead({
-                source: formattedOrganisationNames,
+                source: function (query, process) {
+                    // filter and limit to 1 match
+                    const matches = formattedOrganisationNames.filter(item =>
+                        item.name.toLowerCase().includes(query.toLowerCase())
+                    );
+                    process(matches.slice(0, 1)); // only return the first match
+                },
                 displayText: function (item) {
                     return item.name;
                 },
