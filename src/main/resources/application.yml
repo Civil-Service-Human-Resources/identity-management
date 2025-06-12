@@ -1,10 +1,23 @@
-
 spring:
   thymeleaf:
-    cache: false
+    cache: true
+  datasource:
+    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:my-secret-pw}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    hibernate:
-      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        enable_lazy_load_no_trans: true
+        ddl-auto: none
+
+database:
+  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
+  name: ${DATABASE_NAME:identity}
+  use-ssl: ${DATABASE_USESSL:false}
 
 server:
   port: 8081
@@ -22,7 +35,7 @@ security:
     resource:
       prefer-token-info: true
       jwt:
-        key-value: ${jwt_key:key}
+        key-value: ${JWT_KEY:key}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
@@ -50,8 +63,9 @@ csrs:
   getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
 
 cslService:
-  serviceUrl: ${CSL_SERVICE_URL:http:localhost:9003}
+  serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
   getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
+  getFormattedOrganisationNames: "${cslService.serviceUrl}/api/organisations/formatted_list"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
@@ -77,26 +91,3 @@ govNotify:
     accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
     accountDeleted: ${GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID:f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686}
     reactivationTemplateId: ${GOV_NOTIFY_REACTIVATION_TEMPLATE_ID:abfb2e5f-3905-4817-b041-c53afd1eb3e5}
-
----
-
-database:
-  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-  name: ${DATABASE_NAME:identity}
-  use-ssl: ${DATABASE_USESSL:false}
-
-spring:
-  profiles: test, production
-  thymeleaf:
-    cache: true
-  datasource:
-    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
-    username: ${DATASOURCE_USERNAME:root}
-    password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        enable_lazy_load_no_trans: true

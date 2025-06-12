@@ -26,7 +26,7 @@ public class HttpClient {
             log.debug(String.format("Response from %s %s: %s", requestEntity.getMethod(), requestEntity.getUrl(), resp.toString()));
             return resp;
         } catch (RequestEntityException | RestClientResponseException e) {
-            log.error(String.format("Failed to send request with %d retries: method: %s, URL: %s", MAX_RETRIES, requestEntity.getMethod(), requestEntity.getUrl()));
+            log.error(String.format("Failed to send request: method: %s, URL: %s", requestEntity.getMethod(), requestEntity.getUrl()));
             throw e;
         }
     }
