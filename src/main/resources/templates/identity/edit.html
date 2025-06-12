@@ -184,7 +184,7 @@
                     const matches = formattedOrganisationNames.filter(item =>
                         item.name.toLowerCase().includes(query.toLowerCase())
                     );
-                    process(matches.slice(0, 1)); // only return the first match
+                    process(matches.slice(0, 5)); // return 5 matches
                 },
                 displayText: function (item) {
                     return item.name;
