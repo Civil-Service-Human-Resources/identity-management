@@ -77,7 +77,7 @@ reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
   registeredLearners:
     url: "${reporting.serviceUrl}/registered-learners"
-    deactivateUrl: "${reporting.registeredLearners.url}deactivate"
+    deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
   api:
     url: "${reporting.serviceUrl}/api/report"
     removeUserDataFromReportUrl: "${reporting.api.url}/remove-user-details"
