@@ -41,3 +41,17 @@
 .tt-suggestion p {
     margin: 0;
 }
+
+ul.typeahead li {
+    width: 1100px;
+}
+
+ul.typeahead li a.dropdown-item {
+    padding: 0;
+}
+
+/*ul.typeahead {*/
+/*    top: 1078px!important;*/
+/*    left: 242px!important;*/
+/*    border: 0;*/
+/*}*/

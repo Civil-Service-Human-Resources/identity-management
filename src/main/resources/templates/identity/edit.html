@@ -129,7 +129,7 @@
             <input type="hidden" th:field="*{uid}"/>
             <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
             <input type="hidden" name="alreadyAssignedOrgs" th:value="${assignedOtherOrganisations}"/>
-            <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
+            <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
         </form>
     </p>
     <p class="pb-4" th:if="${assignedOtherOrganisations.isEmpty()}">
@@ -188,7 +188,11 @@
                 afterSelect: function (item) {
                     $('#otherOrgIdsToAdd').val(item.id); // store id in hidden field
                 },
-                autoSelect: true
+                // autoSelect: true
+                autoSelect: true,
+                highlighter: function (name) {
+                    return '<div class="form-control">' + name + '</div>';
+                }
             });
         });
         /*]]>*/
