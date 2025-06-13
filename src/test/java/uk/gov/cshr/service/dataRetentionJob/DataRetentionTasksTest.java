@@ -19,6 +19,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -193,8 +194,7 @@ public class DataRetentionTasksTest {
         DeletionTask deletionTask = getDeletionTask();
         DeletionNotificationTask deletionNotificationTask = getDeletionNotificationTask();
 
-        DataRetentionJobService service = new DataRetentionJobService(restTemplate, requestEntityFactory,
-                deactivationTask, deletionNotificationTask, deletionTask);
+        DataRetentionJobService service = new DataRetentionJobService(Arrays.asList(deactivationTask, deletionNotificationTask, deletionTask));
         service.runDataRetentionJob();
 
         verify(identityManagementService, times(0)).deleteIdentity(any());

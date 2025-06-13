@@ -60,6 +60,7 @@ public class IdentityManagementService {
         inviteService.deleteInvitesByIdentity(identity);
         resetService.deleteResetsByIdentity(identity);
         identityRepository.delete(identity);
+        identityRepository.flush();
         notificationService.send(messageService.createDeletedMessage(identity));
     }
 
@@ -67,6 +68,7 @@ public class IdentityManagementService {
         log.info("Marking identities for deletion {}", identities.stream().map(Identity::getUid).collect(Collectors.joining(", ")));
         identities.forEach(i -> i.setDeletionNotificationSent(true));
         identityRepository.save(identities);
+        identityRepository.flush();
         notificationService.send(identities.stream().map(messageService::createDeletionMessage).collect(Collectors.toList()));
     }
 
@@ -76,6 +78,7 @@ public class IdentityManagementService {
         identities.forEach(u -> u.setActive(false));
         reportingService.deactivateRegisteredLearners(identities.stream().map(Identity::getUid).collect(Collectors.toList()));
         identityRepository.save(identities);
+        identityRepository.flush();
         notificationService.send(identities.stream().map(messageService::createSuspensionMessage).collect(Collectors.toList()));
     }
 
