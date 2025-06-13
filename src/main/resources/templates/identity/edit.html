@@ -123,7 +123,7 @@
         <p class="pb-4">Search organisation - Start typing to find organisation name</p>
         <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
             <div class="form-group">
-                <input type="text" class="typeahead" id="otherOrganisationInput" placeholder="Organisation Name"
+                <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
                        aria-label="Other Organisations" autocomplete="off" spellcheck="false"/>
             </div>
             <input type="hidden" th:field="*{uid}"/>
@@ -172,20 +172,16 @@
         <li class="list-group-item" th:each="role : ${identity.getRoles()}" th:value="${role.id}" th:text="${role.name}"></li>
     </ul>
 
-    <!-- Typeahead initialization -->
     <script th:inline="javascript">
         /*<![CDATA[*/
         $(document).ready(function () {
             const formattedOrganisationNames = [[${formattedOrganisationNames}]];
 
             $('#otherOrganisationInput').typeahead({
-                source: function (query, process) {
-                    // filter for the typed text anywhere in the value
-                    const matches = formattedOrganisationNames.filter(item =>
-                        item.name.toLowerCase().includes(query.toLowerCase())
-                    );
-                    process(matches.slice(0, 5)); // return 5 matches
-                },
+                hint: true,
+                highlight: true, /* Enable substring highlighting */
+                minLength: 1, /* Specify minimum characters required for showing result */
+                source: formattedOrganisationNames,
                 displayText: function (item) {
                     return item.name;
                 },
@@ -193,10 +189,6 @@
                     $('#otherOrgIdsToAdd').val(item.id); // store id in hidden field
                 },
                 autoSelect: true
-                // autoSelect: true,
-                // highlighter: function (item) {
-                //     return '<div class="form-control typeahead">' + item + '</div>';
-                // }
             });
         });
         /*]]>*/
