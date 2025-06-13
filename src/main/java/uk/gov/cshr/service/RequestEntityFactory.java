@@ -124,7 +124,7 @@ public class RequestEntityFactory {
         HttpEntity<String> request = new HttpEntity<String>(headers);
 
         String access_token_url = clientUrl;
-        access_token_url += "?grant_type=client_credentials";
+        access_token_url += "?grant_type=client_credentials&scope=identity_delete&scope=identity_manage_identity";
 
         ResponseEntity<String> response = restTemplate.exchange(access_token_url, HttpMethod.POST, request, String.class);
 
