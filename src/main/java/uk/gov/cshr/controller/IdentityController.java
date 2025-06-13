@@ -23,11 +23,8 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.csrs.AgencyTokenDto;
-import uk.gov.cshr.service.csrs.CSRSService;
-import uk.gov.cshr.service.csrs.CivilServantDto;
-import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.csrs.*;
+import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
@@ -261,13 +258,16 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth,
+                                 RedirectAttributes redirectAttributes) {
         log.info("{} deleting identity {}", auth.getUserEmail(), uid);
-        return identityRepository.findFirstByUid(uid)
-                .map(identity -> {
+        identityRepository.findFirstByUid(uid)
+                .ifPresent(identity -> {
+                    String email = identity.getEmail();
                     identityManagementService.deleteIdentity(identity);
-                    return "identity/delete";
-                }).orElse(REDIRECT_IDENTITIES_LIST);
+                    redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deleted successfully", email));
+                });
+        return REDIRECT_IDENTITIES_LIST;
     }
 
     @Transactional
