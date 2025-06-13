@@ -123,8 +123,8 @@
         <p class="pb-4">Search organisation - Start typing to find organisation name</p>
         <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
             <div class="form-group">
-                <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
-                       aria-label="Other Organisations" autocomplete="on" spellcheck="false"/>
+                <input type="text" class="typeahead" id="otherOrganisationInput" placeholder="Organisation Name"
+                       aria-label="Other Organisations" autocomplete="off" spellcheck="false"/>
             </div>
             <input type="hidden" th:field="*{uid}"/>
             <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
@@ -180,7 +180,7 @@
 
             $('#otherOrganisationInput').typeahead({
                 source: function (query, process) {
-                    // filter and limit to 1 match
+                    // filter for the typed text anywhere in the value
                     const matches = formattedOrganisationNames.filter(item =>
                         item.name.toLowerCase().includes(query.toLowerCase())
                     );
@@ -193,6 +193,10 @@
                     $('#otherOrgIdsToAdd').val(item.id); // store id in hidden field
                 },
                 autoSelect: true
+                // autoSelect: true,
+                // highlighter: function (item) {
+                //     return '<div class="form-control typeahead">' + item + '</div>';
+                // }
             });
         });
         /*]]>*/
