@@ -97,9 +97,3 @@ govNotify:
     accountDeletion: ${ACCOUNT_DELETION_TEMPLATE_NAME:ACCOUNT_DELETION_WARNING}
     accountDeleted: ${ACCOUNT_DELETED_TEMPLATE_NAME:ACCOUNT_DELETED}
     reactivation: ${REACTIVATION_TEMPLATE_NAME:ACCOUNT_REACTIVATED}
-
-database:
-  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-  name: ${DATABASE_NAME:identity}
-  use-ssl: ${DATABASE_USESSL:false}
-
