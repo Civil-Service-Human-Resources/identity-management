@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.client.HttpClient;
+import uk.gov.cshr.exceptions.NotificationException;
 import uk.gov.cshr.notifications.dto.BulkSendEmail;
 import uk.gov.cshr.notifications.dto.BulkSendEmailResponse;
 import uk.gov.cshr.notifications.dto.MessageDto;
@@ -54,7 +55,10 @@ public class NotificationService {
             response.getSuccessfulEmailRefs().addAll(batchResponse.getSuccessfulEmailRefs());
         }
         if (!response.getFailedEmails().isEmpty()) {
-            log.error("{} emails failed to send", response.getFailedEmails().size());
+            response.getFailedEmails().forEach(failedEmail -> {
+                log.error("Email {} failed to send. Reason: {}", failedEmail.getResource(), failedEmail.getReason());
+            });
+            throw new NotificationException(String.format("%s emails failed to send", response.getFailedEmails().size()));
         }
         return response;
     }
