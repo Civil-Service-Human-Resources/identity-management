@@ -192,7 +192,10 @@
                 // autoSelect: true
                 autoSelect: true,
                 highlighter: function (name) {
-                    return '<div class="form-control">' + name + '</div>';
+                    const query = $('#otherOrganisationInput').val();
+                    const regex = new RegExp('(' + query + ')', 'gi');
+                    const highlighted = name.replace(regex, '<strong>$1</strong>');
+                    return '<div class="form-control">' + highlighted + '</div>';
                 }
             });
         });
