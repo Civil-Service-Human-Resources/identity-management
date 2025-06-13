@@ -23,3 +23,18 @@
 .page-link-contrast-fix:hover {
     color: #007BC7;
 }
+
+ul.typeahead li a.dropdown-item {
+    padding: 0;
+}
+
+ul.typeahead li a.dropdown-item div.form-control:hover {
+    text-decoration: underline;
+    background-color: #005cbf;
+    color: white;
+}
+
+ul.dropdown-menu {
+    padding: 0;
+    margin: 0;
+}
