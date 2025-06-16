@@ -24,6 +24,7 @@ import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.*;
+import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
@@ -53,6 +54,7 @@ public class IdentityController {
     private final ReactivationService reactivationService;
     private final CSRSService csrsService;
     private final CslService cslService;
+    private final IdentityManagementService identityManagementService;
 
     @GetMapping("/identities")
     public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
@@ -133,12 +135,8 @@ public class IdentityController {
             log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), identity.getEmail());
 
             if (identity.isActive()) {
-                identity.setActive(false);
-                identity.setAgencyTokenUid(null);
-                identityRepository.save(identity);
-
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, format("%s deactivated successfully", identity.getEmail()));
-
+                identityManagementService.deactivateIdentity(identity);
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
                 return REDIRECT_IDENTITIES_LIST;
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
@@ -260,9 +258,15 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth,
+                                 RedirectAttributes redirectAttributes) {
         log.info("{} deleting identity {}", auth.getUserEmail(), uid);
-        identityService.deleteIdentity(uid);
+        identityRepository.findFirstByUid(uid)
+                .ifPresent(identity -> {
+                    String email = identity.getEmail();
+                    identityManagementService.deleteIdentity(identity);
+                    redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deleted successfully", email));
+                });
         return REDIRECT_IDENTITIES_LIST;
     }
 

@@ -25,6 +25,7 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CustomOAuth2AuthenticationProvider;
@@ -68,6 +69,9 @@ public class IdentityControllerTest {
     private CslService cslService;
 
     @MockBean
+    private IdentityManagementService identityManagementService;
+
+    @MockBean
     private RoleRepository roleRepository;
 
     @MockBean
@@ -103,11 +107,7 @@ public class IdentityControllerTest {
                 .andExpect(flash().attribute("success", EMAIL + " deactivated successfully"))
                 .andExpect(redirectedUrl(IDENTITIES_URL));
 
-        verify(identityRepository).save(identityArgumentCaptor.capture());
-
-        Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(false, actualIdentity.isActive());
-        assertEquals(null, actualIdentity.getAgencyTokenUid());
+        verify(identityManagementService, times(1)).deactivateIdentity(identity);
     }
 
     @Test

@@ -1,10 +1,15 @@
 package uk.gov.cshr.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+@Setter
+@Getter
 @Entity
 public class Invite implements Serializable {
 
@@ -36,70 +41,6 @@ public class Invite implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> forRoles;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public InviteStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(InviteStatus status) {
-        this.status = status;
-    }
-
-    public Identity getInviter() {
-        return inviter;
-    }
-
-    public void setInviter(Identity inviter) {
-        this.inviter = inviter;
-    }
-
-    public Date getInvitedAt() {
-        return invitedAt;
-    }
-
-    public void setInvitedAt(Date invitedAt) {
-        this.invitedAt = invitedAt;
-    }
-
-    public Date getAcceptedAt() {
-        return acceptedAt;
-    }
-
-    public void setAcceptedAt(Date acceptedAt) {
-        this.acceptedAt = acceptedAt;
-    }
-
-    public String getForEmail() {
-        return forEmail;
-    }
-
-    public void setForEmail(String forEmail) {
-        this.forEmail = forEmail;
-    }
-
-    public Set<Role> getForRoles() {
-        return forRoles;
-    }
-
-    public void setForRoles(Set<Role> forRoles) {
-        this.forRoles = forRoles;
-    }
 
     @Override
     public String toString() {

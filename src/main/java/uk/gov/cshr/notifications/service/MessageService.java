@@ -15,31 +15,31 @@ public class MessageService {
 
     private final MessageDtoFactory messageDtoFactory;
 
-    private final String suspensionMessageTemplateId;
+    private final String suspensionMessageTemplateName;
 
-    private final String deletionMessageTemplateId;
+    private final String deletionMessageTemplateName;
 
-    private final String deletedMessageTemplateId;
+    private final String deletedMessageTemplateName;
 
-    private final String reactivationTemplateId;
+    private final String reactivationTemplateName;
 
     private final String resetUrl;
 
     private final String reactivationUrl;
 
-    public MessageService(@Value("${govNotify.template.accountSuspension}") String suspensionMessageTemplateId,
-                          @Value("${govNotify.template.accountDeletion}") String deletionMessageTemplateId,
-                          @Value("${govNotify.template.accountDeleted}") String deletedMessageTemplateId,
-                          @Value("${govNotify.template.reactivationTemplateId}") String reactivationTemplateId,
+    public MessageService(@Value("${govNotify.templateName.accountSuspension}") String suspensionMessageTemplateName,
+                          @Value("${govNotify.templateName.accountDeletion}") String deletionMessageTemplateName,
+                          @Value("${govNotify.templateName.accountDeleted}") String deletedMessageTemplateName,
+                          @Value("${govNotify.templateName.reactivation}") String reactivationTemplateName,
                           @Value("${security.oauth2.client.reset-uri}") String resetUrl,
                           @Value("${security.oauth2.client.reactivation-url}") String reactivationUrl,
                           MessageDtoFactory messageDtoFactory
     ) {
         this.messageDtoFactory = messageDtoFactory;
-        this.suspensionMessageTemplateId = suspensionMessageTemplateId;
-        this.deletionMessageTemplateId = deletionMessageTemplateId;
-        this.deletedMessageTemplateId = deletedMessageTemplateId;
-        this.reactivationTemplateId = reactivationTemplateId;
+        this.suspensionMessageTemplateName = suspensionMessageTemplateName;
+        this.deletionMessageTemplateName = deletionMessageTemplateName;
+        this.deletedMessageTemplateName = deletedMessageTemplateName;
+        this.reactivationTemplateName = reactivationTemplateName;
         this.resetUrl = resetUrl;
         this.reactivationUrl = reactivationUrl;
     }
@@ -50,7 +50,7 @@ public class MessageService {
         map.put("learnerName", identity.getEmail());
         map.put("resetUrl", resetUrl);
 
-        return messageDtoFactory.create(identity.getEmail(), suspensionMessageTemplateId, map);
+        return messageDtoFactory.create(identity.getEmail(), suspensionMessageTemplateName, map);
     }
 
     public MessageDto createDeletionMessage(Identity identity) {
@@ -59,7 +59,7 @@ public class MessageService {
         map.put("learnerName", identity.getEmail());
         map.put("resetUrl", resetUrl);
 
-        return messageDtoFactory.create(identity.getEmail(), deletionMessageTemplateId, map);
+        return messageDtoFactory.create(identity.getEmail(), deletionMessageTemplateName, map);
     }
 
     public MessageDto createDeletedMessage(Identity identity) {
@@ -67,7 +67,7 @@ public class MessageService {
 
         map.put("learnerName", identity.getEmail());
 
-        return messageDtoFactory.create(identity.getEmail(), deletedMessageTemplateId, map);
+        return messageDtoFactory.create(identity.getEmail(), deletedMessageTemplateName, map);
     }
 
     public MessageDto createReactivationMessage(Identity identity, Reactivation reactivation) {
@@ -76,6 +76,6 @@ public class MessageService {
         map.put("learnerName", identity.getEmail());
         map.put("reactivationUrl", String.format(reactivationUrl, reactivation.getCode()));
 
-        return messageDtoFactory.create(identity.getEmail(), reactivationTemplateId, map);
+        return messageDtoFactory.create(identity.getEmail(), reactivationTemplateName, map);
     }
 }
