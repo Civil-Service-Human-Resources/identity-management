@@ -301,7 +301,7 @@ public class IdentityController {
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
             UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
-            log.info("Updating other organisational units {} update is successful for uid {}", updateOtherOrgUnitsParams, uid);
+            log.info("Updating other organisational units {} for uid {}", updateOtherOrgUnitsParams, uid);
             csrsService.updateOtherOrgUnits(civilServantId, updateOtherOrgUnitsParams);
             log.info("Other organisational units update is successful for uid {}", uid);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units updated successful for uid %s", uid));
