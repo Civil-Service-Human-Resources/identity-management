@@ -1,34 +1,25 @@
 package uk.gov.cshr.service;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.ReadOnlyProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.InviteStatus;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.notifications.service.MessageService;
-import uk.gov.cshr.notifications.service.NotificationService;
-import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.ResetRepository;
-
-import java.util.Date;
-import java.util.Set;
 
 @Service
 @Transactional
+@Slf4j
 public class ResetService {
 
-    private ResetRepository resetRepository;
+    private final ResetRepository resetRepository;
 
     public ResetService(ResetRepository resetRepository) {
         this.resetRepository = resetRepository;
     }
 
-    public void deleteResetsByIdentity(Identity identity) {
-        resetRepository.deleteByEmail(identity.getEmail());
+    public Integer deleteResetsByIdentity(Identity identity) {
+        String email = identity.getEmail();
+        log.info("Deleting password resets for email {}", email);
+        return resetRepository.deleteByEmail(email);
     }
 }
