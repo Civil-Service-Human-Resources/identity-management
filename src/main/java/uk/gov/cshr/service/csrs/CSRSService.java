@@ -1,6 +1,5 @@
 package uk.gov.cshr.service.csrs;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +8,6 @@ import org.springframework.web.client.RestClientResponseException;
 import uk.gov.cshr.client.HttpClient;
 import uk.gov.cshr.service.RequestEntityFactory;
 
-
-@Slf4j
 @Service
 public class CSRSService {
 
@@ -19,16 +16,19 @@ public class CSRSService {
     private final String csrsDeleteUrl;
     private final String csrsGetCivilServantUrl;
     private final String agencyTokensUrl;
+    private final String updateOtherOrgUnitsUrl;
 
     public CSRSService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
                        @Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.getCivilServant}") String csrsGetCivilServantUrl,
-                       @Value("${csrs.getAgencyToken}") String agencyTokensUrl) {
+                       @Value("${csrs.getAgencyToken}") String agencyTokensUrl,
+                       @Value("${csrs.updateOtherOrgUnitsUrl}") String updateOtherOrgUnitsUrl) {
         this.httpClient = httpClient;
         this.requestEntityFactory = requestEntityFactory;
         this.csrsDeleteUrl = csrsDeleteUrl;
         this.csrsGetCivilServantUrl = csrsGetCivilServantUrl;
         this.agencyTokensUrl = agencyTokensUrl;
+        this.updateOtherOrgUnitsUrl = updateOtherOrgUnitsUrl;
     }
 
     public AgencyTokenDto getAgencyToken(String uid) {
@@ -59,5 +59,11 @@ public class CSRSService {
             }
             throw e;
         }
+    }
+
+    public CivilServantDto updateOtherOrgUnits(String civilServantId, UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams) {
+        RequestEntity<UpdateOtherOrgUnitsParams> requestEntity = requestEntityFactory.createPatchRequest(
+                String.format(updateOtherOrgUnitsUrl, civilServantId), updateOtherOrgUnitsParams);
+        return httpClient.sendRequest(requestEntity, CivilServantDto.class).getBody();
     }
 }

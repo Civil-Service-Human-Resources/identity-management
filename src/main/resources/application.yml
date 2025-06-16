@@ -61,6 +61,7 @@ csrs:
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
   getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
   getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
+  updateOtherOrgUnitsUrl: "${csrs.serviceUrl}/civilServants/%s"
 
 cslService:
   serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}

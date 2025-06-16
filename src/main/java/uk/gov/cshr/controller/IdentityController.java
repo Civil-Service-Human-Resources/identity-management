@@ -90,11 +90,12 @@ public class IdentityController {
                     agencyToken = agencyTokenDto.getToken();
                 }
             }
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             List<?> requiredCourses = emptyList();
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             if (civilServantDto != null && civilServantDto.isProfileComplete()) {
                 requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+                model.addAttribute("civilServantId", civilServantDto.getUserId());
             }
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
@@ -105,7 +106,7 @@ public class IdentityController {
             FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
             model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
 
-            List<?> assignedFormattedOrganisationNames = emptyList();
+            List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
             if(civilServantDto != null && civilServantDto.getOtherOrganisationalUnits() != null) {
                 Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
                         .stream()
@@ -114,9 +115,16 @@ public class IdentityController {
                 assignedFormattedOrganisationNames = assignedOtherOrganisations
                         .stream()
                         .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                        .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
                         .collect(Collectors.toList());
             }
-            model.addAttribute("assignedOtherOrganisations", assignedFormattedOrganisationNames);
+            model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
+            String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
+                    .stream()
+                    .map(FormattedOrganisationalUnitName::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+            model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
 
             return "identity/edit";
         }
@@ -275,16 +283,28 @@ public class IdentityController {
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
     public String assignOtherOrganisation(CustomOAuth2Authentication auth,
                   @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
-                  @RequestParam(value = "alreadyAssignedOrgs", required = false) ArrayList<String> alreadyAssignedOrgs,
+                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false) ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                  @RequestParam("civilServantId") String civilServantId,
                   @RequestParam(UID_ATTRIBUTE) String uid,
                   RedirectAttributes redirectAttributes) {
         log.info("{} adding other organisation ids {} for identity id {}", auth.getUserEmail(), otherOrgIdsToAdd, uid);
-        log.info("alreadyAssignedOrgs: {}", alreadyAssignedOrgs);
-        //TODO: invoke csrs api to update the db
+        log.info("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
+        log.info("civilServantId: {}", civilServantId);
         if(otherOrgIdsToAdd != null) {
+            List<String> otherOrganisationalUnits = new ArrayList<>();
+            for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
+                log.info("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
+                otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
+            }
             for (String otherOrgIdToAdd : otherOrgIdsToAdd) {
                 log.info("other organisation id to add: {}", otherOrgIdToAdd);
+                otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
+            UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
+            log.info("Updating other organisational units {} update is successful for uid {}", updateOtherOrgUnitsParams, uid);
+            csrsService.updateOtherOrgUnits(civilServantId, updateOtherOrgUnitsParams);
+            log.info("Other organisational units update is successful for uid {}", uid);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units updated successful for uid %s", uid));
         }
         return REDIRECT_IDENTITIES_LIST;
     }

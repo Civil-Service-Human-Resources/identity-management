@@ -93,6 +93,17 @@ public class RequestEntityFactory {
         }
     }
 
+    private <T> RequestEntity <T> createPatchRequest(URI uri, T body) {
+        return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PATCH, uri);
+    }
+
+    public <T> RequestEntity <T> createPatchRequest(String uri, T body) {
+        try {
+            return createPatchRequest(new URI(uri), body);
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
 
     private HttpHeaders getOauth2HeadersFromSecurityContext() {
         String token;

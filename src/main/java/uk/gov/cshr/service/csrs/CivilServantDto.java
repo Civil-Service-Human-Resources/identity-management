@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CivilServantDto {
+    private Long userId;
     private String fullName;
     private String lineManagerEmailAddress;
     private Grade grade;

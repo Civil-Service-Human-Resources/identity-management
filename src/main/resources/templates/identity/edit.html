@@ -119,23 +119,26 @@
         </div>
     </div>
     <h2 class="pb-3">Other Organisation Access</h2>
-    <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
-        <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
-        <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
-            <div class="form-group">
-                <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
-                       aria-label="Other Organisations" autocomplete="off" spellcheck="false"/>
-            </div>
-            <input type="hidden" th:field="*{uid}"/>
-            <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
-            <input type="hidden" name="alreadyAssignedOrgs" th:value="${assignedOtherOrganisations}"/>
-            <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
-        </form>
+    <p th:if="${profile != null}">
+        <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+            <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
+            <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
+                           aria-label="Other Organisations" autocomplete="off" spellcheck="false"/>
+                </div>
+                <input type="hidden" th:field="*{uid}"/>
+                <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
+                <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
+                <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisationIds}"/>
+                <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
+            </form>
+        </p>
     </p>
-    <p class="pb-4" th:if="${assignedOtherOrganisations.isEmpty()}">
+    <p class="pb-4" th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">
         No other organisations assigned.
     </p>
-    <table class="table" th:if="!${assignedOtherOrganisations.isEmpty()}">
+    <table class="table" th:if="!${alreadyAssignedOtherOrganisations.isEmpty()}">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">Department</th>
@@ -144,14 +147,14 @@
             </tr>
         </thead>
         <tbody>
-            <div th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}">
+            <div th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}">
                 <tr>
-                    <td th:text="${assignedOtherOrganisation.getName()}"></td>
+                    <td th:text="${alreadyAssignedOtherOrganisation.getName()}"></td>
                     <td th:text="Yes"></td>
                     <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
                         <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
                             <input type="hidden" th:field="*{uid}"/>
-                            <input type="hidden" name="otherOrgIdToRemove" th:value="${assignedOtherOrganisation.id}"/>
+                            <input type="hidden" name="otherOrgIdToRemove" th:value="${alreadyAssignedOtherOrganisation.id}"/>
                             <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
                         </form>
                     </td>
