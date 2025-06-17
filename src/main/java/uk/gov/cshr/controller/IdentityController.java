@@ -282,7 +282,7 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/otherOrganisation/add")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
-    public String assignOtherOrganisation(CustomOAuth2Authentication auth,
+    public String assignOtherOrganisationalUnits(CustomOAuth2Authentication auth,
                   @RequestParam(UID_ATTRIBUTE) String uid,
                   @RequestParam("civilServantId") String civilServantId,
                   @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
@@ -310,7 +310,7 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/otherOrganisation/remove")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
-    public String removeOtherOrganisation(CustomOAuth2Authentication auth,
+    public String removeOtherOrganisationalUnits(CustomOAuth2Authentication auth,
                   @RequestParam(UID_ATTRIBUTE) String uid,
                   @RequestParam("civilServantId") String civilServantId,
                   @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
@@ -335,7 +335,7 @@ public class IdentityController {
                                  RedirectAttributes redirectAttributes) {
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
         log.info("Updating other organisational units {} for uid {}", updateOtherOrgUnitsParams, uid);
-        String updateOtherOrgUnitsResult = csrsService.updateOtherOrgUnits(civilServantId, updateOtherOrgUnitsParams);
+        String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
         log.debug("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
         log.info("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
         redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for uid %s", uid));
