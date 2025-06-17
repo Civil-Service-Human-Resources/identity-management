@@ -283,13 +283,14 @@ public class IdentityController {
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
     public String assignOtherOrganisation(CustomOAuth2Authentication auth,
                   @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
-                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false) ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
+                            ArrayList<String> alreadyAssignedOtherOrganisationIds,
                   @RequestParam("civilServantId") String civilServantId,
                   @RequestParam(UID_ATTRIBUTE) String uid,
                   RedirectAttributes redirectAttributes) {
-        log.info("{} adding other organisation ids {} for identity id {}", auth.getUserEmail(), otherOrgIdsToAdd, uid);
-        log.info("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
-        log.info("civilServantId: {}", civilServantId);
+        log.info("{} adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+                otherOrgIdsToAdd, civilServantId, uid);
+        log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
         if(otherOrgIdsToAdd != null) {
             List<String> otherOrganisationalUnits = new ArrayList<>();
             for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
@@ -302,8 +303,9 @@ public class IdentityController {
             }
             UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
             log.info("Updating other organisational units {} for uid {}", updateOtherOrgUnitsParams, uid);
-            csrsService.updateOtherOrgUnits(civilServantId, updateOtherOrgUnitsParams);
-            log.info("Other organisational units update is successful for uid {}", uid);
+            String updateOtherOrgUnitsResult = csrsService.updateOtherOrgUnits(civilServantId, updateOtherOrgUnitsParams);
+            log.debug("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
+            log.info("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units updated successful for uid %s", uid));
         }
         return REDIRECT_IDENTITIES_LIST;

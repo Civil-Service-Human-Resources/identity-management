@@ -11,9 +11,9 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Arrays;
+import java.util.Collections;
 
 @Component
 public class RequestEntityFactory {
@@ -96,6 +96,12 @@ public class RequestEntityFactory {
     private <T> RequestEntity <T> createPatchRequest(URI uri, T body) {
         return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PATCH, uri);
     }
+//    private <T> RequestEntity <T> createPatchRequest(URI uri, T body) {
+//        HttpHeaders httpHeaders = getOauth2HeadersFromSecurityContext();
+//        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+//        httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+//        return new RequestEntity<>(body, httpHeaders, HttpMethod.PATCH, uri);
+//    }
 
     public <T> RequestEntity <T> createPatchRequest(String uri, T body) {
         try {

@@ -1,8 +1,11 @@
 package uk.gov.cshr.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -45,4 +48,17 @@ public class HttpClient {
         }
     }
 
+    public <T, R> ResponseEntity<T> sendPatchRequestNoRetries(RequestEntity<R> requestEntity, Class<T> responseClass) {
+        try {
+            // Use Apache HttpClient to support PATCH
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpComponentsClientHttpRequestFactory requestFactory =
+                    new HttpComponentsClientHttpRequestFactory(httpClient);
+            restTemplate.setRequestFactory(requestFactory);
+            return restTemplate.exchange(requestEntity, responseClass);
+        } catch (RequestEntityException | RestClientResponseException e) {
+            log.error(String.format("Failed to send request: method: %s, URL: %s", requestEntity.getMethod(), requestEntity.getUrl()));
+            throw e;
+        }
+    }
 }

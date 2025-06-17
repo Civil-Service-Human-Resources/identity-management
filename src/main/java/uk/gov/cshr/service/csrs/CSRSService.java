@@ -61,9 +61,9 @@ public class CSRSService {
         }
     }
 
-    public UpdateOtherOrgUnitsResult updateOtherOrgUnits(String civilServantId, UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams) {
+    public String updateOtherOrgUnits(String civilServantId, UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams) {
         RequestEntity<UpdateOtherOrgUnitsParams> requestEntity = requestEntityFactory.createPatchRequest(
                 String.format(updateOtherOrgUnitsUrl, civilServantId), updateOtherOrgUnitsParams);
-        return httpClient.sendRequest(requestEntity, UpdateOtherOrgUnitsResult.class).getBody();
+        return httpClient.sendPatchRequestNoRetries(requestEntity, String.class).getBody();
     }
 }
