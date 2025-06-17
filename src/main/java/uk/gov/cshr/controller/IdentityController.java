@@ -74,8 +74,6 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
-
-
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
 
@@ -93,39 +91,42 @@ public class IdentityController {
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             List<?> requiredCourses = emptyList();
             CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
-            if (civilServantDto != null && civilServantDto.isProfileComplete()) {
-                requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+            if (civilServantDto != null) {
                 model.addAttribute("civilServantId", civilServantDto.getUserId());
+
+                FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+                model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+
+                List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
+                if(civilServantDto.getOtherOrganisationalUnits() != null) {
+                    Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                            .stream()
+                            .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
+                    Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
+                    assignedFormattedOrganisationNames = assignedOtherOrganisations
+                            .stream()
+                            .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                            .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
+                            .collect(Collectors.toList());
+                }
+                model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
+
+                String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
+                        .stream()
+                        .map(FormattedOrganisationalUnitName::getId)
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","));
+                model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
+
+                if (civilServantDto.isProfileComplete()) {
+                    requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+                }
             }
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
-
-            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
-
-            List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
-            if(civilServantDto != null && civilServantDto.getOtherOrganisationalUnits() != null) {
-                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
-                        .stream()
-                        .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
-                Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
-                assignedFormattedOrganisationNames = assignedOtherOrganisations
-                        .stream()
-                        .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
-                        .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
-                        .collect(Collectors.toList());
-            }
-            model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
-            String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
-                    .stream()
-                    .map(FormattedOrganisationalUnitName::getId)
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(","));
-            model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
-
             return "identity/edit";
         }
 

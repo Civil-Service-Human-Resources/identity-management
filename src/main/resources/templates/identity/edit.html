@@ -119,7 +119,7 @@
         </div>
     </div>
     <h2 class="pb-3">Other Organisation Access</h2>
-    <p th:if="${profile != null}">
+    <p th:if="${civilServantId != null}">
         <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
             <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
             <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
