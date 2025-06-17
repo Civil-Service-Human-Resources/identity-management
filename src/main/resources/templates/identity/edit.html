@@ -129,8 +129,8 @@
                 </div>
                 <input type="hidden" th:field="*{uid}"/>
                 <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
-                <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
                 <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisationIds}"/>
+                <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
                 <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
             </form>
         </p>
@@ -154,6 +154,8 @@
                     <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
                         <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
                             <input type="hidden" th:field="*{uid}"/>
+                            <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
+                            <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisationIds}"/>
                             <input type="hidden" name="otherOrgIdToRemove" th:value="${alreadyAssignedOtherOrganisation.id}"/>
                             <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
                         </form>
