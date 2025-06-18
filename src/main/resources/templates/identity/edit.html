@@ -120,7 +120,8 @@
     </div>
     <h2 class="pb-3">Other Organisation Access</h2>
     <p th:if="${civilServantId != null}">
-        <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+        <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
             <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
             <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
                 <div class="form-group">
@@ -143,7 +144,8 @@
             <tr>
                 <th scope="col">Department</th>
                 <th scope="col">Access</th>
-                <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">Action</th>
+                <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                                     and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -151,7 +153,8 @@
                 <tr>
                     <td th:text="${alreadyAssignedOtherOrganisation.getName()}"></td>
                     <td th:text="Yes"></td>
-                    <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
+                    <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                            and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
                         <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
                             <input type="hidden" th:field="*{uid}"/>
                             <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
