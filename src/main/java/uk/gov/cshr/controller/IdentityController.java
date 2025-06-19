@@ -218,10 +218,10 @@ public class IdentityController {
 
     @PostMapping("/identities/{uid}/update_roles")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String identityUpdate(CustomOAuth2Authentication auth,
-                                 @PathVariable(UID_ATTRIBUTE) String uid,
-                                 @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
-                                 RedirectAttributes redirectAttributes) {
+    public String identityUpdateRoles(CustomOAuth2Authentication auth,
+                                      @PathVariable(UID_ATTRIBUTE) String uid,
+                                      @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
+                                      RedirectAttributes redirectAttributes) {
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent() && roleId != null) {
@@ -292,19 +292,19 @@ public class IdentityController {
                             ArrayList<String> alreadyAssignedOtherOrganisationIds,
                   @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
                   RedirectAttributes redirectAttributes) {
-        log.info("{} adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+        log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdsToAdd, civilServantId, uid);
-        log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
         if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
+            log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
             List<String> otherOrganisationalUnits = new ArrayList<>();
             if (alreadyAssignedOtherOrganisationIds != null && !alreadyAssignedOtherOrganisationIds.isEmpty()) {
                 for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                    log.info("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
+                    log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
             for (String otherOrgIdToAdd : otherOrgIdsToAdd) {
-                log.info("Other organisation id to add: {}", otherOrgIdToAdd);
+                log.debug("Other organisation id to add: {}", otherOrgIdToAdd);
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
@@ -322,7 +322,7 @@ public class IdentityController {
                   @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
                           ArrayList<String> alreadyAssignedOtherOrganisationIds,
                   RedirectAttributes redirectAttributes) {
-        log.info("{} removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+        log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdToRemove, civilServantId, uid);
         log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
         List<String> otherOrganisationalUnits = new ArrayList<>();
@@ -332,7 +332,7 @@ public class IdentityController {
                     "Could not verify currently assigned other organisations. Other organisation is not removed.");
         } else {
             for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                log.info("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
+                log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                 if (!Objects.equals(alreadyAssignedOtherOrganisationId, otherOrgIdToRemove)) {
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
@@ -344,11 +344,16 @@ public class IdentityController {
 
     private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
                                  RedirectAttributes redirectAttributes) {
+        String email ="";
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (optionalIdentity.isPresent()) {
+            Identity identity = optionalIdentity.get();
+            email = identity.getEmail();
+        }
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
-        log.info("Updating other organisational units {} for uid {}", updateOtherOrgUnitsParams, uid);
+        log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
         String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
-        log.debug("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
-        log.info("Other organisational units update is successful for uid {}, update result is {}", uid, updateOtherOrgUnitsResult);
-        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for uid %s", uid));
+        log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
+        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", email));
     }
 }
