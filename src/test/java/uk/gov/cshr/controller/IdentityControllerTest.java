@@ -349,10 +349,9 @@ public class IdentityControllerTest {
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
 
         mockMvc.perform(
-                post("/identities/update/")
+                        post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
@@ -386,10 +385,9 @@ public class IdentityControllerTest {
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                 post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2")
                         .accept(APPLICATION_JSON).param("roleId", "3"))
@@ -411,10 +409,9 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2")
                         .accept(APPLICATION_JSON).param("roleId", "3"))
@@ -436,10 +433,9 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
