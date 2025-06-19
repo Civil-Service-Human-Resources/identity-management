@@ -349,7 +349,7 @@ public class IdentityControllerTest {
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
 
         mockMvc.perform(
-                        post("/identities/" + UID + "/update_roles")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                         .accept(APPLICATION_JSON).param("roleId", "1")
@@ -385,7 +385,7 @@ public class IdentityControllerTest {
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                 post("/identities/" + UID + "/update_roles")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                         .accept(APPLICATION_JSON).param("roleId", "1")

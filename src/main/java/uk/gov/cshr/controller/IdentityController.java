@@ -222,7 +222,6 @@ public class IdentityController {
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                  RedirectAttributes redirectAttributes) {
-
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent() && roleId != null) {
@@ -241,7 +240,6 @@ public class IdentityController {
                     return REDIRECT_IDENTITIES_LIST;
                 }
             }
-
             identity.setRoles(roleSet);
             identityRepository.save(identity);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully for user " + identity.getEmail());
@@ -294,29 +292,23 @@ public class IdentityController {
                             ArrayList<String> alreadyAssignedOtherOrganisationIds,
                   @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
                   RedirectAttributes redirectAttributes) {
-
         log.info("{} adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdsToAdd, civilServantId, uid);
         log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
-
         if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
             List<String> otherOrganisationalUnits = new ArrayList<>();
-
             if (alreadyAssignedOtherOrganisationIds != null && !alreadyAssignedOtherOrganisationIds.isEmpty()) {
                 for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
                     log.info("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
-
             for (String otherOrgIdToAdd : otherOrgIdsToAdd) {
                 log.info("Other organisation id to add: {}", otherOrgIdToAdd);
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
-
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -330,13 +322,10 @@ public class IdentityController {
                   @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
                           ArrayList<String> alreadyAssignedOtherOrganisationIds,
                   RedirectAttributes redirectAttributes) {
-
         log.info("{} removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdToRemove, civilServantId, uid);
         log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
-
         List<String> otherOrganisationalUnits = new ArrayList<>();
-
         if (alreadyAssignedOtherOrganisationIds == null || alreadyAssignedOtherOrganisationIds.isEmpty()) {
             log.error("No previously assigned organisations found while attempting to remove other organisation ID: {}", otherOrgIdToRemove);
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE,
@@ -349,7 +338,6 @@ public class IdentityController {
                 }
             }
         }
-
         updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         return REDIRECT_IDENTITIES_LIST;
     }
