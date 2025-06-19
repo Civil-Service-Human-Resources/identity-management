@@ -25,12 +25,14 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.UpdateOtherOrgUnitsParams;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CustomOAuth2AuthenticationProvider;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -40,6 +42,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static uk.gov.cshr.utils.ApplicationConstants.SUCCESS_ATTRIBUTE;
 import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -441,5 +444,72 @@ public class IdentityControllerTest {
                 .andExpect(redirectedUrl(IDENTITIES_URL));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
+    }
+
+    @Test
+    public void testAssignOtherOrganisationalUnitsSuccess() throws Exception {
+        Identity identity = new Identity();
+        identity.setUid(UID);
+        identity.setEmail(EMAIL);
+
+        String civilServantId = "100";
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        String alreadyAssignedOtherOrganisationIds = "10,11";
+        String otherOrgIdsToAdd = "1";
+
+        List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
+                .map(id -> "/organisationalUnits/" + id)
+                .collect(Collectors.toList());
+        consolidatedOtherOrgIds.add("/organisationalUnits/" + otherOrgIdsToAdd);
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        mockMvc.perform(
+                        post("/identities/" + UID + "/other-organisations/add")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles)))
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
+                                .accept(APPLICATION_JSON).param("otherOrgIdsToAdd", otherOrgIdsToAdd)
+                                .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
+                .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", EMAIL)))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
+        verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
+    }
+
+    @Test
+    public void testRemoveOtherOrganisationalUnitsSuccess() throws Exception {
+        Identity identity = new Identity();
+        identity.setUid(UID);
+        identity.setEmail(EMAIL);
+
+        String civilServantId = "100";
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        String alreadyAssignedOtherOrganisationIds = "1,10,11";
+        String otherOrgIdToRemove = "1";
+
+        List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
+                .map(id -> "/organisationalUnits/" + id)
+                .collect(Collectors.toList());
+        consolidatedOtherOrgIds.remove("/organisationalUnits/" + otherOrgIdToRemove);
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        mockMvc.perform(post("/identities/" + UID + "/other-organisations/" + otherOrgIdToRemove + "/remove")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles)))
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
+                                .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
+                                .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
+                .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", EMAIL)))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(IDENTITIES_URL));
+
+        UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
+        verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
     }
 }

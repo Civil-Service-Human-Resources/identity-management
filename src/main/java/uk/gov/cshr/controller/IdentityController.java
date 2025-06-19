@@ -337,8 +337,8 @@ public class IdentityController {
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-        updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         return REDIRECT_IDENTITIES_LIST;
     }
 
