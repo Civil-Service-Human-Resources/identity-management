@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -88,7 +89,7 @@ public class IdentityControllerTest {
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
 
@@ -359,15 +360,16 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
 
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Set<Role> rolesSet = new HashSet<>(Arrays.asList(learnerRole, adminRole));
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(true, actualIdentity.isActive());
+        assertTrue(actualIdentity.isActive());
         assertEquals(AGENCY_UID, actualIdentity.getAgencyTokenUid());
         assertEquals(rolesSet, actualIdentity.getRoles());
     }

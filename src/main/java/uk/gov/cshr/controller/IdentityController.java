@@ -243,13 +243,11 @@ public class IdentityController {
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully for user " + identity.getEmail());
-        } else {
-            log.error("Invalid identity or missing roles for UID {}", uid);
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
-            return REDIRECT_IDENTITIES_LIST;
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully.");
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         }
-
+        log.error("Invalid identity or missing roles for UID {}", uid);
+        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
         return REDIRECT_IDENTITIES_LIST;
     }
 
