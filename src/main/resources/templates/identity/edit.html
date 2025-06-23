@@ -9,6 +9,14 @@
     <a href="/mgmt/identities" class="btn btn-link-contrast-fix">Back</a>
 
     <h1 class="pb-5" th:text="${'View Identity - ' + identity.email}"></h1>
+    <div th:if="${status}" class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">There was a problem</h4>
+        <p th:text="${status}">status ...</p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}">success</div>
     <h2 class="pb-3">Account status</h2>
     <dl th:if="${identity != null}">
         <div class="row">
@@ -188,6 +196,7 @@
                 hint: true,
                 highlight: true, /* Enable substring highlighting */
                 minLength: 1, /* Specify minimum characters required for showing result */
+                items: Infinity, /* This allows unlimited results in the dropdown */
                 source: formattedOrganisationNames,
                 displayText: function (item) {
                     return item.name;
@@ -195,7 +204,6 @@
                 afterSelect: function (item) {
                     $('#otherOrgIdsToAdd').val(item.id); // store id in hidden field
                 },
-                // autoSelect: true
                 autoSelect: true,
                 highlighter: function (name) {
                     const query = $('#otherOrganisationInput').val();

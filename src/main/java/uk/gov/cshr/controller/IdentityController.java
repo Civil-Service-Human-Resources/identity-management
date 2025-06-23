@@ -43,6 +43,7 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 public class IdentityController {
 
     public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
     private static final String IDENTITY_ATTRIBUTE = "identity";
     private static final String UID_ATTRIBUTE = "uid";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
@@ -309,7 +310,7 @@ public class IdentityController {
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-        return REDIRECT_IDENTITIES_LIST;
+        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
     }
 
     @Transactional
@@ -339,7 +340,7 @@ public class IdentityController {
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-        return REDIRECT_IDENTITIES_LIST;
+        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
     }
 
     private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
@@ -354,6 +355,6 @@ public class IdentityController {
         log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
         String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
         log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
-        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", email));
+        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully.");
     }
 }

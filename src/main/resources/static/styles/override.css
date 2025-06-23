@@ -38,3 +38,8 @@ ul.dropdown-menu {
     padding: 0;
     margin: 0;
 }
+
+.dropdown-menu {
+    max-height: 300px;    /* Limit height */
+    overflow-y: auto;     /* Enable vertical scroll */
+}

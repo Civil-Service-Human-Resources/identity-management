@@ -55,6 +55,7 @@ public class IdentityControllerTest {
     private static final String UID = "UID";
     private static final String AGENCY_UID = "AGENCY_UID";
     private static final String IDENTITIES_URL = "/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
     private static final String IDENTITIES_REACTIVATE_URL = "/identities/reactivate/";
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "CODE";
@@ -472,9 +473,9 @@ public class IdentityControllerTest {
                                 .accept(APPLICATION_JSON).param("otherOrgIdsToAdd", otherOrgIdsToAdd)
                                 .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
                 .andExpect(model().attributeDoesNotExist("status"))
-                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", EMAIL)))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
 
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
         verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
@@ -505,9 +506,9 @@ public class IdentityControllerTest {
                                 .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
                                 .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
                 .andExpect(model().attributeDoesNotExist("status"))
-                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, String.format("Other organisational units are updated successfully for user %s", EMAIL)))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
 
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
         verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
