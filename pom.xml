@@ -115,6 +115,11 @@
             <artifactId>spring-boot-starter-jersey</artifactId>
             <version>2.3.0.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version> <!-- Latest compatible with Spring Boot 1.5.7 -->
+        </dependency>
 
     </dependencies>
 

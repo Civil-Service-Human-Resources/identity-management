@@ -3,22 +3,20 @@
       layout:decorator="layout" xmlns="http://www.w3.org/1999/html">
 <head>
     <title th:text="${'View Identity - ' + identity.email}"></title>
-    <script type="text/javascript" src="/js/accessible-autocomplete.min.js"></script>
-    <script th:inline="javascript">
-        accessibleAutocomplete.enhanceSelectElement({
-            autoselect: false,
-            defaultValue: '',
-            minLength: 1,
-            selectElement: document.querySelector('#otherOrgIdToAssign'),
-            showAllValues: true,
-        });
-    </script>
 </head>
 <body>
 <section layout:fragment="content">
     <a href="/mgmt/identities" class="btn btn-link-contrast-fix">Back</a>
 
     <h1 class="pb-5" th:text="${'View Identity - ' + identity.email}"></h1>
+    <div th:if="${status}" class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">There was a problem</h4>
+        <p th:text="${status}">status ...</p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}">success</div>
     <h2 class="pb-3">Account status</h2>
     <dl th:if="${identity != null}">
         <div class="row">
@@ -129,39 +127,45 @@
         </div>
     </div>
     <h2 class="pb-3">Other Organisation Access</h2>
-    <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
-        <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
-        <form th:action="@{/identities/otherOrganisation/add}" method="POST" th:object="${identity}">
-            <div class="form-group">
-                <select aria-label="Other Organisations" class="form-control" id="otherOrgIdsToAdd" name="otherOrgIdsToAdd">
-                    <option value=""></option>
-                    <option th:label="${formattedOrganisationName.name}" th:each="formattedOrganisationName : ${formattedOrganisationNames}" th:value="${formattedOrganisationName.id}" th:text="${formattedOrganisationName.name}"></option>
-                </select>
-            </div>
-            <input type="hidden" th:field="*{uid}"/>
-            <button type="submit" class="btn btn-primary btn-contrast-fix">Add organisation</button>
-        </form>
+    <p th:if="${civilServantId != null}">
+        <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+            <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
+            <form th:action="@{/identities/{uid}/other-organisations/add(uid=${identity.uid})}" method="POST" th:object="${identity}">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
+                           aria-label="Other Organisations" autocomplete="off" spellcheck="false"/>
+                </div>
+                <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
+                <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisationIds}"/>
+                <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
+                <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
+            </form>
+        </p>
     </p>
-    <p class="pb-4" th:if="${assignedOtherOrganisations.isEmpty()}">
+    <p class="pb-4" th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">
         No other organisations assigned.
     </p>
-    <table class="table" th:if="!${assignedOtherOrganisations.isEmpty()}">
+    <table class="table" th:if="!${alreadyAssignedOtherOrganisations.isEmpty()}">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">Department</th>
                 <th scope="col">Access</th>
-                <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">Action</th>
+                <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                                     and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">Action</th>
             </tr>
         </thead>
         <tbody>
-            <div th:each="assignedOtherOrganisation : ${assignedOtherOrganisations}">
+            <div th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}">
                 <tr>
-                    <td th:text="${assignedOtherOrganisation.getName()}"></td>
+                    <td th:text="${alreadyAssignedOtherOrganisation.getName()}"></td>
                     <td th:text="Yes"></td>
-                    <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)}">
-                        <form th:action="@{/identities/otherOrganisation/remove}" method="POST" th:object="${identity}" >
-                            <input type="hidden" th:field="*{uid}"/>
-                            <input type="hidden" name="otherOrgIdToRemove" th:value="${assignedOtherOrganisation.id}"/>
+                    <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                            and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                        <form th:action="@{/identities/{uid}/other-organisations/{otherOrgIdToRemove}/remove(uid=${identity.uid}, otherOrgIdToRemove=${alreadyAssignedOtherOrganisation.id})}"
+                              method="POST" th:object="${identity}">
+                            <input type="hidden" name="civilServantId" th:value="${civilServantId}"/>
+                            <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisationIds}"/>
                             <button type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
                         </form>
                     </td>
@@ -170,19 +174,47 @@
         </tbody>
     </table>
     <h2 class="pb-3">Roles</h2>
-    <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" autocomplete="off" action="#" th:action="@{/identities/update}" th:object="${identity}" method="POST">
+    <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}"
+          autocomplete="off" th:action="@{/identities/{uid}/update_roles(uid=${identity.uid})}" th:object="${identity}" method="POST">
         <div class="form-group">
             <select aria-label="User roles" class="form-control" multiple="multiple" name="roleId" id="roleId" size="25" style="height: 100%;">
                 <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
                         th:selected="${identity.getRoles().contains(role)}"></option>
             </select>
         </div>
-        <input type="hidden" th:field="*{uid}"/>
         <button type="submit" class="btn btn-primary btn-contrast-fix">Update Roles</button>
     </form>
     <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" class="list-group mb-5">
         <li class="list-group-item" th:each="role : ${identity.getRoles()}" th:value="${role.id}" th:text="${role.name}"></li>
     </ul>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+            const formattedOrganisationNames = [[${formattedOrganisationNames}]];
+
+            $('#otherOrganisationInput').typeahead({
+                hint: true,
+                highlight: true, /* Enable substring highlighting */
+                minLength: 1, /* Specify minimum characters required for showing result */
+                items: Infinity, /* This allows unlimited results in the dropdown */
+                source: formattedOrganisationNames,
+                displayText: function (item) {
+                    return item.name;
+                },
+                afterSelect: function (item) {
+                    $('#otherOrgIdsToAdd').val(item.id); // store id in hidden field
+                },
+                autoSelect: true,
+                highlighter: function (name) {
+                    const query = $('#otherOrganisationInput').val();
+                    const regex = new RegExp('(' + query + ')', 'gi');
+                    const highlighted = name.replace(regex, '<strong>$1</strong>');
+                    return '<div class="form-control">' + highlighted + '</div>';
+                }
+            });
+        });
+        /*]]>*/
+    </script>
 </section>
 </body>
 </html>
