@@ -5,18 +5,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CivilServantDto {
+    private Long userId;
     private String fullName;
     private String lineManagerEmailAddress;
     private Grade grade;
     private OrganisationalUnit organisationalUnit;
     private Profession profession;
     private List<Profession> otherAreasOfWork;
+    private Set<OrganisationalUnit> otherOrganisationalUnits;
     private List<Interest> interests;
 
     public String getDisplayLineManagerEmail() {

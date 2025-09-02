@@ -1,0 +1,79 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="identity-management[mvn-boot-run]" type="MavenRunConfiguration" factoryName="Maven">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings">
+        <MavenRunnerSettings>
+          <option name="delegateBuildToMaven" value="false" />
+          <option name="environmentProperties">
+            <map>
+              <entry key="CLIENT_ID" value="management" />
+              <entry key="CLIENT_SECRET" value="test" />
+              <entry key="CSHR_LOGGING_LEVEL" value="DEBUG" />
+              <entry key="CSL_SERVICE_URL" value="http://localhost:9003" />
+              <entry key="DATABASE_HOST" value="jdbc:mysql://localhost:3306" />
+              <entry key="DATABASE_NAME" value="identity" />
+              <entry key="DATABASE_USESSL" value="false" />
+              <entry key="DATASOURCE_PASSWORD" value="my-secret-pw" />
+              <entry key="DATASOURCE_USERNAME" value="root" />
+              <entry key="DATA_RETENTION_JOB_CRON_SCHEDULE" value="0 0 5 * * *" />
+              <entry key="DATA_RETENTION_JOB_ENABLED" value="true" />
+              <entry key="GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID" value="f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686" />
+              <entry key="GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID" value="5830199c-a524-458c-a630-c1b64734cf18" />
+              <entry key="GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID" value="de47fe22-96fc-448f-a3f0-d105e9f0e0e6" />
+              <entry key="GOV_NOTIFY_REACTIVATION_TEMPLATE_ID" value="abfb2e5f-3905-4817-b041-c53afd1eb3e5" />
+              <entry key="IDM_URL" value="http://localhost:8081/mgmt/login" />
+              <entry key="JWT_KEY" value="key" />
+              <entry key="LEARNER_RECORD_URL" value="http://localhost:9000" />
+              <entry key="NOTIFICATION_SERVICE_URL" value="http://localhost:9006" />
+              <entry key="OAUTH_AUTHORIZATION_ENDPOINT" value="/oauth2/authorize" />
+              <entry key="OAUTH_LOGOUT_ENDPOINT" value="/logout" />
+              <entry key="OAUTH_TOKEN_ENDPOINT" value="/oauth2/token" />
+              <entry key="OAUTH_URL" value="http://localhost:8080" />
+              <entry key="REGISTRY_SERVICE_URL" value="http://localhost:9002" />
+              <entry key="REPORTING_SERVICE_URL" value="http://localhost:9004" />
+              <entry key="ROOT_LOGGING_LEVEL" value="INFO" />
+            </map>
+          </option>
+          <option name="jreName" value="#USE_PROJECT_JDK" />
+          <option name="mavenProperties">
+            <map />
+          </option>
+          <option name="passParentEnv" value="true" />
+          <option name="runMavenInBackground" value="true" />
+          <option name="skipTests" value="false" />
+          <option name="vmOptions" value="" />
+        </MavenRunnerSettings>
+      </option>
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="profiles">
+            <set />
+          </option>
+          <option name="goals">
+            <list>
+              <option value="spring-boot:run" />
+            </list>
+          </option>
+          <option name="pomFileName" />
+          <option name="profilesMap">
+            <map />
+          </option>
+          <option name="resolveToWorkspace" value="false" />
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+      </ENTRIES>
+    </extension>
+    <method v="2" />
+  </configuration>
+</component>

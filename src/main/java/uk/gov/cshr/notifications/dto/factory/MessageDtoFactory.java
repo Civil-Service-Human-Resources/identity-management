@@ -7,10 +7,10 @@ import java.util.Map;
 
 @Component
 public class MessageDtoFactory {
-    public MessageDto create(String recipient, String templateId, Map<String, String> personalisation) {
+    public MessageDto create(String recipient, String templateName, Map<String, String> personalisation) {
         MessageDto messageDto = new MessageDto();
         messageDto.setRecipient(recipient);
-        messageDto.setTemplateId(templateId);
+        messageDto.setName(templateName);
         messageDto.setPersonalisation(personalisation);
 
         return messageDto;

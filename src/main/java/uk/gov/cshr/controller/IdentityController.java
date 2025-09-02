@@ -23,16 +23,17 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.csrs.AgencyTokenDto;
-import uk.gov.cshr.service.csrs.CSRSService;
-import uk.gov.cshr.service.csrs.CivilServantDto;
+import uk.gov.cshr.service.csrs.*;
+import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mysql.cj.util.StringUtils.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toMap;
 import static uk.gov.cshr.utils.ApplicationConstants.*;
 
 @Slf4j
@@ -42,6 +43,7 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 public class IdentityController {
 
     public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
     private static final String IDENTITY_ATTRIBUTE = "identity";
     private static final String UID_ATTRIBUTE = "uid";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
@@ -53,6 +55,7 @@ public class IdentityController {
     private final ReactivationService reactivationService;
     private final CSRSService csrsService;
     private final CslService cslService;
+    private final IdentityManagementService identityManagementService;
 
     @GetMapping("/identities")
     public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
@@ -72,8 +75,6 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
-
-
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
 
@@ -88,11 +89,39 @@ public class IdentityController {
                     agencyToken = agencyTokenDto.getToken();
                 }
             }
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
             identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
             List<?> requiredCourses = emptyList();
-            if (civilServantDto != null && civilServantDto.isProfileComplete()) {
-                requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+            if (civilServantDto != null) {
+                model.addAttribute("civilServantId", civilServantDto.getUserId());
+
+                FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+                model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+
+                List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
+                if(civilServantDto.getOtherOrganisationalUnits() != null) {
+                    Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                            .stream()
+                            .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
+                    Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
+                    assignedFormattedOrganisationNames = assignedOtherOrganisations
+                            .stream()
+                            .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                            .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
+                            .collect(Collectors.toList());
+                }
+                model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
+
+                String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
+                        .stream()
+                        .map(FormattedOrganisationalUnitName::getId)
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","));
+                model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
+
+                if (civilServantDto.isProfileComplete()) {
+                    requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+                }
             }
             model.addAttribute("requiredCourses", requiredCourses);
             model.addAttribute(IDENTITY_ATTRIBUTE, identity);
@@ -116,12 +145,8 @@ public class IdentityController {
             log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), identity.getEmail());
 
             if (identity.isActive()) {
-                identity.setActive(false);
-                identity.setAgencyTokenUid(null);
-                identityRepository.save(identity);
-
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, format("%s deactivated successfully", identity.getEmail()));
-
+                identityManagementService.deactivateIdentity(identity);
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
                 return REDIRECT_IDENTITIES_LIST;
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
@@ -192,12 +217,12 @@ public class IdentityController {
         }
     }
 
-    @PostMapping("/identities/update")
+    @PostMapping("/identities/{uid}/update_roles")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String identityUpdate(CustomOAuth2Authentication auth,
-                                 @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
-                                 @RequestParam(UID_ATTRIBUTE) String uid,
-                                 RedirectAttributes redirectAttributes) {
+    public String identityUpdateRoles(CustomOAuth2Authentication auth,
+                                      @PathVariable(UID_ATTRIBUTE) String uid,
+                                      @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
+                                      RedirectAttributes redirectAttributes) {
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent() && roleId != null) {
@@ -211,17 +236,18 @@ public class IdentityController {
                 if (optionalRole.isPresent()) {
                     roleSet.add(optionalRole.get());
                 } else {
+                    log.error("Role ID {} not found; aborting role update for UID {}", id, uid);
                     redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
                     return REDIRECT_IDENTITIES_LIST;
                 }
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
-        } else {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
-            return REDIRECT_IDENTITIES_LIST;
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully.");
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         }
-
+        log.error("Invalid identity or missing roles for UID {}", uid);
+        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
         return REDIRECT_IDENTITIES_LIST;
     }
 
@@ -243,9 +269,90 @@ public class IdentityController {
     @Transactional
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth,
+                                 RedirectAttributes redirectAttributes) {
         log.info("{} deleting identity {}", auth.getUserEmail(), uid);
-        identityService.deleteIdentity(uid);
+        identityRepository.findFirstByUid(uid)
+                .ifPresent(identity -> {
+                    String email = identity.getEmail();
+                    identityManagementService.deleteIdentity(identity);
+                    redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deleted successfully", email));
+                });
         return REDIRECT_IDENTITIES_LIST;
+    }
+
+    @Transactional
+    @PostMapping("/identities/{uid}/other-organisations/add")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
+    public String assignOtherOrganisationalUnits(CustomOAuth2Authentication auth,
+                  @PathVariable("uid") String uid,
+                  @RequestParam("civilServantId") String civilServantId,
+                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
+                            ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                  @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
+                  RedirectAttributes redirectAttributes) {
+        log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+                otherOrgIdsToAdd, civilServantId, uid);
+        if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
+            log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
+            List<String> otherOrganisationalUnits = new ArrayList<>();
+            if (alreadyAssignedOtherOrganisationIds != null && !alreadyAssignedOtherOrganisationIds.isEmpty()) {
+                for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
+                    log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
+                    otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
+                }
+            }
+            for (String otherOrgIdToAdd : otherOrgIdsToAdd) {
+                log.debug("Other organisation id to add: {}", otherOrgIdToAdd);
+                otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
+            }
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+        }
+        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+    }
+
+    @Transactional
+    @PostMapping("/identities/{uid}/other-organisations/{otherOrgIdToRemove}/remove")
+    @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
+    public String removeOtherOrganisationalUnits(CustomOAuth2Authentication auth,
+                  @PathVariable("uid") String uid,
+                  @PathVariable("otherOrgIdToRemove") String otherOrgIdToRemove,
+                  @RequestParam("civilServantId") String civilServantId,
+                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
+                          ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                  RedirectAttributes redirectAttributes) {
+        log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+                otherOrgIdToRemove, civilServantId, uid);
+        log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
+        List<String> otherOrganisationalUnits = new ArrayList<>();
+        if (alreadyAssignedOtherOrganisationIds == null || alreadyAssignedOtherOrganisationIds.isEmpty()) {
+            log.error("No previously assigned organisations found while attempting to remove other organisation ID: {}", otherOrgIdToRemove);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE,
+                    "Could not verify currently assigned other organisations. Other organisation is not removed.");
+        } else {
+            for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
+                log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
+                if (!Objects.equals(alreadyAssignedOtherOrganisationId, otherOrgIdToRemove)) {
+                    otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
+                }
+            }
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+        }
+        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+    }
+
+    private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
+                                 RedirectAttributes redirectAttributes) {
+        String email ="";
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (optionalIdentity.isPresent()) {
+            Identity identity = optionalIdentity.get();
+            email = identity.getEmail();
+        }
+        UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
+        log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
+        String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
+        log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
+        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully.");
     }
 }

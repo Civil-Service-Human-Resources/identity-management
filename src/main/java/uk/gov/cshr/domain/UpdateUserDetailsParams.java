@@ -7,6 +7,6 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class RemoveUserDetailsParams {
+public class UpdateUserDetailsParams {
     private List<String> uids;
 }

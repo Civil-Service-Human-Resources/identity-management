@@ -25,13 +25,17 @@ import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.UpdateOtherOrgUnitsParams;
+import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CustomOAuth2AuthenticationProvider;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -39,6 +43,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static uk.gov.cshr.utils.ApplicationConstants.SUCCESS_ATTRIBUTE;
 import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,6 +56,7 @@ public class IdentityControllerTest {
     private static final String UID = "UID";
     private static final String AGENCY_UID = "AGENCY_UID";
     private static final String IDENTITIES_URL = "/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
     private static final String IDENTITIES_REACTIVATE_URL = "/identities/reactivate/";
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "CODE";
@@ -68,6 +74,9 @@ public class IdentityControllerTest {
     private CslService cslService;
 
     @MockBean
+    private IdentityManagementService identityManagementService;
+
+    @MockBean
     private RoleRepository roleRepository;
 
     @MockBean
@@ -80,7 +89,7 @@ public class IdentityControllerTest {
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
     }
 
@@ -103,11 +112,7 @@ public class IdentityControllerTest {
                 .andExpect(flash().attribute("success", EMAIL + " deactivated successfully"))
                 .andExpect(redirectedUrl(IDENTITIES_URL));
 
-        verify(identityRepository).save(identityArgumentCaptor.capture());
-
-        Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(false, actualIdentity.isActive());
-        assertEquals(null, actualIdentity.getAgencyTokenUid());
+        verify(identityManagementService, times(1)).deactivateIdentity(identity);
     }
 
     @Test
@@ -349,22 +354,22 @@ public class IdentityControllerTest {
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
 
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Set<Role> rolesSet = new HashSet<>(Arrays.asList(learnerRole, adminRole));
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(true, actualIdentity.isActive());
+        assertTrue(actualIdentity.isActive());
         assertEquals(AGENCY_UID, actualIdentity.getAgencyTokenUid());
         assertEquals(rolesSet, actualIdentity.getRoles());
     }
@@ -386,10 +391,9 @@ public class IdentityControllerTest {
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2")
                         .accept(APPLICATION_JSON).param("roleId", "3"))
@@ -411,10 +415,9 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID)
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2")
                         .accept(APPLICATION_JSON).param("roleId", "3"))
@@ -436,14 +439,80 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
         mockMvc.perform(
-                post("/identities/update/")
+                post("/identities/" + UID + "/update_roles")
                         .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(IDENTITIES_URL));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
+    }
+
+    @Test
+    public void testAssignOtherOrganisationalUnitsSuccess() throws Exception {
+        Identity identity = new Identity();
+        identity.setUid(UID);
+        identity.setEmail(EMAIL);
+
+        String civilServantId = "100";
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        String alreadyAssignedOtherOrganisationIds = "10,11";
+        String otherOrgIdsToAdd = "1";
+
+        List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
+                .map(id -> "/organisationalUnits/" + id)
+                .collect(Collectors.toList());
+        consolidatedOtherOrgIds.add("/organisationalUnits/" + otherOrgIdsToAdd);
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        mockMvc.perform(
+                        post("/identities/" + UID + "/other-organisations/add")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles)))
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
+                                .accept(APPLICATION_JSON).param("otherOrgIdsToAdd", otherOrgIdsToAdd)
+                                .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
+                .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+
+        UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
+        verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
+    }
+
+    @Test
+    public void testRemoveOtherOrganisationalUnitsSuccess() throws Exception {
+        Identity identity = new Identity();
+        identity.setUid(UID);
+        identity.setEmail(EMAIL);
+
+        String civilServantId = "100";
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        String alreadyAssignedOtherOrganisationIds = "1,10,11";
+        String otherOrgIdToRemove = "1";
+
+        List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
+                .map(id -> "/organisationalUnits/" + id)
+                .collect(Collectors.toList());
+        consolidatedOtherOrgIds.remove("/organisationalUnits/" + otherOrgIdToRemove);
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        mockMvc.perform(post("/identities/" + UID + "/other-organisations/" + otherOrgIdToRemove + "/remove")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles)))
+                                .accept(APPLICATION_JSON).param("uid", UID)
+                                .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
+                                .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
+                                .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
+                .andExpect(model().attributeDoesNotExist("status"))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+
+        UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
+        verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
     }
 }

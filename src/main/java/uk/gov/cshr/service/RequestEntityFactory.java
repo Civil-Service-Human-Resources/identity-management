@@ -11,8 +11,7 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Arrays;
 
 @Component
@@ -93,6 +92,17 @@ public class RequestEntityFactory {
         }
     }
 
+    private <T> RequestEntity <T> createPatchRequest(URI uri, T body) {
+        return new RequestEntity<>(body, getOauth2HeadersFromSecurityContext(), HttpMethod.PATCH, uri);
+    }
+
+    public <T> RequestEntity <T> createPatchRequest(String uri, T body) {
+        try {
+            return createPatchRequest(new URI(uri), body);
+        } catch (URISyntaxException e) {
+            throw new RequestEntityException(e);
+        }
+    }
 
     private HttpHeaders getOauth2HeadersFromSecurityContext() {
         String token;
@@ -124,7 +134,7 @@ public class RequestEntityFactory {
         HttpEntity<String> request = new HttpEntity<String>(headers);
 
         String access_token_url = clientUrl;
-        access_token_url += "?grant_type=client_credentials";
+        access_token_url += "?grant_type=client_credentials&scope=identity_delete identity_manage_identity";
 
         ResponseEntity<String> response = restTemplate.exchange(access_token_url, HttpMethod.POST, request, String.class);
 

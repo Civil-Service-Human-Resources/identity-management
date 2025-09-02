@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
-    Identity findFirstByActiveTrueAndEmailEquals(String email);
-
     List<Identity> findByActiveFalseAndLastLoggedInBefore(Instant lastLoggedIn);
 
     List<Identity> findByActiveTrueAndLastLoggedInBefore(Instant lastLoggedIn);
@@ -22,8 +20,6 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
     List<Identity> findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(Instant lastLoggedIn);
 
     Page<Identity> findAllByEmailContains(Pageable pageable, String email);
-
-    boolean existsByEmail(String email);
 
     Optional<Identity> findFirstByUid(String uid);
 

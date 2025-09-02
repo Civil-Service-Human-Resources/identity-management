@@ -1,10 +1,23 @@
-
 spring:
   thymeleaf:
-    cache: false
+    cache: true
+  datasource:
+    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:my-secret-pw}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    hibernate:
-      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        enable_lazy_load_no_trans: true
+        ddl-auto: none
+
+database:
+  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
+  name: ${DATABASE_NAME:identity}
+  use-ssl: ${DATABASE_USESSL:false}
 
 server:
   port: 8081
@@ -22,7 +35,7 @@ security:
     resource:
       prefer-token-info: true
       jwt:
-        key-value: ${jwt_key:key}
+        key-value: ${JWT_KEY:key}
     client:
       client-id: ${CLIENT_ID:management}
       client-secret: ${CLIENT_SECRET:test}
@@ -48,19 +61,27 @@ csrs:
   deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
   getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
   getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
+  updateOtherOrgUnitsUrl: "${csrs.serviceUrl}/civilServants/%s"
 
 cslService:
-  serviceUrl: ${CSL_SERVICE_URL:http:localhost:9003}
+  serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
   getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
+  getFormattedOrganisationNames: "${cslService.serviceUrl}/api/organisations/formatted_list"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
-  email: "${notifications.service}/notifications/email"
+  email: "${notifications.service}/notifications/emails"
+  bulkEmail: "${notifications.email}/bulk/send"
+  bulkBatchSize: ${NOTIFICATION_SERVICE_BULK_BATCH_SIZE:20}
 
 reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
-  removeUserDataUrl: "${reporting.serviceUrl}/course-completions/remove-user-details"
-  removeUserDataFromReportUrl: "${reporting.serviceUrl}/api/report/remove-user-details"
+  registeredLearners:
+    url: "${reporting.serviceUrl}/registered-learners"
+    deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
+  api:
+    url: "${reporting.serviceUrl}/api/report"
+    removeUserDataFromReportUrl: "${reporting.api.url}/remove-user-details"
 
 accountPeriodsInMonths:
   deactivation: 13
@@ -72,31 +93,8 @@ dataRetentionJob:
   enabled: ${DATA_RETENTION_JOB_ENABLED:true}
 
 govNotify:
-  template:
-    accountSuspension: ${GOV_NOTIFY_ACCOUNT_SUSPENSION_TEMPLATE_ID:de47fe22-96fc-448f-a3f0-d105e9f0e0e6}
-    accountDeletion: ${GOV_NOTIFY_ACCOUNT_DELETION_TEMPLATE_ID:5830199c-a524-458c-a630-c1b64734cf18}
-    accountDeleted: ${GOV_NOTIFY_ACCOUNT_DELETED_TEMPLATE_ID:f8aa74fb-eaaf-4e4e-a6fc-f6a9a703b686}
-    reactivationTemplateId: ${GOV_NOTIFY_REACTIVATION_TEMPLATE_ID:abfb2e5f-3905-4817-b041-c53afd1eb3e5}
-
----
-
-database:
-  host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-  name: ${DATABASE_NAME:identity}
-  use-ssl: ${DATABASE_USESSL:false}
-
-spring:
-  profiles: test, production
-  thymeleaf:
-    cache: true
-  datasource:
-    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
-    username: ${DATASOURCE_USERNAME:root}
-    password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        enable_lazy_load_no_trans: true
+  templateName:
+    accountSuspension: ${ACCOUNT_SUSPENSION_TEMPLATE_NAME:ACCOUNT_DEACTIVATED}
+    accountDeletion: ${ACCOUNT_DELETION_TEMPLATE_NAME:ACCOUNT_DELETION_WARNING}
+    accountDeleted: ${ACCOUNT_DELETED_TEMPLATE_NAME:ACCOUNT_DELETED}
+    reactivation: ${REACTIVATION_TEMPLATE_NAME:ACCOUNT_REACTIVATED}
