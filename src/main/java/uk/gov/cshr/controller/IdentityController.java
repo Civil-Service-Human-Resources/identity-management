@@ -75,12 +75,73 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
+
+        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+        model.addAttribute("activeTab", "profile");
+        return "identity/profile";
+    }
+
+    @GetMapping("/identities/update/{uid}/required-learning")
+    public String identityRequiredLearning(Model model,
+                                           @PathVariable(UID_ATTRIBUTE) String uid,
+                                           CustomOAuth2Authentication auth) {
+
+        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+        model.addAttribute("activeTab", "required-learning");
+        return "identity/required-learning";
+    }
+
+    @GetMapping("/identities/update/{uid}/other-learning")
+    public String identityOtherLearning(Model model,
+                                        @PathVariable(UID_ATTRIBUTE) String uid,
+                                        CustomOAuth2Authentication auth) {
+
+        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+        model.addAttribute("activeTab", "other-learning");
+        return "identity/other-learning";
+    }
+
+    @GetMapping("/identities/update/{uid}/other-organisation-access")
+    public String identityOtherOrganisationAccess(Model model,
+                                                  @PathVariable(UID_ATTRIBUTE) String uid,
+                                                  CustomOAuth2Authentication auth) {
+
+        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+        model.addAttribute("activeTab", "other-organisation-access");
+        return "identity/other-organisation-access";
+    }
+
+    @GetMapping("/identities/update/{uid}/roles")
+    public String identityRoles(Model model,
+                                @PathVariable(UID_ATTRIBUTE) String uid,
+                                CustomOAuth2Authentication auth) {
+
+        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+        model.addAttribute("activeTab", "roles");
+        return "identity/roles";
+    }
+
+    /**
+     * Loads all common attributes for the identity view pages into the model.
+     * Returns true if identity was found, false otherwise.
+     */
+    private boolean loadCommonIdentityModelAttributes(Model model, String uid, String email) {
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
-            log.info("{} viewing identity for uid {}", auth.getUserEmail(), identity.getEmail());
+            log.info("{} viewing identity for uid {}", email, identity.getEmail());
             String tokenUid = identity.getAgencyTokenUid();
             String agencyToken = "None";
             if (tokenUid != null) {
@@ -99,7 +160,7 @@ public class IdentityController {
                 model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
 
                 List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
-                if(civilServantDto.getOtherOrganisationalUnits() != null) {
+                if (civilServantDto.getOtherOrganisationalUnits() != null) {
                     Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
                             .stream()
                             .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
@@ -128,11 +189,11 @@ public class IdentityController {
             model.addAttribute("roles", roles);
             model.addAttribute("profile", civilServantDto);
             model.addAttribute("token", agencyToken);
-            return "identity/edit";
+            return true;
         }
 
         log.info("No identity found for uid {}", uid);
-        return REDIRECT_IDENTITIES_LIST;
+        return false;
     }
 
     @PostMapping("/identities/active")
