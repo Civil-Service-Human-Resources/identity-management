@@ -43,3 +43,40 @@ ul.dropdown-menu {
     max-height: 300px;    /* Limit height */
     overflow-y: auto;     /* Enable vertical scroll */
 }
+
+/* --- New styles for Identity View tabs --- */
+
+/* Remove the default bottom border from the tab container */
+.nav-tabs {
+    border-bottom: none;
+}
+
+/* Add spacing between the tab buttons */
+.nav-tabs .nav-item {
+    margin-bottom: 0; /* Override default -1px */
+    margin-right: 0.5rem; /* Add spacing between buttons */
+}
+
+/* Style for inactive tabs (buttons) */
+.nav-tabs .nav-link {
+    border: 1px solid #dee2e6; /* Standard Bootstrap grey border */
+    border-radius: .25rem; /* Apply border-radius to all corners */
+    color: #6c757d; /* Standard Bootstrap grey text color */
+    background-color: #fff;
+}
+
+/* Style for inactive tabs on hover/focus */
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    color: #007BC7; /* Blue text on hover */
+    border-color: #dee2e6; /* Keep the same grey border */
+    background-color: #f8f9fa; /* Slight grey background on hover */
+}
+
+/* Style for the active tab (button) */
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+    color: #007BC7; /* Blue text for active */
+    background-color: #fff; /* White background */
+    border-color: #dee2e6; /* Keep the same grey border */
+}

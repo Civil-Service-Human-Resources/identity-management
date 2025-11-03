@@ -18,7 +18,7 @@
     </div>
     <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}">success</div>
 
-    <ul class="nav nav-pills mb-3">
+    <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
             <a class="nav-link" th:classappend="${activeTab == 'profile'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}|}">Profile</a>
         </li>
