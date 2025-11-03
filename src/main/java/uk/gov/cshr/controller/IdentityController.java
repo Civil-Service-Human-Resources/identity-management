@@ -75,7 +75,6 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
-
         if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
             return REDIRECT_IDENTITIES_LIST;
         }

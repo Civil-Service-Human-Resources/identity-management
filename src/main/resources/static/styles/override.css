@@ -55,8 +55,8 @@ ul.dropdown-menu {
 .nav-pills .nav-link {
     border: 1px solid #dee2e6; /* Standard Bootstrap grey border */
     border-radius: .25rem;     /* Standard Bootstrap border-radius */
-    color: #007BC7;           /* Blue text (using existing btn-link-contrast-fix color) */
-    background-color: #fff;  /* Ensure white background */
+    color: #007BC7;            /* Blue text (using existing btn-link-contrast-fix color) */
+    background-color: #fff;    /* Ensure white background */
     font-weight: bold;         /* Make text bold */
 }
 
@@ -64,8 +64,8 @@ ul.dropdown-menu {
 .nav-pills .nav-link.active,
 .nav-pills .nav-item.show .nav-link {
     color: #6c757d;            /* Standard Bootstrap grey text color */
-    background-color: #fff;   /* Override default blue background */
-    border-color: #dee2e6;    /* Keep the same grey border */
+    background-color: #fff;    /* Override default blue background */
+    border-color: #dee2e6;     /* Keep the same grey border */
 }
 
 /* Style for inactive pills on hover/focus */
