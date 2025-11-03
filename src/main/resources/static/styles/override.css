@@ -44,39 +44,33 @@ ul.dropdown-menu {
     overflow-y: auto;     /* Enable vertical scroll */
 }
 
-/* --- New styles for Identity View tabs --- */
+/* --- New styles for Identity View pills (buttons) --- */
 
-/* Remove the default bottom border from the tab container */
-.nav-tabs {
-    border-bottom: none;
+/* Add spacing between the buttons */
+.nav-pills .nav-item {
+    margin-right: 0.5rem; /* Spacing between pills */
 }
 
-/* Add spacing between the tab buttons */
-.nav-tabs .nav-item {
-    margin-bottom: 0; /* Override default -1px */
-    margin-right: 0.5rem; /* Add spacing between buttons */
-}
-
-/* Style for inactive tabs (buttons) */
-.nav-tabs .nav-link {
+/* Style for inactive pills (buttons) */
+.nav-pills .nav-link {
     border: 1px solid #dee2e6; /* Standard Bootstrap grey border */
-    border-radius: .25rem; /* Apply border-radius to all corners */
-    color: #6c757d; /* Standard Bootstrap grey text color */
-    background-color: #fff;
+    border-radius: .25rem;     /* Standard Bootstrap border-radius */
+    color: #6c757d;           /* Standard Bootstrap grey text color */
+    background-color: #fff;  /* Ensure white background */
 }
 
-/* Style for inactive tabs on hover/focus */
-.nav-tabs .nav-link:hover,
-.nav-tabs .nav-link:focus {
-    color: #007BC7; /* Blue text on hover */
-    border-color: #dee2e6; /* Keep the same grey border */
+/* Style for the active pill */
+.nav-pills .nav-link.active,
+.nav-pills .nav-item.show .nav-link {
+    color: #007BC7;            /* Blue text (using existing btn-link-contrast-fix color) */
+    background-color: #fff;   /* Override default blue background */
+    border-color: #dee2e6;    /* Keep the same grey border */
+}
+
+/* Style for inactive pills on hover/focus */
+.nav-pills .nav-link:not(.active):hover,
+.nav-pills .nav-link:not(.active):focus {
+    color: #007BC7;            /* Blue text on hover */
     background-color: #f8f9fa; /* Slight grey background on hover */
-}
-
-/* Style for the active tab (button) */
-.nav-tabs .nav-link.active,
-.nav-tabs .nav-item.show .nav-link {
-    color: #007BC7; /* Blue text for active */
-    background-color: #fff; /* White background */
-    border-color: #dee2e6; /* Keep the same grey border */
+    border-color: #dee2e6;    /* Keep the same grey border */
 }
