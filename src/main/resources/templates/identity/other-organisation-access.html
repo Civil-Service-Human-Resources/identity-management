@@ -50,6 +50,12 @@
                 </table>
             </form>
         </p>
+        <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" class="list-group mb-5">
+            <p class="pb-4" th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">
+                No other organisations assigned.
+            </p>
+            <li class="list-group-item" th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}" th:value="${alreadyAssignedOtherOrganisation.getName()}" th:text="${alreadyAssignedOtherOrganisation.getName()}"></li>
+        </ul>
     </p>
     <script th:inline="javascript">
         /*<![CDATA[*/
