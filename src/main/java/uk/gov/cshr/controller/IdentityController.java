@@ -75,9 +75,32 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable(UID_ATTRIBUTE) String uid,
                                  CustomOAuth2Authentication auth) {
-        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+        log.info("{} viewing profile for uid {}", auth.getUserEmail(), uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
             return REDIRECT_IDENTITIES_LIST;
         }
+
+        Identity identity = optionalIdentity.get();
+        model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+
+        // --- Profile-specific data ---
+        String tokenUid = identity.getAgencyTokenUid();
+        String agencyToken = "None";
+        if (tokenUid != null) {
+            AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
+            if (agencyTokenDto != null) {
+                agencyToken = agencyTokenDto.getToken();
+            }
+        }
+        identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+
+        model.addAttribute("profile", civilServantDto);
+        model.addAttribute("token", agencyToken);
+        // --- End profile-specific data ---
+
         model.addAttribute("activeTab", "profile");
         return "identity/profile";
     }
@@ -86,10 +109,23 @@ public class IdentityController {
     public String identityRequiredLearning(Model model,
                                            @PathVariable(UID_ATTRIBUTE) String uid,
                                            CustomOAuth2Authentication auth) {
-
-        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+        log.info("{} viewing required learning for uid {}", auth.getUserEmail(), uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
             return REDIRECT_IDENTITIES_LIST;
         }
+        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
+
+        // --- Required Learning-specific data ---
+        List<?> requiredCourses = emptyList();
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        if (civilServantDto != null && civilServantDto.isProfileComplete()) {
+            requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+        }
+        model.addAttribute("requiredCourses", requiredCourses);
+        // --- End Required Learning-specific data ---
+
         model.addAttribute("activeTab", "required-learning");
         return "identity/required-learning";
     }
@@ -98,10 +134,18 @@ public class IdentityController {
     public String identityOtherLearning(Model model,
                                         @PathVariable(UID_ATTRIBUTE) String uid,
                                         CustomOAuth2Authentication auth) {
-
-        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+        log.info("{} viewing other learning for uid {}", auth.getUserEmail(), uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
             return REDIRECT_IDENTITIES_LIST;
         }
+        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
+
+        // --- Other Learning-specific data (placeholder) ---
+        // (None needed)
+        // --- End Other Learning-specific data ---
+
         model.addAttribute("activeTab", "other-learning");
         return "identity/other-learning";
     }
@@ -110,10 +154,45 @@ public class IdentityController {
     public String identityOtherOrganisationAccess(Model model,
                                                   @PathVariable(UID_ATTRIBUTE) String uid,
                                                   CustomOAuth2Authentication auth) {
-
-        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+        log.info("{} viewing other org access for uid {}", auth.getUserEmail(), uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
             return REDIRECT_IDENTITIES_LIST;
         }
+        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
+
+        // --- Other Org-specific data ---
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        if (civilServantDto != null) {
+            model.addAttribute("civilServantId", civilServantDto.getUserId());
+
+            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+
+            List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
+            if (civilServantDto.getOtherOrganisationalUnits() != null) {
+                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                        .stream()
+                        .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
+                Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
+                assignedFormattedOrganisationNames = assignedOtherOrganisations
+                        .stream()
+                        .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                        .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
+                        .collect(Collectors.toList());
+            }
+            model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
+
+            String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
+                    .stream()
+                    .map(FormattedOrganisationalUnitName::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+            model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
+        }
+        // --- End Other Org-specific data ---
+
         model.addAttribute("activeTab", "other-organisation-access");
         return "identity/other-organisation-access";
     }
@@ -122,77 +201,21 @@ public class IdentityController {
     public String identityRoles(Model model,
                                 @PathVariable(UID_ATTRIBUTE) String uid,
                                 CustomOAuth2Authentication auth) {
-
-        if (!loadCommonIdentityModelAttributes(model, uid, auth.getUserEmail())) {
+        log.info("{} viewing roles for uid {}", auth.getUserEmail(), uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
             return REDIRECT_IDENTITIES_LIST;
         }
+        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
+
+        // --- Roles-specific data ---
+        Iterable<Role> roles = roleRepository.findAll();
+        model.addAttribute("roles", roles);
+        // --- End Roles-specific data ---
+
         model.addAttribute("activeTab", "roles");
         return "identity/roles";
-    }
-
-    /**
-     * Loads all common attributes for the identity view pages into the model.
-     * Returns true if identity was found, false otherwise.
-     */
-    private boolean loadCommonIdentityModelAttributes(Model model, String uid, String email) {
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        Iterable<Role> roles = roleRepository.findAll();
-
-        if (optionalIdentity.isPresent()) {
-            Identity identity = optionalIdentity.get();
-            log.info("{} viewing identity for uid {}", email, identity.getEmail());
-            String tokenUid = identity.getAgencyTokenUid();
-            String agencyToken = "None";
-            if (tokenUid != null) {
-                AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
-                if (agencyTokenDto != null) {
-                    agencyToken = agencyTokenDto.getToken();
-                }
-            }
-            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
-            List<?> requiredCourses = emptyList();
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
-            if (civilServantDto != null) {
-                model.addAttribute("civilServantId", civilServantDto.getUserId());
-
-                FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-                model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
-
-                List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
-                if (civilServantDto.getOtherOrganisationalUnits() != null) {
-                    Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
-                            .stream()
-                            .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
-                    Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
-                    assignedFormattedOrganisationNames = assignedOtherOrganisations
-                            .stream()
-                            .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
-                            .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
-                            .collect(Collectors.toList());
-                }
-                model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
-
-                String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
-                        .stream()
-                        .map(FormattedOrganisationalUnitName::getId)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(","));
-                model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
-
-                if (civilServantDto.isProfileComplete()) {
-                    requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
-                }
-            }
-            model.addAttribute("requiredCourses", requiredCourses);
-            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            model.addAttribute("roles", roles);
-            model.addAttribute("profile", civilServantDto);
-            model.addAttribute("token", agencyToken);
-            return true;
-        }
-
-        log.info("No identity found for uid {}", uid);
-        return false;
     }
 
     @PostMapping("/identities/active")
