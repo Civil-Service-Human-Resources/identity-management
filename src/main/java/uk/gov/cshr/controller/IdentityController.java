@@ -72,18 +72,13 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/update/{uid}")
-    public String identityUpdate(Model model,
-                                 @PathVariable(UID_ATTRIBUTE) String uid,
-                                 CustomOAuth2Authentication auth) {
-        log.info("{} viewing profile for uid {}", auth.getUserEmail(), uid);
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
+    public String identityProfile(Model model,
+                                  @PathVariable(UID_ATTRIBUTE) String uid,
+                                  CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "profile");
+        if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
-
-        Identity identity = optionalIdentity.get();
-        model.addAttribute(IDENTITY_ATTRIBUTE, identity);
 
         // --- Profile-specific data ---
         String tokenUid = identity.getAgencyTokenUid();
@@ -109,13 +104,10 @@ public class IdentityController {
     public String identityRequiredLearning(Model model,
                                            @PathVariable(UID_ATTRIBUTE) String uid,
                                            CustomOAuth2Authentication auth) {
-        log.info("{} viewing required learning for uid {}", auth.getUserEmail(), uid);
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
+        Identity identity = getIdentity(model, uid, auth, "required learning");
+        if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
-        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
 
         // --- Required Learning-specific data ---
         List<?> requiredCourses = emptyList();
@@ -134,16 +126,13 @@ public class IdentityController {
     public String identityOtherLearning(Model model,
                                         @PathVariable(UID_ATTRIBUTE) String uid,
                                         CustomOAuth2Authentication auth) {
-        log.info("{} viewing other learning for uid {}", auth.getUserEmail(), uid);
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
+        Identity identity = getIdentity(model, uid, auth, "other learning");
+        if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
-        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
 
         // --- Other Learning-specific data (placeholder) ---
-        // (None needed)
+        // TODO: This function will be implemented as part of the ticket LC-3790
         // --- End Other Learning-specific data ---
 
         model.addAttribute("activeTab", "other-learning");
@@ -154,13 +143,10 @@ public class IdentityController {
     public String identityOtherOrganisationAccess(Model model,
                                                   @PathVariable(UID_ATTRIBUTE) String uid,
                                                   CustomOAuth2Authentication auth) {
-        log.info("{} viewing other org access for uid {}", auth.getUserEmail(), uid);
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
+        Identity identity = getIdentity(model, uid, auth, "other organisation access");
+        if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
-        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
 
         // --- Other Org-specific data ---
         CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
@@ -201,13 +187,10 @@ public class IdentityController {
     public String identityRoles(Model model,
                                 @PathVariable(UID_ATTRIBUTE) String uid,
                                 CustomOAuth2Authentication auth) {
-        log.info("{} viewing roles for uid {}", auth.getUserEmail(), uid);
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
+        Identity identity = getIdentity(model, uid, auth, "roles");
+        if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
-        model.addAttribute(IDENTITY_ATTRIBUTE, optionalIdentity.get());
 
         // --- Roles-specific data ---
         Iterable<Role> roles = roleRepository.findAll();
@@ -216,6 +199,18 @@ public class IdentityController {
 
         model.addAttribute("activeTab", "roles");
         return "identity/roles";
+    }
+
+    private Identity getIdentity(Model model, String uid, CustomOAuth2Authentication auth, String attribute) {
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
+            return null;
+        }
+        Identity identity = optionalIdentity.get();
+        model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+        log.info("{} viewing {} for {}", auth.getUserEmail(), attribute, identity.getEmail());
+        return identity;
     }
 
     @PostMapping("/identities/active")
