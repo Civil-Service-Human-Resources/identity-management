@@ -9,7 +9,7 @@ import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.CsrsService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 import uk.gov.cshr.service.reportingService.ReportingService;
 
@@ -29,14 +29,14 @@ public class IdentityManagementService {
     private final MessageService messageService;
     private final NotificationService notificationService;
     private final LearnerRecordService learnerRecordService;
-    private final CSRSService csrsService;
+    private final CsrsService csrsService;
     private final ReportingService reportingService;
     private final InviteService inviteService;
     private final ResetService resetService;
 
     public IdentityManagementService(IdentityRepository identityRepository, MessageService messageService,
                                      NotificationService notificationService, LearnerRecordService learnerRecordService,
-                                     CSRSService csrsService, ReportingService reportingService, InviteService inviteService,
+                                     CsrsService csrsService, ReportingService reportingService, InviteService inviteService,
                                      ResetService resetService) {
         this.identityRepository = identityRepository;
         this.messageService = messageService;

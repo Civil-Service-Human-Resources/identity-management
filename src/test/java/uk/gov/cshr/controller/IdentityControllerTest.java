@@ -24,7 +24,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.CsrsService;
 import uk.gov.cshr.service.csrs.UpdateOtherOrgUnitsParams;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -53,13 +53,16 @@ CustomPermissionEvaluator.class})
 @EnableSpringDataWebSupport
 public class IdentityControllerTest {
 
+    private static final String CODE = "CODE";
     private static final String UID = "UID";
     private static final String AGENCY_UID = "AGENCY_UID";
-    private static final String IDENTITIES_URL = "/identities";
-    public static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
-    private static final String IDENTITIES_REACTIVATE_URL = "/identities/reactivate/";
     private static final String EMAIL = "test@example.com";
-    private static final String CODE = "CODE";
+
+    private static final String REDIRECT_IDENTITIES = "/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
+    public static final String REDIRECT_IDENTITY_ROLES = "/identities/update/%s/roles";
+    public static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "/identities/update/%s/other-organisation-access";
+    private static final String REDIRECT_IDENTITY_REACTIVATE = "/identities/reactivate/";
 
     @Autowired
     private MockMvc mockMvc;
@@ -68,7 +71,7 @@ public class IdentityControllerTest {
     private IdentityRepository identityRepository;
 
     @MockBean
-    private CSRSService csrsService;
+    private CsrsService csrsService;
 
     @MockBean
     private CslService cslService;
@@ -110,7 +113,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("success", EMAIL + " deactivated successfully"))
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
 
         verify(identityManagementService, times(1)).deactivateIdentity(identity);
     }
@@ -131,7 +134,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_REACTIVATE_URL + UID));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITY_REACTIVATE + UID));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -153,7 +156,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -176,7 +179,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -220,9 +223,9 @@ public class IdentityControllerTest {
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                         .accept(APPLICATION_JSON).param("uid", UID))
-                .andExpect(flash().attribute("success", "Reactivation email verification sent to " + EMAIL))
+                .andExpect(flash().attribute("success", "Reactivation verification email sent"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
     }
 
     @Test
@@ -241,7 +244,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
     }
 
     @Test
@@ -260,7 +263,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
     }
 
     @Test
@@ -279,7 +282,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
     }
 
     @Test
@@ -297,7 +300,7 @@ public class IdentityControllerTest {
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
     }
 
     @Test
@@ -316,7 +319,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
     }
 
     @Test
@@ -335,7 +338,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
     }
 
     @Test
@@ -362,7 +365,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_ROLES, UID)));
 
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
@@ -399,7 +402,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -423,7 +426,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -444,7 +447,7 @@ public class IdentityControllerTest {
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(IDENTITIES_URL));
+                .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }
@@ -477,7 +480,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, UID)));
 
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
         verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
@@ -510,7 +513,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, UID)));
 
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
         verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);

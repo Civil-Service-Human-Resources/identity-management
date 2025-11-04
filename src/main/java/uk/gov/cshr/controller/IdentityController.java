@@ -42,18 +42,22 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 @AllArgsConstructor
 public class IdentityController {
 
-    public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
-    public static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
     private static final String IDENTITY_ATTRIBUTE = "identity";
     private static final String UID_ATTRIBUTE = "uid";
+
+    public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
+    public static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
+    public static final String REDIRECT_IDENTITY_ROLES = "redirect:/identities/update/%s/roles";
+    public static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "redirect:/identities/update/%s/other-organisation-access";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
+
     private static final String IDENTITY_REACTIVATE_TEMPLATE = "identity/reactivate";
 
     private final IdentityRepository identityRepository;
     private final RoleRepository roleRepository;
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
-    private final CSRSService csrsService;
+    private final CsrsService csrsService;
     private final CslService cslService;
     private final IdentityManagementService identityManagementService;
 
@@ -225,7 +229,7 @@ public class IdentityController {
             if (identity.isActive()) {
                 identityManagementService.deactivateIdentity(identity);
                 redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
-                return REDIRECT_IDENTITIES_LIST;
+                return String.format(REDIRECT_IDENTITY_UPDATE, uid);
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
             }
@@ -260,13 +264,13 @@ public class IdentityController {
             log.info("{} attempting to activate identity {}", auth.getUserEmail(), identity.getEmail());
             if (identity.isActive()) {
                 redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
-                return REDIRECT_IDENTITIES_LIST;
+                return String.format(REDIRECT_IDENTITY_UPDATE, uid);
             }
             Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
             reactivationService.sendReactivationEmail(identity, reactivationRequest);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
-                    format("Reactivation email verification sent to %s", identity.getEmail()));
-            return REDIRECT_IDENTITIES_LIST;
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Reactivation verification email sent");
+            log.info("Reactivation verification email sent to {}", identity.getEmail());
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
@@ -284,8 +288,9 @@ public class IdentityController {
         log.info("{} attempting to lock identity {}", auth.getUserEmail(), uid);
         try {
             identityService.updateLocked(uid);
-
-            return REDIRECT_IDENTITIES_LIST;
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account lock status updated successfully");
+            log.info("{} has updated the account lock status for identity {}", auth.getUserEmail(), uid);
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
@@ -322,7 +327,7 @@ public class IdentityController {
             identity.setRoles(roleSet);
             identityRepository.save(identity);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully.");
-            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+            return String.format(REDIRECT_IDENTITY_ROLES, uid);
         }
         log.error("Invalid identity or missing roles for UID {}", uid);
         redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
@@ -386,7 +391,7 @@ public class IdentityController {
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+        return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
 
     @Transactional
@@ -416,7 +421,7 @@ public class IdentityController {
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
         }
-        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+        return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
 
     private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
