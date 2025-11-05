@@ -59,9 +59,9 @@ public class IdentityControllerTest {
     private static final String EMAIL = "test@example.com";
 
     private static final String REDIRECT_IDENTITIES = "/identities";
-    public static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
-    public static final String REDIRECT_IDENTITY_ROLES = "/identities/update/%s/roles";
-    public static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "/identities/update/%s/other-organisation-access";
+    private static final String REDIRECT_IDENTITY_UPDATE = "/identities/update/%s";
+    private static final String REDIRECT_IDENTITY_ROLES = "/identities/update/%s/roles";
+    private static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "/identities/update/%s/other-organisation-access";
     private static final String REDIRECT_IDENTITY_REACTIVATE = "/identities/reactivate/";
 
     @Autowired
