@@ -23,23 +23,23 @@ public class CivilServantDto {
     private List<Interest> interests;
 
     public String getDisplayLineManagerEmail() {
-        return this.lineManagerEmailAddress == null ? "None" : this.lineManagerEmailAddress;
+        return lineManagerEmailAddress == null ? "None" : lineManagerEmailAddress;
     }
 
     public String getDisplayOrganisation() {
-        return this.organisationalUnit == null ? "None" : this.organisationalUnit.toDisplayString();
+        return organisationalUnit == null ? "None" : organisationalUnit.toDisplayString();
     }
 
     public String getDisplayGrade() {
-        return this.grade == null ? "None" : this.grade.getName();
+        return grade == null ? "None" : grade.getName();
     }
 
     public String getDisplayProfession() {
-        return this.profession == null ? "None" : this.profession.getName();
+        return profession == null ? "None" : profession.getName();
     }
 
     public String getDisplayOtherAreasOfWork() {
-        if (otherAreasOfWork.size() > 0) {
+        if (otherAreasOfWork != null && otherAreasOfWork.size() > 0) {
             return otherAreasOfWork.stream().map(Profession::getName).collect(Collectors.joining(", "));
         } else {
             return "None";
@@ -47,7 +47,7 @@ public class CivilServantDto {
     }
 
     public String getDisplayInterests() {
-        if (interests.size() > 0) {
+        if (interests != null && interests.size() > 0) {
             return interests.stream().map(Interest::getName).collect(Collectors.joining(", "));
         } {
             return "None";
@@ -55,6 +55,9 @@ public class CivilServantDto {
     }
 
     public boolean isProfileComplete() {
-        return this.organisationalUnit != null && this.profession != null && this.fullName != null && (this.otherAreasOfWork != null && this.otherAreasOfWork.size() > 0);
+        return organisationalUnit != null
+                && profession != null
+                && fullName != null
+                && (otherAreasOfWork != null && otherAreasOfWork.size() > 0);
     }
 }

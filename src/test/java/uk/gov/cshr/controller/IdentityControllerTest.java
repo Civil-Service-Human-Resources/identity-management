@@ -19,13 +19,13 @@ import uk.gov.cshr.config.MethodSecurityConfig;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
-import uk.gov.cshr.service.csrs.CsrsService;
-import uk.gov.cshr.service.csrs.UpdateOtherOrgUnitsParams;
+import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
@@ -397,5 +397,170 @@ public class IdentityControllerTest {
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, UID)));
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
         verify(csrsService).updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
+    }
+
+    @Test
+    public void shouldLoadIdentityProfileTab() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        CivilServantDto civilServantDto = new CivilServantDto();
+        AgencyTokenDto agencyTokenDto = new AgencyTokenDto();
+        agencyTokenDto.setUid(AGENCY_UID);
+        agencyTokenDto.setToken("TOKEN_VALUE");
+        Date lastReactivationDate = new Date();
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(csrsService.getCivilServant(UID)).thenReturn(civilServantDto);
+        when(reactivationService.getLatestReactivationForEmail(EMAIL)).thenReturn(lastReactivationDate);
+        when(csrsService.getAgencyToken(AGENCY_UID)).thenReturn(agencyTokenDto);
+        mockMvc.perform(
+                get("/identities/update/" + UID)
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/profile"))
+                .andExpect(model().attribute("activeTab", "profile"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("profile", civilServantDto))
+                .andExpect(model().attribute("token", "TOKEN_VALUE"));
+        verify(reactivationService).getLatestReactivationForEmail(EMAIL);
+        verify(csrsService).getCivilServant(UID);
+        verify(csrsService).getAgencyToken(AGENCY_UID);
+        verify(cslService, never()).getRequiredLearningForUser(anyString());
+        verify(roleRepository, never()).findAll();
+    }
+
+    @Test
+    public void shouldLoadIdentityRequiredLearningTab() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        CivilServantDto civilServantDto = new CivilServantDto();
+        civilServantDto.setFullName("Test User");
+        civilServantDto.setOrganisationalUnit(new OrganisationalUnit());
+        civilServantDto.setProfession(new Profession());
+        civilServantDto.setOtherAreasOfWork(Collections.singletonList(new Profession()));
+        Learning learning = new Learning(Collections.emptyList());
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(csrsService.getCivilServant(UID)).thenReturn(civilServantDto);
+        when(cslService.getRequiredLearningForUser(UID)).thenReturn(learning);
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/required-learning")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/required-learning"))
+                .andExpect(model().attribute("activeTab", "required-learning"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("requiredCourses", learning.getCourses()));
+        verify(csrsService).getCivilServant(UID);
+        verify(cslService).getRequiredLearningForUser(UID);
+        verify(reactivationService, never()).getLatestReactivationForEmail(anyString());
+        verify(roleRepository, never()).findAll();
+    }
+
+    @Test
+    public void shouldLoadIdentityOtherLearningTab() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/other-learning")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/other-learning"))
+                .andExpect(model().attribute("activeTab", "other-learning"))
+                .andExpect(model().attribute("identity", identity));
+        verify(csrsService, never()).getCivilServant(anyString());
+        verify(cslService, never()).getRequiredLearningForUser(anyString());
+        verify(roleRepository, never()).findAll();
+    }
+
+    @Test
+    public void shouldLoadIdentityOtherOrganisationAccessTab() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        CivilServantDto civilServantDto = new CivilServantDto();
+        civilServantDto.setOtherOrganisationalUnits(new HashSet<>());
+        FormattedOrganisationalUnitNames formattedNames = new FormattedOrganisationalUnitNames(Collections.emptyList());
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(csrsService.getCivilServant(UID)).thenReturn(civilServantDto);
+        when(cslService.getFormattedOrganisationNames()).thenReturn(formattedNames);
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/other-organisation-access")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/other-organisation-access"))
+                .andExpect(model().attribute("activeTab", "other-organisation-access"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("formattedOrganisationNames", formattedNames.getFormattedOrganisationalUnitNames()));
+        verify(csrsService).getCivilServant(UID);
+        verify(cslService).getFormattedOrganisationNames();
+        verify(reactivationService, never()).getLatestReactivationForEmail(anyString());
+        verify(roleRepository, never()).findAll();
+    }
+
+    @Test
+    public void shouldLoadIdentityRolesTab() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        List<Role> roles = Collections.emptyList();
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+        when(roleRepository.findAll()).thenReturn(roles);
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/roles")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles)))
+                    .accept(APPLICATION_JSON).param("uid", UID))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/roles"))
+                .andExpect(model().attribute("activeTab", "roles"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("roles", roles));
+        verify(roleRepository).findAll();
+        verify(csrsService, never()).getCivilServant(anyString());
+        verify(cslService, never()).getRequiredLearningForUser(anyString());
+        verify(reactivationService, never()).getLatestReactivationForEmail(anyString());
+    }
+
+    @Test
+    public void shouldRedirectToIdentitiesListPageIfIdentityNotFound() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
+
+        // Test profile tab
+        mockMvc.perform(
+                get("/identities/update/" + UID)
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/identities"));
+
+        // Test required learning tab
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/required-learning")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/identities"));
+
+        // Test other learning tab
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/other-learning")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/identities"));
+
+        // Test other organisation access tab
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/other-organisation-access")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/identities"));
+
+        // Test roles tab
+        mockMvc.perform(
+                get("/identities/update/" + UID + "/roles")
+                    .with(csrf())
+                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/identities"));
     }
 }
