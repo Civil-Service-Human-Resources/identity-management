@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 @Data
 @AllArgsConstructor
@@ -39,19 +40,15 @@ public class CivilServantDto {
     }
 
     public String getDisplayOtherAreasOfWork() {
-        if (otherAreasOfWork != null && !otherAreasOfWork.isEmpty()) {
-            return otherAreasOfWork.stream().map(Profession::getName).collect(Collectors.joining(", "));
-        } else {
-            return "None";
-        }
+        return otherAreasOfWork == null || otherAreasOfWork.isEmpty()
+                ? "None"
+                : otherAreasOfWork.stream().map(Profession::getName).collect(joining(", "));
     }
 
     public String getDisplayInterests() {
-        if (interests != null && !interests.isEmpty()) {
-            return interests.stream().map(Interest::getName).collect(Collectors.joining(", "));
-        } {
-            return "None";
-        }
+        return interests == null || interests.isEmpty()
+                ? "None"
+                : interests.stream().map(Interest::getName).collect(joining(", "));
     }
 
     public boolean isProfileComplete() {
