@@ -39,7 +39,7 @@ public class CivilServantDto {
     }
 
     public String getDisplayOtherAreasOfWork() {
-        if (otherAreasOfWork != null && otherAreasOfWork.size() > 0) {
+        if (otherAreasOfWork != null && !otherAreasOfWork.isEmpty()) {
             return otherAreasOfWork.stream().map(Profession::getName).collect(Collectors.joining(", "));
         } else {
             return "None";
@@ -47,7 +47,7 @@ public class CivilServantDto {
     }
 
     public String getDisplayInterests() {
-        if (interests != null && interests.size() > 0) {
+        if (interests != null && !interests.isEmpty()) {
             return interests.stream().map(Interest::getName).collect(Collectors.joining(", "));
         } {
             return "None";
@@ -58,6 +58,6 @@ public class CivilServantDto {
         return organisationalUnit != null
                 && profession != null
                 && fullName != null
-                && (otherAreasOfWork != null && otherAreasOfWork.size() > 0);
+                && (otherAreasOfWork != null && !otherAreasOfWork.isEmpty());
     }
 }
