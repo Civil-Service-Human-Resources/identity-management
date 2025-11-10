@@ -117,7 +117,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attribute("success", EMAIL + " deactivated successfully"))
+                .andExpect(flash().attribute("success", "Account is deactivated successfully"))
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
         verify(identityManagementService, times(1)).deactivateIdentity(identity);
     }

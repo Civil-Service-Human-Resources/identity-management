@@ -228,7 +228,7 @@ public class IdentityController {
 
             if (identity.isActive()) {
                 identityManagementService.deactivateIdentity(identity);
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is deactivated successfully");
                 return String.format(REDIRECT_IDENTITY_UPDATE, uid);
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
