@@ -33,11 +33,11 @@ public class IdentityService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    public void updateLocked(String uid) {
+    public Identity updateLockStatus(String uid) {
         Identity identity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(ResourceNotFoundException::new);
         identity.setLocked(!identity.isLocked());
-        identityRepository.save(identity);
+        return identityRepository.save(identity);
     }
 
     public void logoutUser() {

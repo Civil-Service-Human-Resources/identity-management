@@ -282,13 +282,17 @@ public class IdentityController {
 
     @PostMapping("/identities/locked")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updatedLocked(CustomOAuth2Authentication auth,
-                                @RequestParam(UID_ATTRIBUTE) String uid,
-                                RedirectAttributes redirectAttributes) {
+    public String updateLockStatus(CustomOAuth2Authentication auth,
+                                   @RequestParam(UID_ATTRIBUTE) String uid,
+                                   RedirectAttributes redirectAttributes) {
         log.info("{} attempting to lock identity {}", auth.getUserEmail(), uid);
         try {
-            identityService.updateLocked(uid);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account lock status updated successfully");
+            Identity identity = identityService.updateLockStatus(uid);
+            if(identity.isLocked()) {
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is locked successfully");
+            } else {
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is unlocked successfully");
+            }
             log.info("{} has updated the account lock status for identity {}", auth.getUserEmail(), uid);
             return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {

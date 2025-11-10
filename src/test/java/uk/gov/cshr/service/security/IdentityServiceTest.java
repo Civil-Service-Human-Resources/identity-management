@@ -78,7 +78,7 @@ public class IdentityServiceTest {
 
         when(identityRepository.save(identity)).thenReturn(identity);
 
-        identityService.updateLocked(UID);
+        identityService.updateLockStatus(UID);
 
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
@@ -95,7 +95,7 @@ public class IdentityServiceTest {
 
         when(identityRepository.save(identity)).thenReturn(identity);
 
-        identityService.updateLocked(UID);
+        identityService.updateLockStatus(UID);
 
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
@@ -107,7 +107,7 @@ public class IdentityServiceTest {
     public void shouldThrowResourceNotFoundIfIdentityDoesNotExistWhenUpdatedLocked() {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
-        identityService.updateLocked(UID);
+        identityService.updateLockStatus(UID);
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }

@@ -101,6 +101,7 @@ public class IdentityControllerTest {
 
     private void getIdentity() {
         identity = new Identity();
+        identity.setLocked(false);
         identity.setActive(true);
         identity.setEmail(EMAIL);
         identity.setAgencyTokenUid(AGENCY_UID);
@@ -234,20 +235,35 @@ public class IdentityControllerTest {
     }
 
     @Test
-    public void shouldUpdateLocked() throws Exception {
-        doNothing().when(identityService).updateLocked(UID);
+    public void shouldUnLockIdentity() throws Exception {
+        when(identityService.updateLockStatus(UID)).thenReturn(identity);
+        mockMvc.perform(
+                        post("/identities/locked/")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("success", "Account is unlocked successfully"))
+                .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
+    }
+
+    @Test
+    public void shouldLockIdentity() throws Exception {
+        identity.setLocked(true);
+        when(identityService.updateLockStatus(UID)).thenReturn(identity);
         mockMvc.perform(
                 post("/identities/locked/")
                         .with(csrf())
                         .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                         .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("success", "Account is locked successfully"))
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
     }
 
     @Test
     public void shouldHandleExceptionIfIdentityNotFoundWhenUpdatingLocked() throws Exception {
-        doThrow(new ResourceNotFoundException()).when(identityService).updateLocked(UID);
+        doThrow(new ResourceNotFoundException()).when(identityService).updateLockStatus(UID);
         mockMvc.perform(
                 post("/identities/locked/")
                         .with(csrf())
@@ -260,7 +276,7 @@ public class IdentityControllerTest {
 
     @Test
     public void shouldHandleExceptionIfTechnicalExceptionOccursWhenUpdatingLocked() throws Exception {
-        doThrow(new RuntimeException()).when(identityService).updateLocked(UID);
+        doThrow(new RuntimeException()).when(identityService).updateLockStatus(UID);
         mockMvc.perform(
                 post("/identities/locked/")
                         .with(csrf())
