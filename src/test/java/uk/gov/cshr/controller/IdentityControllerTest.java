@@ -382,7 +382,7 @@ public class IdentityControllerTest {
                                 .accept(APPLICATION_JSON).param("otherOrgIdsToAdd", otherOrgIdsToAdd)
                                 .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
                 .andExpect(model().attributeDoesNotExist("status"))
-                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to assign organisation"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, UID)));
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);
@@ -408,7 +408,7 @@ public class IdentityControllerTest {
                                 .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
                                 .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
                 .andExpect(model().attributeDoesNotExist("status"))
-                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully."))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to unassign organisation"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, UID)));
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(consolidatedOtherOrgIds);

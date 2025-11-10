@@ -394,6 +394,8 @@ public class IdentityController {
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to assign organisation");
+            log.info("Other organisational units are updated to assign organisation");
         }
         return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
@@ -424,6 +426,8 @@ public class IdentityController {
                 }
             }
             updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to unassign organisation");
+            log.info("Other organisational units are updated to unassign organisation");
         }
         return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
@@ -440,6 +444,5 @@ public class IdentityController {
         log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
         String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
         log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
-        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully.");
     }
 }
