@@ -42,16 +42,14 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 @AllArgsConstructor
 public class IdentityController {
 
-    private static final String IDENTITY_ATTRIBUTE = "identity";
     private static final String UID_ATTRIBUTE = "uid";
+    private static final String IDENTITY_ATTRIBUTE = "identity";
 
     private static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
     private static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
     private static final String REDIRECT_IDENTITY_ROLES = "redirect:/identities/update/%s/roles";
     private static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "redirect:/identities/update/%s/other-organisation-access";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
-
-    private static final String IDENTITY_REACTIVATE_TEMPLATE = "identity/reactivate";
 
     private final IdentityRepository identityRepository;
     private final RoleRepository roleRepository;
@@ -251,7 +249,7 @@ public class IdentityController {
         model.addAttribute(IDENTITY_ATTRIBUTE, identity);
         model.addAttribute(UID_ATTRIBUTE, uid);
 
-        return IDENTITY_REACTIVATE_TEMPLATE;
+        return "identity/reactivate";
     }
 
     @PostMapping("/identities/reactivate")
