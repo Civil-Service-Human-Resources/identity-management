@@ -64,7 +64,7 @@ public class IdentityController {
     @GetMapping("/identities")
     public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
                              @RequestParam(value = "query", required = false) String query) {
-        log.info(format("User %s searching for identities", auth.getUserEmail()) + (!isNullOrEmpty(query) ? format(" with query '%s'", query) : ""));
+        log.info("{}{}", format("User %s searching for identities", auth.getUserEmail()), isNullOrEmpty(query) ? "" : format(" with query '%s'", query));
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
 
@@ -340,17 +340,12 @@ public class IdentityController {
 
     @GetMapping("/identities/delete/{uid}")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid) {
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-
-        if (optionalIdentity.isPresent()) {
-            Identity identity = optionalIdentity.get();
-            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            return "identity/delete";
+    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "identity delete");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
         }
-
-        log.info("No identity found for uid {}", uid);
-        return REDIRECT_IDENTITIES_LIST;
+        return "identity/delete";
     }
 
     @Transactional
@@ -381,11 +376,9 @@ public class IdentityController {
         log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdsToAdd, civilServantId, uid);
         if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
-            log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
             List<String> otherOrganisationalUnits = new ArrayList<>();
             if (alreadyAssignedOtherOrganisationIds != null && !alreadyAssignedOtherOrganisationIds.isEmpty()) {
                 for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                    log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
@@ -393,7 +386,7 @@ public class IdentityController {
                 log.debug("Other organisation id to add: {}", otherOrgIdToAdd);
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
-            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to assign organisation");
             log.info("Other organisational units are updated to assign organisation");
         }
@@ -412,7 +405,6 @@ public class IdentityController {
                   RedirectAttributes redirectAttributes) {
         log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdToRemove, civilServantId, uid);
-        log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
         List<String> otherOrganisationalUnits = new ArrayList<>();
         if (alreadyAssignedOtherOrganisationIds == null || alreadyAssignedOtherOrganisationIds.isEmpty()) {
             log.error("No previously assigned organisations found while attempting to remove other organisation ID: {}", otherOrgIdToRemove);
@@ -420,20 +412,18 @@ public class IdentityController {
                     "Could not verify currently assigned other organisations. Other organisation is not removed.");
         } else {
             for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                 if (!Objects.equals(alreadyAssignedOtherOrganisationId, otherOrgIdToRemove)) {
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
-            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits);
             redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to unassign organisation");
             log.info("Other organisational units are updated to unassign organisation");
         }
         return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
 
-    private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
-                                 RedirectAttributes redirectAttributes) {
+    private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits) {
         String email ="";
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         if (optionalIdentity.isPresent()) {
