@@ -301,7 +301,7 @@ public class IdentityControllerTest {
                         .accept(APPLICATION_JSON).param("roleId", "1")
                         .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
-                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully."))
+                .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_ROLES, UID)));
         verify(identityRepository).save(identityArgumentCaptor.capture());

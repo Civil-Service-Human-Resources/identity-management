@@ -328,7 +328,7 @@ public class IdentityController {
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully.");
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully");
             return String.format(REDIRECT_IDENTITY_ROLES, uid);
         }
         log.error("Invalid identity or missing roles for UID {}", uid);
