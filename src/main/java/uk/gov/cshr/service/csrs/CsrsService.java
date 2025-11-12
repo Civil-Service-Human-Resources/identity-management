@@ -9,7 +9,7 @@ import uk.gov.cshr.client.HttpClient;
 import uk.gov.cshr.service.RequestEntityFactory;
 
 @Service
-public class CSRSService {
+public class CsrsService {
 
     private final HttpClient httpClient;
     private final RequestEntityFactory requestEntityFactory;
@@ -18,7 +18,7 @@ public class CSRSService {
     private final String agencyTokensUrl;
     private final String updateOtherOrgUnitsUrl;
 
-    public CSRSService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
+    public CsrsService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
                        @Value("${csrs.deleteUrl}") String csrsDeleteUrl,
                        @Value("${csrs.getCivilServant}") String csrsGetCivilServantUrl,
                        @Value("${csrs.getAgencyToken}") String agencyTokensUrl,

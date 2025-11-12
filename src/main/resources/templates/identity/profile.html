@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="identity/layout" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${'Profile - ' + identity.email}"></title>
+</head>
+<body>
+<section layout:fragment="identity-content">
+    <h2 class="pb-3">Account status</h2>
+    <dl th:if="${identity != null}">
+        <div class="row">
+            <dt class="col-sm-3">Account Active</dt>
+            <dd class="col-sm-6" th:text="${identity.active} ? 'Yes' : 'No'"></dd>
+            <dd class="col-sm-3" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                <form th:action="@{/identities/active}" method="POST" th:object="${identity}">
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
+                            th:text="${identity.active} ? 'Deactivate user' : 'Request reactivation'"></button>
+                    <input type="hidden" th:field="*{uid}"/>
+                </form>
+            </dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Account Locked</dt>
+            <dd class="col-sm-6" th:text="${identity.locked} ? 'Yes' : 'No' "></dd>
+            <dd class="col-sm-3" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                <form th:action="@{/identities/locked}" method="POST" th:object="${identity}">
+                    <button type="submit" class="btn btn-primary btn-contrast-fix"
+                            th:text="${identity.locked} ? 'Unlock user' : 'Lock user'"></button>
+                    <input type="hidden" th:field="*{uid}"/>
+                </form>
+            </dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Last logged in</dt> <dd class="col-sm-9" th:text="${identity.getLastLoggedInAsDate()}"></dd>
+        </div>
+        <div class="row">
+            <dt class="col-sm-3">Last reactivation</dt> <dd class="col-sm-9" th:text="${identity.getLastReactivationAsDate()}"></dd>
+        </div>
+    </dl>
+    <h2 class="pb-3">Profile</h2>
+    <dl th:if="${profile != null}" class="row">
+        <dt class="col-sm-3">Name</dt> <dd class="col-sm-9" th:text="${profile.getFullName()}"></dd>
+        <dt class="col-sm-3">Organisation</dt> <dd class="col-sm-9" th:text="${profile.getDisplayOrganisation()} "></dd>
+        <dt class="col-sm-3">Primary area of work</dt> <dd class="col-sm-9" th:text="${profile.getDisplayProfession()}"></dd>
+        <dt class="col-sm-3">Other areas of work</dt> <dd class="col-sm-9" th:text="${profile.getDisplayOtherAreasOfWork()}"></dd>
+        <dt class="col-sm-3">Interests</dt> <dd class="col-sm-9" th:text="${profile.getDisplayInterests()}"></dd>
+        <dt class="col-sm-3">Grade</dt> <dd class="col-sm-9" th:text="${profile.getDisplayGrade()}"></dd>
+        <dt class="col-sm-3">Line manager email</dt> <dd class="col-sm-9" th:text="${profile.getDisplayLineManagerEmail()}"></dd>
+        <dt class="col-sm-3">Token</dt> <dd class="col-sm-9" th:text="${token}"></dd>
+    </dl>
+    <p class="pb-4" th:if="${profile == null}">
+        User has not set up their profile.
+    </p>
+</section>
+</body>
+</html>
