@@ -13,7 +13,7 @@ import uk.gov.cshr.notifications.service.NotificationService;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.ResetService;
-import uk.gov.cshr.service.csrs.CSRSService;
+import uk.gov.cshr.service.csrs.CsrsService;
 import uk.gov.cshr.service.learnerRecord.LearnerRecordService;
 import uk.gov.cshr.service.reportingService.ReportingService;
 
@@ -34,7 +34,7 @@ public class IdentityManagementServiceTest extends TestCase {
     @Mock
     private LearnerRecordService learnerRecordService;
     @Mock
-    private CSRSService csrsService;
+    private CsrsService csrsService;
     @Mock
     private ReportingService reportingService;
     @Mock

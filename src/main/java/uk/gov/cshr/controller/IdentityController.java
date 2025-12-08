@@ -42,25 +42,27 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 @AllArgsConstructor
 public class IdentityController {
 
-    public static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
-    public static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
-    private static final String IDENTITY_ATTRIBUTE = "identity";
     private static final String UID_ATTRIBUTE = "uid";
+    private static final String IDENTITY_ATTRIBUTE = "identity";
+
+    private static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
+    private static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
+    private static final String REDIRECT_IDENTITY_ROLES = "redirect:/identities/update/%s/roles";
+    private static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "redirect:/identities/update/%s/other-organisation-access";
     private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
-    private static final String IDENTITY_REACTIVATE_TEMPLATE = "identity/reactivate";
 
     private final IdentityRepository identityRepository;
     private final RoleRepository roleRepository;
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
-    private final CSRSService csrsService;
+    private final CsrsService csrsService;
     private final CslService cslService;
     private final IdentityManagementService identityManagementService;
 
     @GetMapping("/identities")
     public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
                              @RequestParam(value = "query", required = false) String query) {
-        log.info(format("User %s searching for identities", auth.getUserEmail()) + (!isNullOrEmpty(query) ? format(" with query '%s'", query) : ""));
+        log.info("{}{}", format("User %s searching for identities", auth.getUserEmail()), isNullOrEmpty(query) ? "" : format(" with query '%s'", query));
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
 
@@ -72,67 +74,145 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/update/{uid}")
-    public String identityUpdate(Model model,
-                                 @PathVariable(UID_ATTRIBUTE) String uid,
-                                 CustomOAuth2Authentication auth) {
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        Iterable<Role> roles = roleRepository.findAll();
-
-        if (optionalIdentity.isPresent()) {
-            Identity identity = optionalIdentity.get();
-            log.info("{} viewing identity for uid {}", auth.getUserEmail(), identity.getEmail());
-            String tokenUid = identity.getAgencyTokenUid();
-            String agencyToken = "None";
-            if (tokenUid != null) {
-                AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
-                if (agencyTokenDto != null) {
-                    agencyToken = agencyTokenDto.getToken();
-                }
-            }
-            identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
-            List<?> requiredCourses = emptyList();
-            CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
-            if (civilServantDto != null) {
-                model.addAttribute("civilServantId", civilServantDto.getUserId());
-
-                FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-                model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
-
-                List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
-                if(civilServantDto.getOtherOrganisationalUnits() != null) {
-                    Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
-                            .stream()
-                            .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
-                    Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
-                    assignedFormattedOrganisationNames = assignedOtherOrganisations
-                            .stream()
-                            .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
-                            .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
-                            .collect(Collectors.toList());
-                }
-                model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
-
-                String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
-                        .stream()
-                        .map(FormattedOrganisationalUnitName::getId)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(","));
-                model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
-
-                if (civilServantDto.isProfileComplete()) {
-                    requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
-                }
-            }
-            model.addAttribute("requiredCourses", requiredCourses);
-            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            model.addAttribute("roles", roles);
-            model.addAttribute("profile", civilServantDto);
-            model.addAttribute("token", agencyToken);
-            return "identity/edit";
+    public String identityProfile(Model model,
+                                  @PathVariable(UID_ATTRIBUTE) String uid,
+                                  CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "profile");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
         }
 
-        log.info("No identity found for uid {}", uid);
-        return REDIRECT_IDENTITIES_LIST;
+        // --- Profile-specific data ---
+        String tokenUid = identity.getAgencyTokenUid();
+        String agencyToken = "None";
+        if (tokenUid != null) {
+            AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
+            if (agencyTokenDto != null) {
+                agencyToken = agencyTokenDto.getToken();
+            }
+        }
+        identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+
+        model.addAttribute("profile", civilServantDto);
+        model.addAttribute("token", agencyToken);
+        // --- End profile-specific data ---
+
+        model.addAttribute("activeTab", "profile");
+        return "identity/profile";
+    }
+
+    @GetMapping("/identities/update/{uid}/required-learning")
+    public String identityRequiredLearning(Model model,
+                                           @PathVariable(UID_ATTRIBUTE) String uid,
+                                           CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "required learning");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+
+        // --- Required Learning-specific data ---
+        List<?> requiredCourses = emptyList();
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        if (civilServantDto != null && civilServantDto.isProfileComplete()) {
+            requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
+        }
+        model.addAttribute("requiredCourses", requiredCourses);
+        // --- End Required Learning-specific data ---
+
+        model.addAttribute("activeTab", "required-learning");
+        return "identity/required-learning";
+    }
+
+    @GetMapping("/identities/update/{uid}/other-learning")
+    public String identityOtherLearning(Model model,
+                                        @PathVariable(UID_ATTRIBUTE) String uid,
+                                        CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "other learning");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+
+        // --- Other Learning-specific data (placeholder) ---
+        // TODO: This function will be implemented as part of the ticket LC-3790
+        // --- End Other Learning-specific data ---
+
+        model.addAttribute("activeTab", "other-learning");
+        return "identity/other-learning";
+    }
+
+    @GetMapping("/identities/update/{uid}/other-organisation-access")
+    public String identityOtherOrganisationAccess(Model model,
+                                                  @PathVariable(UID_ATTRIBUTE) String uid,
+                                                  CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "other organisation access");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+
+        // --- Other Org-specific data ---
+        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        if (civilServantDto != null) {
+            model.addAttribute("civilServantId", civilServantDto.getUserId());
+
+            FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+
+            List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
+            if (civilServantDto.getOtherOrganisationalUnits() != null) {
+                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                        .stream()
+                        .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
+                Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
+                assignedFormattedOrganisationNames = assignedOtherOrganisations
+                        .stream()
+                        .map(aoo -> formattedOrgNamesMap.get(aoo.getId()))
+                        .sorted(Comparator.comparing(FormattedOrganisationalUnitName::getName))
+                        .collect(Collectors.toList());
+            }
+            model.addAttribute("alreadyAssignedOtherOrganisations", assignedFormattedOrganisationNames);
+
+            String alreadyAssignedOtherOrganisationIds = assignedFormattedOrganisationNames
+                    .stream()
+                    .map(FormattedOrganisationalUnitName::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+            model.addAttribute("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds);
+        }
+        // --- End Other Org-specific data ---
+
+        model.addAttribute("activeTab", "other-organisation-access");
+        return "identity/other-organisation-access";
+    }
+
+    @GetMapping("/identities/update/{uid}/roles")
+    public String identityRoles(Model model,
+                                @PathVariable(UID_ATTRIBUTE) String uid,
+                                CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "roles");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+
+        // --- Roles-specific data ---
+        Iterable<Role> roles = roleRepository.findAll();
+        model.addAttribute("roles", roles);
+        // --- End Roles-specific data ---
+
+        model.addAttribute("activeTab", "roles");
+        return "identity/roles";
+    }
+
+    private Identity getIdentity(Model model, String uid, CustomOAuth2Authentication auth, String attribute) {
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+        if (!optionalIdentity.isPresent()) {
+            log.info("No identity found for uid {}", uid);
+            return null;
+        }
+        Identity identity = optionalIdentity.get();
+        model.addAttribute(IDENTITY_ATTRIBUTE, identity);
+        log.info("{} viewing {} for {}", auth.getUserEmail(), attribute, identity.getEmail());
+        return identity;
     }
 
     @PostMapping("/identities/active")
@@ -146,8 +226,8 @@ public class IdentityController {
 
             if (identity.isActive()) {
                 identityManagementService.deactivateIdentity(identity);
-                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, String.format("%s deactivated successfully", identity.getEmail()));
-                return REDIRECT_IDENTITIES_LIST;
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is deactivated successfully");
+                return String.format(REDIRECT_IDENTITY_UPDATE, uid);
             } else {
                 return REDIRECT_IDENTITIES_REACTIVATE + uid;
             }
@@ -169,7 +249,7 @@ public class IdentityController {
         model.addAttribute(IDENTITY_ATTRIBUTE, identity);
         model.addAttribute(UID_ATTRIBUTE, uid);
 
-        return IDENTITY_REACTIVATE_TEMPLATE;
+        return "identity/reactivate";
     }
 
     @PostMapping("/identities/reactivate")
@@ -182,13 +262,13 @@ public class IdentityController {
             log.info("{} attempting to activate identity {}", auth.getUserEmail(), identity.getEmail());
             if (identity.isActive()) {
                 redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
-                return REDIRECT_IDENTITIES_LIST;
+                return String.format(REDIRECT_IDENTITY_UPDATE, uid);
             }
             Reactivation reactivationRequest = reactivationService.createReactivationRequest(identity.getEmail());
             reactivationService.sendReactivationEmail(identity, reactivationRequest);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE,
-                    format("Reactivation email verification sent to %s", identity.getEmail()));
-            return REDIRECT_IDENTITIES_LIST;
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Reactivation verification email sent");
+            log.info("Reactivation verification email sent to {}", identity.getEmail());
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
@@ -200,14 +280,19 @@ public class IdentityController {
 
     @PostMapping("/identities/locked")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updatedLocked(CustomOAuth2Authentication auth,
-                                @RequestParam(UID_ATTRIBUTE) String uid,
-                                RedirectAttributes redirectAttributes) {
+    public String updateLockStatus(CustomOAuth2Authentication auth,
+                                   @RequestParam(UID_ATTRIBUTE) String uid,
+                                   RedirectAttributes redirectAttributes) {
         log.info("{} attempting to lock identity {}", auth.getUserEmail(), uid);
         try {
-            identityService.updateLocked(uid);
-
-            return REDIRECT_IDENTITIES_LIST;
+            Identity identity = identityService.updateLockStatus(uid);
+            if(identity.isLocked()) {
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is locked successfully");
+            } else {
+                redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is unlocked successfully");
+            }
+            log.info("{} has updated the account lock status for identity {}", auth.getUserEmail(), uid);
+            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
             return REDIRECT_IDENTITIES_LIST;
@@ -243,8 +328,8 @@ public class IdentityController {
             }
             identity.setRoles(roleSet);
             identityRepository.save(identity);
-            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully.");
-            return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Roles updated successfully");
+            return String.format(REDIRECT_IDENTITY_ROLES, uid);
         }
         log.error("Invalid identity or missing roles for UID {}", uid);
         redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, SYSTEM_ERROR);
@@ -253,17 +338,12 @@ public class IdentityController {
 
     @GetMapping("/identities/delete/{uid}")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid) {
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-
-        if (optionalIdentity.isPresent()) {
-            Identity identity = optionalIdentity.get();
-            model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-            return "identity/delete";
+    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "identity delete");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
         }
-
-        log.info("No identity found for uid {}", uid);
-        return REDIRECT_IDENTITIES_LIST;
+        return "identity/delete";
     }
 
     @Transactional
@@ -294,11 +374,9 @@ public class IdentityController {
         log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdsToAdd, civilServantId, uid);
         if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
-            log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
             List<String> otherOrganisationalUnits = new ArrayList<>();
             if (alreadyAssignedOtherOrganisationIds != null && !alreadyAssignedOtherOrganisationIds.isEmpty()) {
                 for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                    log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
@@ -306,9 +384,11 @@ public class IdentityController {
                 log.debug("Other organisation id to add: {}", otherOrgIdToAdd);
                 otherOrganisationalUnits.add("/organisationalUnits/" + otherOrgIdToAdd);
             }
-            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to assign organisation");
+            log.info("Other organisational units are updated to assign organisation");
         }
-        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+        return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
 
     @Transactional
@@ -323,7 +403,6 @@ public class IdentityController {
                   RedirectAttributes redirectAttributes) {
         log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
                 otherOrgIdToRemove, civilServantId, uid);
-        log.debug("alreadyAssignedOtherOrganisationIds: {}", alreadyAssignedOtherOrganisationIds);
         List<String> otherOrganisationalUnits = new ArrayList<>();
         if (alreadyAssignedOtherOrganisationIds == null || alreadyAssignedOtherOrganisationIds.isEmpty()) {
             log.error("No previously assigned organisations found while attempting to remove other organisation ID: {}", otherOrgIdToRemove);
@@ -331,18 +410,18 @@ public class IdentityController {
                     "Could not verify currently assigned other organisations. Other organisation is not removed.");
         } else {
             for (String alreadyAssignedOtherOrganisationId : alreadyAssignedOtherOrganisationIds) {
-                log.debug("Already assigned other organisation id: {}", alreadyAssignedOtherOrganisationId);
                 if (!Objects.equals(alreadyAssignedOtherOrganisationId, otherOrgIdToRemove)) {
                     otherOrganisationalUnits.add("/organisationalUnits/" + alreadyAssignedOtherOrganisationId);
                 }
             }
-            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits, redirectAttributes);
+            updateOtherOrganisationalUnits(civilServantId, uid, otherOrganisationalUnits);
+            redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to unassign organisation");
+            log.info("Other organisational units are updated to unassign organisation");
         }
-        return String.format(REDIRECT_IDENTITY_UPDATE, uid);
+        return String.format(REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS, uid);
     }
 
-    private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits,
-                                 RedirectAttributes redirectAttributes) {
+    private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits) {
         String email ="";
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         if (optionalIdentity.isPresent()) {
@@ -353,6 +432,5 @@ public class IdentityController {
         log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
         String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
         log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
-        redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated successfully.");
     }
 }

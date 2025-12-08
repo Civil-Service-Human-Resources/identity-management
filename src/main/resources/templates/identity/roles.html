@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="identity/layout" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${'Roles - ' + identity.email}"></title>
+</head>
+<body>
+<section layout:fragment="identity-content">
+    <h2 class="pb-3">Roles</h2>
+    <form th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}"
+          autocomplete="off" th:action="@{/identities/{uid}/update_roles(uid=${identity.uid})}" th:object="${identity}" method="POST">
+        <div class="form-group">
+            <select aria-label="User roles" class="form-control" multiple="multiple" name="roleId" id="roleId" size="25" style="height: 100%;">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
+                        th:selected="${identity.getRoles().contains(role)}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-contrast-fix">Update Roles</button>
+    </form>
+    <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" class="list-group mb-5">
+        <li class="list-group-item" th:each="role : ${identity.getRoles()}" th:value="${role.id}" th:text="${role.name}"></li>
+    </ul>
+</section>
+</body>
+</html>
