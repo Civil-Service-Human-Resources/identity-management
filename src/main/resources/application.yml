@@ -79,6 +79,7 @@ reporting:
   registeredLearners:
     url: "${reporting.serviceUrl}/registered-learners"
     deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
+    deactivationBatchSize: ${REPORTING_DEACTIVATION_BATCH_SIZE:50}
   api:
     url: "${reporting.serviceUrl}/api/report"
     removeUserDataFromReportUrl: "${reporting.api.url}/remove-user-details"
