@@ -1,6 +1,7 @@
 package uk.gov.cshr.service.security;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 import static org.springframework.transaction.annotation.Propagation.REQUIRED;
+import static uk.gov.cshr.utils.Util.batchList;
 
 @Service
 @Slf4j
@@ -33,11 +35,13 @@ public class IdentityManagementService {
     private final ReportingService reportingService;
     private final InviteService inviteService;
     private final ResetService resetService;
+    private final Integer deactivationBatchSize;
 
     public IdentityManagementService(IdentityRepository identityRepository, MessageService messageService,
                                      NotificationService notificationService, LearnerRecordService learnerRecordService,
                                      CsrsService csrsService, ReportingService reportingService, InviteService inviteService,
-                                     ResetService resetService) {
+                                     ResetService resetService,
+                                     @Value("${dataRetentionJob.deactivationBatchSize}") Integer deactivationBatchSize) {
         this.identityRepository = identityRepository;
         this.messageService = messageService;
         this.notificationService = notificationService;
@@ -46,6 +50,7 @@ public class IdentityManagementService {
         this.reportingService = reportingService;
         this.inviteService = inviteService;
         this.resetService = resetService;
+        this.deactivationBatchSize = deactivationBatchSize;
     }
 
     @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
@@ -75,11 +80,14 @@ public class IdentityManagementService {
     @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
     public void deactivateIdentities(List<Identity> identities) {
         log.info("Deactivating {} identities", identities.size());
-        identities.forEach(u -> u.setActive(false));
-        reportingService.deactivateRegisteredLearners(identities.stream().map(Identity::getUid).collect(Collectors.toList()));
-        identityRepository.save(identities);
-        identityRepository.flush();
-        notificationService.send(identities.stream().map(messageService::createSuspensionMessage).collect(Collectors.toList()));
+        batchList(identities, deactivationBatchSize)
+                .forEach(identityBatch -> {
+                    identityBatch.forEach(u -> u.setActive(false));
+                    reportingService.deactivateRegisteredLearners(identityBatch.stream().map(Identity::getUid).collect(Collectors.toList()));
+                    identityRepository.save(identityBatch);
+                    identityRepository.flush();
+                    notificationService.send(identityBatch.stream().map(messageService::createSuspensionMessage).collect(Collectors.toList()));
+                });
     }
 
     public void deactivateIdentity(Identity identity) {

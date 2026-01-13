@@ -92,6 +92,7 @@ accountPeriodsInMonths:
 dataRetentionJob:
   cronSchedule: ${DATA_RETENTION_JOB_CRON_SCHEDULE:0 0 5 * * *}
   enabled: ${DATA_RETENTION_JOB_ENABLED:true}
+  deactivationBatchSize: ${DR_DEACTIVATION_BATCH_SIZE:1000}
 
 govNotify:
   templateName:

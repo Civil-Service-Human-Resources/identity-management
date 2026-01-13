@@ -12,8 +12,8 @@ import uk.gov.cshr.service.RequestEntityFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static uk.gov.cshr.utils.Util.batchList;
 
 @Service
 @Slf4j
@@ -41,11 +41,7 @@ public class ReportingService {
     public UpdateUserResult deactivateRegisteredLearners(List<String> uids) {
         UpdateUserResult totalResults = new UpdateUserResult(0);
         log.info("Deactivating {} total users in report service", uids.size());
-        List<List<String>> batches = IntStream.iterate(0, i -> i + deactivateRegisteredLearnersBatchSize)
-                .limit((int) Math.ceil((double) uids.size() / deactivateRegisteredLearnersBatchSize))
-                .mapToObj(i -> uids.subList(i, Math.min(i + deactivateRegisteredLearnersBatchSize, uids.size())))
-                .collect(Collectors.toList());
-        batches.forEach(batchedUids -> {
+        batchList(uids, deactivateRegisteredLearnersBatchSize).forEach(batchedUids -> {
             log.info("Deactivating registered learners in report service: {}", batchedUids);
             UpdateUserDetailsParams parameters = new UpdateUserDetailsParams(batchedUids);
             RequestEntity<UpdateUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(deactivateRegisteredLearnersUrl, parameters);
