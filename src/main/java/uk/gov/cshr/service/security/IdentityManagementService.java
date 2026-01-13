@@ -74,7 +74,7 @@ public class IdentityManagementService {
 
     @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
     public void deactivateIdentities(List<Identity> identities) {
-        log.info("Deactivating identities {}", identities.stream().map(Identity::getUid).collect(Collectors.joining(", ")));
+        log.info("Deactivating {} identities", identities.size());
         identities.forEach(u -> u.setActive(false));
         reportingService.deactivateRegisteredLearners(identities.stream().map(Identity::getUid).collect(Collectors.toList()));
         identityRepository.save(identities);

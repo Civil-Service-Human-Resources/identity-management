@@ -39,7 +39,7 @@ public class ReportingService {
     }
 
     public UpdateUserResult deactivateRegisteredLearners(List<String> uids) {
-        UpdateUserResult totalResults = new UpdateUserResult();
+        UpdateUserResult totalResults = new UpdateUserResult(0);
         log.info("Deactivating {} total users in report service", uids.size());
         List<List<String>> batches = IntStream.iterate(0, i -> i + deactivateRegisteredLearnersBatchSize)
                 .limit((int) Math.ceil((double) uids.size() / deactivateRegisteredLearnersBatchSize))
