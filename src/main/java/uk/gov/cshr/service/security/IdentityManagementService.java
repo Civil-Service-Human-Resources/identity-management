@@ -79,9 +79,10 @@ public class IdentityManagementService {
 
     @Transactional(propagation = REQUIRED, isolation = SERIALIZABLE, rollbackFor = Exception.class)
     public void deactivateIdentities(List<Identity> identities) {
-        log.info("Deactivating {} identities", identities.size());
+        log.info("Deactivating {} total identities", identities.size());
         batchList(identities, deactivationBatchSize)
                 .forEach(identityBatch -> {
+                    log.info("Deactivating a batch of {} total identities", identityBatch.size());
                     identityBatch.forEach(u -> u.setActive(false));
                     reportingService.deactivateRegisteredLearners(identityBatch.stream().map(Identity::getUid).collect(Collectors.toList()));
                     identityRepository.save(identityBatch);
