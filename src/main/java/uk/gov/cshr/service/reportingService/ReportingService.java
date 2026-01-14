@@ -13,33 +13,43 @@ import uk.gov.cshr.service.RequestEntityFactory;
 import java.util.Collections;
 import java.util.List;
 
+import static uk.gov.cshr.utils.Util.batchList;
+
 @Service
 @Slf4j
 public class ReportingService {
     private final HttpClient httpClient;
     private final RequestEntityFactory requestEntityFactory;
     private final String deactivateRegisteredLearnersUrl;
+    private final Integer deactivateRegisteredLearnersBatchSize;
     private final String removeUserDataFromReportUrl;
 
     public ReportingService(
             HttpClient httpClient,
             RequestEntityFactory requestEntityFactory,
             @Value("${reporting.registeredLearners.deactivateUrl}") String deactivateRegisteredLearnersUrl,
+            @Value("${reporting.registeredLearners.deactivationBatchSize}") Integer deactivateRegisteredLearnersBatchSize,
             @Value("${reporting.api.removeUserDataFromReportUrl}") String removeUserDataFromReportUrl
     ) {
         this.httpClient = httpClient;
         this.requestEntityFactory = requestEntityFactory;
         this.deactivateRegisteredLearnersUrl = deactivateRegisteredLearnersUrl;
+        this.deactivateRegisteredLearnersBatchSize = deactivateRegisteredLearnersBatchSize;
         this.removeUserDataFromReportUrl = removeUserDataFromReportUrl;
     }
 
     public UpdateUserResult deactivateRegisteredLearners(List<String> uids) {
-        log.info("Deactivating registered learners in report service: {}", uids);
-        UpdateUserDetailsParams parameters = new UpdateUserDetailsParams(uids);
-        RequestEntity<UpdateUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(deactivateRegisteredLearnersUrl, parameters);
-        UpdateUserResult response = httpClient.sendRequest(requestEntity, UpdateUserResult.class).getBody();
-        log.info("Updated rows from deactivating registered learners: {}", response.getAffectedRows());
-        return response;
+        UpdateUserResult totalResults = new UpdateUserResult(0);
+        log.info("Deactivating {} total users in report service", uids.size());
+        batchList(uids, deactivateRegisteredLearnersBatchSize).forEach(batchedUids -> {
+            log.info("Deactivating registered learners in report service: {}", batchedUids);
+            UpdateUserDetailsParams parameters = new UpdateUserDetailsParams(batchedUids);
+            RequestEntity<UpdateUserDetailsParams> requestEntity = requestEntityFactory.createPutRequest(deactivateRegisteredLearnersUrl, parameters);
+            UpdateUserResult response = httpClient.sendRequest(requestEntity, UpdateUserResult.class).getBody();
+            totalResults.add(response);
+        });
+        log.info("Updated rows from deactivating registered learners: {}", totalResults.getAffectedRows());
+        return totalResults;
     }
 
     public DeleteUserResults removeUserDetails(String uid) {
