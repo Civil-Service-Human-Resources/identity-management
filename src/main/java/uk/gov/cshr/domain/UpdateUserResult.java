@@ -12,4 +12,8 @@ public class UpdateUserResult {
 
     private Integer affectedRows;
 
+    public void add(UpdateUserResult result) {
+        this.affectedRows = this.affectedRows + result.getAffectedRows();
+    }
+
 }
