@@ -133,8 +133,8 @@ public class IdentityController {
             return REDIRECT_IDENTITIES_LIST;
         }
 
-        // --- Other Learning-specific data (placeholder) ---
-        // TODO: This function will be implemented as part of the ticket LC-3790
+        // --- Start Other Learning-specific data ---
+        // TODO
         // --- End Other Learning-specific data ---
 
         model.addAttribute("activeTab", "other-learning");
