@@ -38,8 +38,8 @@
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
-            <li class="page-item" th:each="pageNum : ${pagination}" th:classappend="${pageNum == currentPage} ? 'active'">
-                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum})}" th:text="${pageNum.getValue() + 1}"></a>
+            <li class="page-item" th:each="pageNum : ${pagination}" th:classappend="${pageNum.getValue() == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum.getValue()})}" th:text="${pageNum.getValue() + 1}"></a>
             </li>
             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
                 <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage + 1})}" aria-label="Next">
