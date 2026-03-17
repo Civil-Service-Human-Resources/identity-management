@@ -17,6 +17,7 @@ import uk.gov.cshr.config.CustomOAuth2Authentication;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
@@ -127,15 +128,30 @@ public class IdentityController {
     @GetMapping("/identities/update/{uid}/other-learning")
     public String identityOtherLearning(Model model,
                                         @PathVariable(UID_ATTRIBUTE) String uid,
+                                        @RequestParam(value = "page", defaultValue = "0") int page,
                                         CustomOAuth2Authentication auth) {
         Identity identity = getIdentity(model, uid, auth, "other learning");
         if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
-        // --- Start Other Learning-specific data ---
-        // TODO
-        // --- End Other Learning-specific data ---
+        int size = 20; // Default size based on specification
+        UserLearningResponse response = cslService.getOtherLearningForUser(uid, page, size);
+
+        if (response != null && response.getLearning() != null) {
+            model.addAttribute("learningCourses", response.getLearning());
+            int totalPages = (int) Math.ceil((double) response.getTotalResults() / size);
+            model.addAttribute("pagination", Pagination.generateList(response.getPage(), totalPages));
+            model.addAttribute("currentPage", response.getPage());
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("totalResults", response.getTotalResults());
+        } else {
+            model.addAttribute("learningCourses", emptyList());
+            model.addAttribute("pagination", emptyList());
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("totalResults", 0);
+        }
 
         model.addAttribute("activeTab", "other-learning");
         return "identity/other-learning";

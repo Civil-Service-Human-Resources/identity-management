@@ -7,9 +7,47 @@
 <body>
 <section layout:fragment="identity-content">
     <h2 class="pb-3">Other Learning</h2>
-    <p class="pb-4">
-        <!-- TODO -->
-    </p>
+    <div th:if="${totalResults > 0}" class="pb-2">
+        <p>Showing <span th:text="${learningCourses.size()}"></span> of <span th:text="${totalResults}"></span> records.</p>
+    </div>
+    <div class="table-responsive pb-4">
+        <table class="table table-striped table-bordered">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Completion date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="course : ${learningCourses}">
+                <td th:text="${course.title}"></td>
+                <td th:text="${course.status}"></td>
+                <td th:text="${course.completionDate != null ? course.completionDate : '-'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(learningCourses)}">
+                <td colspan="3" class="text-center">No other learning records found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <nav th:if="${totalPages > 1}" aria-label="Other Learning Pagination">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage - 1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:each="pageNum : ${pagination}" th:classappend="${pageNum == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum})}" th:text="${pageNum.getValue() + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </section>
 </body>
 </html>

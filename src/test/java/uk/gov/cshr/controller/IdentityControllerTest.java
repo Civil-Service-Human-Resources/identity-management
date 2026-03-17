@@ -20,6 +20,8 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.learning.Learning;
+import uk.gov.cshr.domain.learning.UserLearningCourse;
+import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
@@ -475,6 +477,16 @@ public class IdentityControllerTest {
     public void shouldLoadIdentityOtherLearningTab() throws Exception {
         Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        UserLearningResponse learningResponse = new UserLearningResponse();
+        learningResponse.setPage(0);
+        learningResponse.setSize(20);
+        learningResponse.setTotalResults(25);
+        UserLearningCourse course = new UserLearningCourse();
+        course.setTitle("Test Course");
+        learningResponse.setLearning(Collections.singletonList(course));
+        when(cslService.getOtherLearningForUser(UID, 0, 20)).thenReturn(learningResponse);
+
         mockMvc.perform(
                 get("/identities/update/" + UID + "/other-learning")
                     .with(csrf())
@@ -482,10 +494,35 @@ public class IdentityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-learning"))
                 .andExpect(model().attribute("activeTab", "other-learning"))
-                .andExpect(model().attribute("identity", identity));
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("learningCourses", learningResponse.getLearning()))
+                .andExpect(model().attribute("currentPage", 0))
+                .andExpect(model().attribute("totalPages", 2))
+                .andExpect(model().attribute("totalResults", 25L));
+
         verify(csrsService, never()).getCivilServant(anyString());
-        verify(cslService, never()).getRequiredLearningForUser(anyString());
         verify(roleRepository, never()).findAll();
+    }
+
+    @Test
+    public void shouldLoadIdentityOtherLearningTabEmpty() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        when(cslService.getOtherLearningForUser(UID, 0, 20)).thenReturn(null);
+
+        mockMvc.perform(
+                        get("/identities/update/" + UID + "/other-learning")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/other-learning"))
+                .andExpect(model().attribute("activeTab", "other-learning"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("learningCourses", Collections.emptyList()))
+                .andExpect(model().attribute("currentPage", 0))
+                .andExpect(model().attribute("totalPages", 0))
+                .andExpect(model().attribute("totalResults", 0));
     }
 
     @Test
