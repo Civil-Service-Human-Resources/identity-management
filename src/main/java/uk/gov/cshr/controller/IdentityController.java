@@ -1,7 +1,7 @@
 package uk.gov.cshr.controller;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +40,6 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 @Slf4j
 @Controller
 @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).READ_IDENTITY)")
-@AllArgsConstructor
 public class IdentityController {
 
     private static final String UID_ATTRIBUTE = "uid";
@@ -59,6 +58,20 @@ public class IdentityController {
     private final CsrsService csrsService;
     private final CslService cslService;
     private final IdentityManagementService identityManagementService;
+    private final Integer pageSize;
+
+    public IdentityController(IdentityRepository identityRepository, RoleRepository roleRepository, IdentityService identityService,
+                              ReactivationService reactivationService, CsrsService csrsService, CslService cslService,
+                              IdentityManagementService identityManagementService, @Value("${pagination.pageSize}") Integer pageSize) {
+        this.identityRepository = identityRepository;
+        this.roleRepository = roleRepository;
+        this.identityService = identityService;
+        this.reactivationService = reactivationService;
+        this.csrsService = csrsService;
+        this.cslService = cslService;
+        this.identityManagementService = identityManagementService;
+        this.pageSize = pageSize;
+    }
 
     @GetMapping("/identities")
     public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
@@ -135,12 +148,11 @@ public class IdentityController {
             return REDIRECT_IDENTITIES_LIST;
         }
 
-        int size = 20; // Default size based on specification
-        UserLearningResponse response = cslService.getOtherLearningForUser(uid, page, size);
+        UserLearningResponse response = cslService.getOtherLearningForUser(uid, page, pageSize);
 
         if (response != null && response.getLearning() != null) {
             model.addAttribute("learningCourses", response.getLearning());
-            int totalPages = (int) Math.ceil((double) response.getTotalResults() / size);
+            int totalPages = (int) Math.ceil((double) response.getTotalResults() / pageSize);
             model.addAttribute("pagination", Pagination.generateList(response.getPage(), totalPages));
             model.addAttribute("currentPage", response.getPage());
             model.addAttribute("totalPages", totalPages);
