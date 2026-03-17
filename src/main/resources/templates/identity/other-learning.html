@@ -23,7 +23,7 @@
             <tr th:each="course : ${learningCourses}">
                 <td><a th:href="'#' + ${course.resourceId}" th:text="${course.title}"></a></td>
                 <td th:text="${course.status}"></td>
-                <td th:text="${course.completionDate != null ? course.completionDate : '-'}"></td>
+                <td th:text="${course.completionDate != null ? course.completionDate : ''}"></td>
             </tr>
             <tr th:if="${#lists.isEmpty(learningCourses)}">
                 <td colspan="3" class="text-center">No other learning records found.</td>
