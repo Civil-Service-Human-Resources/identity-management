@@ -28,29 +28,19 @@
             </tbody>
         </table>
     </div>
-    <nav th:if="${totalPages > 1}" aria-label="Other Learning Pagination">
+    <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
-            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage - 1})}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <th:block th:each="pageNum: ${pagination}">
+            <th:block th:each="ins: ${pagination}">
                 <li class="page-item disabled">
-                    <a th:if="${currentPage == pageNum.value || pageNum.key == '...'}" class="page-link page-link-contrast-fix"
-                       th:text="${pageNum.value + 1}"></a>
+                    <a th:if="${currentPage == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
+                       th:text="${ins.key}"></a>
                 </li>
                 <li class="page-item">
-                    <a th:unless="${currentPage == pageNum.value || pageNum.key == '...'}" class="page-link page-link-contrast-fix"
-                       th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum.value})}"
-                       th:text="${pageNum.value + 1}"></a>
+                    <a th:unless="${currentPage == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
+                       th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${ins.value})}"
+                       th:text="${ins.key}"></a>
                 </li>
             </th:block>
-            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage + 1})}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
         </ul>
     </nav>
 </section>
