@@ -30,6 +30,7 @@
               <entry key="OAUTH_LOGOUT_ENDPOINT" value="/logout" />
               <entry key="OAUTH_TOKEN_ENDPOINT" value="/oauth2/token" />
               <entry key="OAUTH_URL" value="http://localhost:8080" />
+              <entry key="PAGINATION_PAGE_SIZE" value="20" />
               <entry key="REGISTRY_SERVICE_URL" value="http://localhost:9002" />
               <entry key="REPORTING_SERVICE_URL" value="http://localhost:9004" />
               <entry key="ROOT_LOGGING_LEVEL" value="INFO" />
