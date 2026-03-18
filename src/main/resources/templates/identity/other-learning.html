@@ -7,24 +7,24 @@
 <body>
 <section layout:fragment="identity-content">
     <h2 class="pb-3">Other Learning</h2>
-    <div class="table-responsive pb-4">
+    <p class="pb-4" th:if="${#lists.isEmpty(learningCourses)}">
+        No other learning found.
+    </p>
+    <div class="table-responsive pb-4" th:if="${!#lists.isEmpty(learningCourses)}">
         <table class="table table-striped table-bordered">
             <thead>
-            <tr>
-                <th>Course title</th>
-                <th>Status</th>
-                <th>Date completed</th>
-            </tr>
+                <tr>
+                    <th>Course title</th>
+                    <th>Status</th>
+                    <th>Date completed</th>
+                </tr>
             </thead>
             <tbody>
-            <tr th:each="course : ${learningCourses}">
-                <td><a th:href="'#' + ${course.resourceId}" th:text="${course.title}"></a></td>
-                <td th:text="${course.status}"></td>
-                <td th:text="${course.completionDate != null ? course.completionDate : ''}"></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(learningCourses)}">
-                <td colspan="3" class="text-center">No other learning records found.</td>
-            </tr>
+                <tr th:each="course : ${learningCourses}">
+                    <td><a th:href="'#' + ${course.resourceId}" th:text="${course.title}"></a></td>
+                    <td th:text="${course.status}"></td>
+                    <td th:text="${course.completionDate != null ? course.completionDate : ''}"></td>
+                </tr>
             </tbody>
         </table>
     </div>
