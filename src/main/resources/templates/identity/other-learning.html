@@ -35,9 +35,17 @@
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
-            <li class="page-item" th:each="pageNum : ${pagination}" th:classappend="${pageNum.getValue() == currentPage} ? 'active'">
-                <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum.getValue()})}" th:text="${pageNum.getValue() + 1}"></a>
-            </li>
+            <th:block th:each="pageNum: ${pagination}">
+                <li class="page-item disabled">
+                    <a th:if="${currentPage == pageNum.value || pageNum.key == '...'}" class="page-link page-link-contrast-fix"
+                       th:text="${pageNum.value + 1}"></a>
+                </li>
+                <li class="page-item">
+                    <a th:unless="${currentPage == pageNum.value || pageNum.key == '...'}" class="page-link page-link-contrast-fix"
+                       th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${pageNum.value})}"
+                       th:text="${pageNum.value + 1}"></a>
+                </li>
+            </th:block>
             <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
                 <a class="page-link" th:href="@{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${currentPage + 1})}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
