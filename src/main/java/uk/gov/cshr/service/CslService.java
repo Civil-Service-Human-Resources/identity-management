@@ -19,20 +19,27 @@ public class CslService {
     private final String getRequiredLearningUrl;
     private final String getFormattedOrganisationNamesUrl;
     private final String getUserLearningUrl;
+    private final String getDetailedLearningUrl;
 
     public CslService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
                       @Value("${cslService.getRequiredLearningUrl}") String getRequiredLearningUrl,
                       @Value("${cslService.getFormattedOrganisationNames}") String getFormattedOrganisationNamesUrl,
-                      @Value("${cslService.getUserLearningUrl}") String getUserLearningUrl) {
+                      @Value("${cslService.getUserLearningUrl}") String getUserLearningUrl,
+                      @Value("${cslService.getDetailedLearningUrl}") String getDetailedLearningUrl) {
         this.httpClient = httpClient;
         this.requestEntityFactory = requestEntityFactory;
         this.getRequiredLearningUrl = getRequiredLearningUrl;
         this.getFormattedOrganisationNamesUrl = getFormattedOrganisationNamesUrl;
         this.getUserLearningUrl = getUserLearningUrl;
+        this.getDetailedLearningUrl = getDetailedLearningUrl;
     }
 
     public Learning getRequiredLearningForUser(String uid) {
         String url = String.format("%s/%s", getRequiredLearningUrl, uid);
+        return getLearning(url);
+    }
+
+    private Learning getLearning(String url) {
         RequestEntity<Void> requestEntity = requestEntityFactory.createGetRequest(url);
         try {
             return httpClient.sendRequestNoRetries(requestEntity, Learning.class).getBody();
@@ -55,6 +62,11 @@ public class CslService {
             }
             throw e;
         }
+    }
+
+    public Learning getDetailedLearningForUser(String uid, String courseId) {
+        String url = String.format("%s/%s?courseIds=%s", getDetailedLearningUrl, uid, courseId);
+        return getLearning(url);
     }
 
     public FormattedOrganisationalUnitNames getFormattedOrganisationNames() {

@@ -17,6 +17,7 @@ import uk.gov.cshr.config.CustomOAuth2Authentication;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -167,6 +168,27 @@ public class IdentityController {
 
         model.addAttribute("activeTab", "other-learning");
         return "identity/other-learning";
+    }
+
+    @GetMapping("/identities/update/{uid}/other-learning/{courseId}")
+    public String identityOtherLearningDetail(Model model,
+                                              @PathVariable(UID_ATTRIBUTE) String uid,
+                                              @PathVariable("courseId") String courseId,
+                                              CustomOAuth2Authentication auth) {
+        Identity identity = getIdentity(model, uid, auth, "other learning detail");
+        if(identity == null) {
+            return REDIRECT_IDENTITIES_LIST;
+        }
+
+        Learning learning = cslService.getDetailedLearningForUser(uid, courseId);
+        if (learning == null || learning.getCourses() == null || learning.getCourses().isEmpty()) {
+            model.addAttribute("error", "Course details not found");
+        } else {
+            model.addAttribute("course", learning.getCourses().get(0));
+        }
+
+        model.addAttribute("activeTab", "other-learning");
+        return "identity/other-learning-detail";
     }
 
     @GetMapping("/identities/update/{uid}/other-organisation-access")

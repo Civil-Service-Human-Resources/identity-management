@@ -21,7 +21,7 @@
             </thead>
             <tbody>
                 <tr th:each="course : ${learningCourses}">
-                    <td><a th:href="'#' + ${course.resourceId}" th:text="${course.title}"></a></td>
+                    <td><a th:href="@{/identities/update/{uid}/other-learning/{courseId}(uid=${identity.uid}, courseId=${course.resourceId})}" th:text="${course.title}"></a></td>
                     <td th:text="${course.status}"></td>
                     <td th:text="${course.completionDate != null ? course.completionDate : ''}"></td>
                 </tr>

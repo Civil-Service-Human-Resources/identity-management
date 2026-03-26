@@ -40,6 +40,26 @@ public class Record {
         return status.equals(State.NULL);
     }
 
+    public boolean isApproved() {
+        return status.equals(State.APPROVED);
+    }
+
+    public boolean isArchived() {
+        return status.equals(State.ARCHIVED);
+    }
+
+    public boolean isRegistered() {
+        return status.equals(State.REGISTERED);
+    }
+
+    public boolean isSkipped() {
+        return status.equals(State.SKIPPED);
+    }
+
+    public boolean isUnregistered() {
+        return status.equals(State.UNREGISTERED);
+    }
+
     public String getDisplayStatus() {
         if (isNull()) {
             if (lastUpdated == null) {
@@ -48,6 +68,16 @@ public class Record {
             return "No progress in current learning period";
         } else if (isCompleted()) {
             return "Completed";
+        } else if (isApproved()) {
+            return "Confirmed";
+        } else if (isArchived()) {
+            return "Archived";
+        } else if (isRegistered()) {
+            return "Requested";
+        } else if (isSkipped()) {
+            return "Skipped";
+        } else if (isUnregistered()) {
+            return "Cancelled";
         } else {
             return "In progress";
         }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="identity/layout" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${'Other Learning Detail - ' + identity.email}"></title>
+</head>
+<body>
+<section layout:fragment="identity-content">
+    <h2 class="pb-3">Course Details</h2>
+    <p class="pb-4" th:if="${course == null}">
+        Course details not found.
+    </p>
+    <div class="mb-5" th:if="${course != null}">
+        <h3 th:text="${course.courseTitle}"></h3>
+        <h4 class="mt-4">Learner record</h4>
+        <p class="lead">
+            User has completed <strong th:text="${course.completedRequiredModules} + ' out of ' + ${course.requiredModules}"></strong> required modules in the current learning period for this course
+        </p>
+        <table class="table">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">Module title</th>
+                <th scope="col">Required</th>
+                <th scope="col">Updated at</th>
+                <th scope="col">Status</th>
+                <th scope="col">Completed at</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:classappend="${!module.isCompleted() and module.isRequired()} ? 'table-warning' : ''" th:each="module : ${course.modules}">
+                <td th:text="${module.getModuleTitle()}"></td>
+                <td th:text="${module.isRequired()}"></td>
+                <td th:text="${module.getDisplayLastUpdated()}"></td>
+                <td th:text="${module.getDisplayStatus()}"></td>
+                <td th:text="${module.getDisplayCompletionDate()}"></td>
+            </tr>
+            <tr class="table-info">
+                <th scope="row" colspan="2">Course Summary</th>
+                <td th:text="${course.getDisplayLastUpdated()}"></td>
+                <td th:text="${course.getDisplayStatus()}"></td>
+                <td th:text="${course.getDisplayCompletionDate()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+</body>
+</html>
