@@ -37,6 +37,9 @@ public class Record {
     }
 
     public boolean isNull() {
+        if (status == null) {
+            return true;
+        }
         return status.equals(State.NULL);
     }
 
@@ -66,6 +69,8 @@ public class Record {
                 return "Not started";
             }
             return "No progress in current learning period";
+        } else if (isInProgress()) {
+            return "In progress";
         } else if (isCompleted()) {
             return "Completed";
         } else if (isApproved()) {
@@ -79,7 +84,7 @@ public class Record {
         } else if (isUnregistered()) {
             return "Cancelled";
         } else {
-            return "In progress";
+            return "";
         }
     }
 }
