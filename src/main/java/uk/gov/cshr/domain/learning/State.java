@@ -8,7 +8,5 @@ public enum State {
     REGISTERED,
     SKIPPED,
     UNREGISTERED,
-    REQUESTED,
-    BOOKED,
     NULL
 }
