@@ -10,6 +10,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 import uk.gov.cshr.client.HttpClient;
+import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
 
 import static org.junit.Assert.assertEquals;
@@ -31,10 +32,11 @@ public class CslServiceTest {
     private final String getRequiredLearningUrl = "http://localhost/required-learning";
     private final String getFormattedOrganisationNamesUrl = "http://localhost/org-names";
     private final String userLearningUrl = "http://localhost/user-learning";
+    private final String getDetailedLearningUrl = "http://localhost/detailed-learning";
 
     @Before
     public void setUp() {
-        cslService = new CslService(httpClient, requestEntityFactory, getRequiredLearningUrl, getFormattedOrganisationNamesUrl, userLearningUrl);
+        cslService = new CslService(httpClient, requestEntityFactory, getRequiredLearningUrl, getFormattedOrganisationNamesUrl, userLearningUrl, getDetailedLearningUrl);
     }
 
     @Test
@@ -90,5 +92,23 @@ public class CslServiceTest {
         when(httpClient.sendRequestNoRetries(mockRequestEntity, UserLearningResponse.class)).thenThrow(exception);
 
         cslService.getOtherLearningForUser(uid, page, size);
+    }
+
+    @Test
+    public void getDetailedLearning_returnsResponse() {
+        String uid = "uid";
+        String courseId = "courseId";
+        String expectedUrl = String.format("%s/%s?courseIds=%s", getDetailedLearningUrl, uid, courseId);
+
+        RequestEntity mockRequestEntity = mock(RequestEntity.class);
+        when(requestEntityFactory.createGetRequest(expectedUrl)).thenReturn(mockRequestEntity);
+
+        Learning expectedResponse = new Learning();
+        ResponseEntity<Learning> responseEntity = ResponseEntity.ok(expectedResponse);
+        when(httpClient.sendRequestNoRetries(mockRequestEntity, Learning.class)).thenReturn(responseEntity);
+
+        Learning actualResponse = cslService.getDetailedLearningForUser(uid, courseId);
+
+        assertEquals(expectedResponse, actualResponse);
     }
 }

@@ -19,9 +19,7 @@ import uk.gov.cshr.config.MethodSecurityConfig;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.domain.learning.Learning;
-import uk.gov.cshr.domain.learning.UserLearningCourse;
-import uk.gov.cshr.domain.learning.UserLearningResponse;
+import uk.gov.cshr.domain.learning.*;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
@@ -36,6 +34,7 @@ import uk.gov.cshr.utils.CustomOAuth2AuthenticationProvider;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -44,6 +43,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.cshr.utils.ApplicationConstants.SUCCESS_ATTRIBUTE;
 import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
@@ -615,5 +615,52 @@ public class IdentityControllerTest {
                     .with(authentication(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
+    }
+
+    @Test
+    public void shouldLoadIdentityOtherLearningDetail() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        Learning learning = new Learning();
+        DisplayCourse displayCourse = new DisplayCourse();
+        displayCourse.setCourseTitle("Test Course");
+        displayCourse.setStatus(State.NULL);
+        learning.setCourses(Collections.singletonList(displayCourse));
+
+        when(cslService.getDetailedLearningForUser(UID, "courseId")).thenReturn(learning);
+
+        mockMvc.perform(
+                        get("/identities/update/" + UID + "/other-learning/courseId")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/other-learning-detail"))
+                .andExpect(model().attribute("activeTab", "other-learning"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attribute("course", displayCourse));
+    }
+
+    @Test
+    public void shouldLoadIdentityOtherLearningDetailPageWithMessageIfCourseNotFound() throws Exception {
+        Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        Learning learning = new Learning();
+        learning.setCourses(Collections.emptyList());
+
+        when(cslService.getDetailedLearningForUser(UID, "courseId")).thenReturn(learning);
+
+        mockMvc.perform(
+                        get("/identities/update/" + UID + "/other-learning/courseId")
+                                .with(csrf())
+                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("identity/other-learning-detail"))
+                .andExpect(model().attribute("activeTab", "other-learning"))
+                .andExpect(model().attribute("identity", identity))
+                .andExpect(model().attributeDoesNotExist("course"))
+                .andExpect(content().string(containsString("Course details not found.")))
+                .andDo(print());
     }
 }
