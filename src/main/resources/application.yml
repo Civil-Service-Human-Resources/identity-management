@@ -1,7 +1,6 @@
 spring:
   thymeleaf:
     cache: ${THYMELEAF_CACHE:true}
-    prefix: file:src/main/resources/templates/
   datasource:
     url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
     username: ${DATASOURCE_USERNAME:root}
@@ -28,8 +27,8 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
-    root: ${ROOT_LOGGING_LEVEL:INFO}
-    uk.gov.cshr: ${CSHR_LOGGING_LEVEL:INFO}
+    root: ${ROOT_LOGGING_LEVEL:DEBUG}
+    uk.gov.cshr: ${CSHR_LOGGING_LEVEL:DEBUG}
 
 security:
   oauth2:
