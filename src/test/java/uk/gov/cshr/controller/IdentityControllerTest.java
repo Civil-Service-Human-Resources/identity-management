@@ -23,8 +23,9 @@ import uk.gov.cshr.domain.learning.*;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
-import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.ReactivationService;
+import uk.gov.cshr.service.cslService.CslService;
+import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
 import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -50,7 +51,7 @@ import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebMvcTest(IdentityController.class)
-@ContextConfiguration(classes = {WebConfig.class, MethodSecurityConfig.class, IdentityController.class, FrontendAuthService.class, CustomOAuth2AuthenticationProvider.class,
+@ContextConfiguration(classes = {WebConfig.class, MethodSecurityConfig.class, OtherLearningController.class, BaseIdentityController.class, IdentityController.class, FrontendAuthService.class, CustomOAuth2AuthenticationProvider.class,
 CustomPermissionEvaluator.class})
 @EnableSpringDataWebSupport
 public class IdentityControllerTest {
@@ -485,7 +486,7 @@ public class IdentityControllerTest {
         UserLearningCourse course = new UserLearningCourse();
         course.setTitle("Test Course");
         learningResponse.setLearning(Collections.singletonList(course));
-        when(cslService.getOtherLearningForUser(UID, 0, 20)).thenReturn(learningResponse);
+        when(cslService.getOtherLearningForUser(any(String.class), any(GetOptionalLearningRecordParams.class))).thenReturn(learningResponse);
 
         mockMvc.perform(
                 get("/identities/update/" + UID + "/other-learning")
@@ -498,7 +499,7 @@ public class IdentityControllerTest {
                 .andExpect(model().attribute("learningCourses", learningResponse.getLearning()))
                 .andExpect(model().attribute("currentPage", 0))
                 .andExpect(model().attribute("totalPages", 2))
-                .andExpect(model().attribute("totalResults", 25L));
+                .andExpect(model().attribute("totalResults", 25));
 
         verify(csrsService, never()).getCivilServant(anyString());
         verify(roleRepository, never()).findAll();
@@ -509,7 +510,9 @@ public class IdentityControllerTest {
         Set<String> idmAdminRoles = new HashSet<>(Collections.singletonList("IDENTITY_MANAGER"));
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
-        when(cslService.getOtherLearningForUser(UID, 0, 20)).thenReturn(null);
+        when(cslService.getOtherLearningForUser(any(String.class), any(GetOptionalLearningRecordParams.class))).thenReturn(
+                new UserLearningResponse(Collections.emptyList(), 0, 0, 0)
+        );
 
         mockMvc.perform(
                         get("/identities/update/" + UID + "/other-learning")

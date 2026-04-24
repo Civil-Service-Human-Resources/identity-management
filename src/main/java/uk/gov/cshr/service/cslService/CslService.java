@@ -1,4 +1,4 @@
-package uk.gov.cshr.service;
+package uk.gov.cshr.service.cslService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +8,11 @@ import org.springframework.web.client.RestClientResponseException;
 import uk.gov.cshr.client.HttpClient;
 import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
+import uk.gov.cshr.service.RequestEntityFactory;
+import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
 import uk.gov.cshr.service.csrs.FormattedOrganisationalUnitNames;
+
+import javax.ws.rs.core.UriBuilder;
 
 @Service
 @Slf4j
@@ -51,8 +55,11 @@ public class CslService {
         }
     }
 
-    public UserLearningResponse getOtherLearningForUser(String uid, int page, int size) {
-        String url = String.format("%s/%s?page=%d&size=%d", getUserLearningUrl, uid, page, size);
+    public UserLearningResponse getOtherLearningForUser(String uid, GetOptionalLearningRecordParams params) {
+        String url = UriBuilder.fromPath(String.format("%s/%s", getUserLearningUrl, uid))
+                .queryParam("page", params.getPage())
+                .queryParam("size", params.getSize())
+                .queryParam("q", params.getQ()).toString();
         RequestEntity<Void> requestEntity = requestEntityFactory.createGetRequest(url);
         try {
             return httpClient.sendRequestNoRetries(requestEntity, UserLearningResponse.class).getBody();
