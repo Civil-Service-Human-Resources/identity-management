@@ -8,7 +8,7 @@
 <section layout:fragment="identity-content">
     <a href=""></a>
     <h2 class="pb-3">Other Learning</h2>
-    <form th:unless="${#lists.isEmpty(learningCourses)}" autocomplete="off" action="#" th:action="@{/identities/update/{uid}/other-learning(uid=${identity.uid})}" method="get">
+    <form autocomplete="off" action="#" th:action="@{/identities/update/{uid}/other-learning(uid=${identity.uid})}" method="get">
         <div class="form-row pb-3">
             <div class="col-10">
                 <label for="query" class="sr-only">Course title</label>
