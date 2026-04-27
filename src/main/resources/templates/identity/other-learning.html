@@ -72,8 +72,8 @@
                 <li class="page-item">
                     <a th:unless="${currentPage == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
                        th:href="${#strings.isEmpty(query)}
-                        ? @{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${ins.value})}
-                        : @{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${ins.value}, query=${query})}"
+                        ? @{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${ins.value}, sort=${sort})}
+                        : @{/identities/update/{uid}/other-learning(uid=${identity.uid}, page=${ins.value}, query=${query}, sort=${sort})}"
                        th:text="${ins.key}"></a>
                 </li>
             </th:block>
