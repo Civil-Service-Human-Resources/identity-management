@@ -46,7 +46,7 @@ public class CslServiceTest {
         String uid = "uid";
         int page = 0;
         int size = 20;
-        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=", userLearningUrl, uid, page, size);
+        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=&sort=ASC", userLearningUrl, uid, page, size);
 
         RequestEntity mockRequestEntity = mock(RequestEntity.class);
         when(requestEntityFactory.createGetRequest(expectedUrl)).thenReturn(mockRequestEntity);
@@ -55,7 +55,7 @@ public class CslServiceTest {
         ResponseEntity<UserLearningResponse> responseEntity = ResponseEntity.ok(expectedResponse);
         when(httpClient.sendRequestNoRetries(mockRequestEntity, UserLearningResponse.class)).thenReturn(responseEntity);
 
-        UserLearningResponse actualResponse = cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, ""));
+        UserLearningResponse actualResponse = cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, "", "ASC"));
 
         assertEquals(expectedResponse, actualResponse);
     }
@@ -65,7 +65,7 @@ public class CslServiceTest {
         String uid = "uid";
         int page = 0;
         int size = 20;
-        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=", userLearningUrl, uid, page, size);
+        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=&sort=ASC", userLearningUrl, uid, page, size);
 
         RequestEntity mockRequestEntity = mock(RequestEntity.class);
         when(requestEntityFactory.createGetRequest(expectedUrl)).thenReturn(mockRequestEntity);
@@ -74,7 +74,7 @@ public class CslServiceTest {
         when(exception.getRawStatusCode()).thenReturn(404);
         when(httpClient.sendRequestNoRetries(mockRequestEntity, UserLearningResponse.class)).thenThrow(exception);
 
-        UserLearningResponse actualResponse = cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, ""));
+        UserLearningResponse actualResponse = cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, "", "ASC"));
 
         assertNull(actualResponse);
     }
@@ -84,7 +84,7 @@ public class CslServiceTest {
         String uid = "uid";
         int page = 0;
         int size = 20;
-        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=", userLearningUrl, uid, page, size);
+        String expectedUrl = String.format("%s/%s?page=%d&size=%d&q=&sort=ASC", userLearningUrl, uid, page, size);
 
         RequestEntity mockRequestEntity = mock(RequestEntity.class);
         when(requestEntityFactory.createGetRequest(expectedUrl)).thenReturn(mockRequestEntity);
@@ -93,7 +93,7 @@ public class CslServiceTest {
         when(exception.getRawStatusCode()).thenReturn(500);
         when(httpClient.sendRequestNoRetries(mockRequestEntity, UserLearningResponse.class)).thenThrow(exception);
 
-        cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, ""));
+        cslService.getOtherLearningForUser(uid, new GetOptionalLearningRecordParams(0, 20, "", "ASC"));
     }
 
     @Test
