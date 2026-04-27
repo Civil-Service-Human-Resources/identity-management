@@ -35,13 +35,14 @@ public class OtherLearningController extends BaseIdentityController {
                                         @PathVariable String uid,
                                         @RequestParam(value = "page", defaultValue = "0") int page,
                                         @RequestParam(value = "query", required = false, defaultValue = "") String query,
+                                        @RequestParam(value = "sort", required = false, defaultValue = "ASC") String sort,
                                         CustomOAuth2Authentication auth) {
         Identity identity = getIdentity(model, uid, auth, "other learning");
         if(identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
-        GetOptionalLearningRecordParams params = new GetOptionalLearningRecordParams(page, pageSize, query);
+        GetOptionalLearningRecordParams params = new GetOptionalLearningRecordParams(page, pageSize, query, sort);
 
         UserLearningResponse response = cslService.getOtherLearningForUser(uid, params);
 
@@ -52,9 +53,10 @@ public class OtherLearningController extends BaseIdentityController {
             model.addAttribute("currentPage", response.getPage());
             model.addAttribute("totalPages", totalPages);
             model.addAttribute("totalResults", response.getTotalResults());
-            model.addAttribute("query", params.getQ());
         }
 
+        model.addAttribute("query", params.getQ());
+        model.addAttribute("sort", params.getSortDirection());
         model.addAttribute("activeTab", "other-learning");
         return "identity/other-learning";
     }
