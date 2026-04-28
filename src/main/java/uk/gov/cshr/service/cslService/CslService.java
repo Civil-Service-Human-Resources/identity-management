@@ -59,7 +59,8 @@ public class CslService {
         String url = UriBuilder.fromPath(String.format("%s/%s", getUserLearningUrl, uid))
                 .queryParam("page", params.getPage())
                 .queryParam("size", params.getSize())
-                .queryParam("q", params.getQ()).toString();
+                .queryParam("q", params.getQ())
+                .queryParam("sort", params.getSortDirection()).toString();
         RequestEntity<Void> requestEntity = requestEntityFactory.createGetRequest(url);
         try {
             return httpClient.sendRequestNoRetries(requestEntity, UserLearningResponse.class).getBody();

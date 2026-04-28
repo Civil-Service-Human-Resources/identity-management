@@ -13,4 +13,5 @@ public class GetOptionalLearningRecordParams {
     int page = 0;
     int size = 20;
     String q = null;
+    String sortDirection = "ASC";
 }
