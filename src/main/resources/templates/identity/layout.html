@@ -25,10 +25,9 @@
         <li class="nav-item">
             <a class="nav-link" th:classappend="${activeTab == 'required-learning'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/required-learning|}">Required learning</a>
         </li>
-        <!--TODO: Below section will be enabled as part of the ticket LC-3790-->
-        <!--<li class="nav-item">-->
-        <!--<a class="nav-link" th:classappend="${activeTab == 'other-learning'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/other-learning|}">Other learning</a>-->
-        <!--</li>-->
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${activeTab == 'other-learning'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/other-learning|}">Other learning</a>
+        </li>
         <li class="nav-item">
             <a class="nav-link" th:classappend="${activeTab == 'other-organisation-access'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/other-organisation-access|}">Other organisation access</a>
         </li>
