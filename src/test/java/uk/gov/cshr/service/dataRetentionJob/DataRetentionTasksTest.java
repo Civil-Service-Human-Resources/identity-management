@@ -6,9 +6,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.repository.ReactivationRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
@@ -31,8 +29,6 @@ public class DataRetentionTasksTest {
     @Mock
     private IdentityRepository identityRepository;
     @Mock
-    private ReactivationRepository reactivationRepository;
-    @Mock
     private IdentityManagementService identityManagementService;
 
     @Mock
@@ -43,7 +39,7 @@ public class DataRetentionTasksTest {
     private final Clock clock = Clock.fixed(Instant.parse("2024-01-01T10:00:00.000Z"), ZoneId.of("UTC"));
 
     private DeactivationTask getDeactivationTask() {
-        return new DeactivationTask(clock, identityRepository, reactivationRepository, identityManagementService);
+        return new DeactivationTask(clock, identityRepository, identityManagementService);
     }
 
     private DeletionNotificationTask getDeletionNotificationTask() {
@@ -66,7 +62,6 @@ public class DataRetentionTasksTest {
     public void deactivationUpdatesSuccessfullyApplied() {
 
         List<Identity> activeIdentitiesLastLoggedInBeforeDeactivationDate = new ArrayList<>();
-        List<Reactivation> reactivationAfterDeactivationDate = new ArrayList<>();
 
         Identity deactivationUser1 = new Identity();
         deactivationUser1.setEmail("DeactivationUser1@example.com");
@@ -74,30 +69,12 @@ public class DataRetentionTasksTest {
         deactivationUser1.setAgencyTokenUid("TEST");
         activeIdentitiesLastLoggedInBeforeDeactivationDate.add(deactivationUser1);
 
-        Identity deactivationUser2 = new Identity();
-        deactivationUser2.setEmail("DeactivationUser2@example.com");
-        deactivationUser2.setActive(false);
-        deactivationUser2.setAgencyTokenUid("TEST");
-        activeIdentitiesLastLoggedInBeforeDeactivationDate.add(deactivationUser2);
-
-        Reactivation reactivation1 = new Reactivation();
-        reactivation1.setEmail("deactivationuser2@Example.Com");
-        reactivationAfterDeactivationDate.add(reactivation1);
-
-        Reactivation reactivation2 = new Reactivation();
-        reactivation2.setEmail("Deactivationuser3@Example.Com");
-        reactivationAfterDeactivationDate.add(reactivation2);
-
-        when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any()))
+        when(identityRepository.findForDeactivation(any()))
                 .thenReturn(activeIdentitiesLastLoggedInBeforeDeactivationDate);
-        when(reactivationRepository.findByReactivatedAtAfter(any()))
-                .thenReturn(reactivationAfterDeactivationDate);
 
         DeactivationTask taskToTest = getDeactivationTask();
         taskToTest.runTask();
 
-        verify(identityRepository, times(1)).findByActiveTrueAndLastLoggedInBefore(any());
-        verify(reactivationRepository, times(1)).findByReactivatedAtAfter(any());
         verify(identityManagementService, times(1)).deactivateIdentities(Collections.singletonList(deactivationUser1));
     }
 
@@ -113,14 +90,14 @@ public class DataRetentionTasksTest {
         deletionNotificationUser.setDeletionNotificationSent(false);
         usersToReturn.add(deletionNotificationUser);
 
-        when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any()))
+        when(identityRepository.findForDeletionNotification(any()))
                 .thenReturn(usersToReturn);
 
         DeletionNotificationTask taskToTest = getDeletionNotificationTask();
         taskToTest.runTask();
 
         verify(identityRepository, times(1))
-                .findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any());
+                .findForDeletionNotification(any());
         verify(identityManagementService, times(1)).markUsersForDeletion(usersToReturn);
     }
 
@@ -137,12 +114,12 @@ public class DataRetentionTasksTest {
         deletionUser.setUid("TEST");
         usersToReturn.add(deletionUser);
 
-        when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(identityRepository.findForDeletion(any())).thenReturn(usersToReturn);
 
         DeletionTask taskToTest = getDeletionTask();
         taskToTest.runTask();
 
-        verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
+        verify(identityRepository, times(1)).findForDeletion(any());
         verify(identityManagementService, times(1)).deleteIdentity(deletionUser);
     }
 
@@ -161,14 +138,14 @@ public class DataRetentionTasksTest {
         secondDeletionUser.setUid("TEST02");
         usersToReturn.add(secondDeletionUser);
 
-        when(identityRepository.findByActiveFalseAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(identityRepository.findForDeletion(any())).thenReturn(usersToReturn);
         // Simulate the deleteIdentity method failing for the FIRST user
         doThrow(new RuntimeException()).when(identityManagementService).deleteIdentity(firstDeletionUser);
 
         DeletionTask taskToTest = getDeletionTask();
         taskToTest.runTask();
 
-        verify(identityRepository, times(1)).findByActiveFalseAndLastLoggedInBefore(any());
+        verify(identityRepository, times(1)).findForDeletion(any());
         // Should be called once
         verify(identityManagementService, times(1)).deleteIdentity(secondDeletionUser);
     }
@@ -183,12 +160,12 @@ public class DataRetentionTasksTest {
         usersToReturn.add(genericUser);
 
         // Deletion job
-        doThrow(new RuntimeException()).when(identityRepository).findByActiveFalseAndLastLoggedInBefore(any());
+        doThrow(new RuntimeException()).when(identityRepository).findForDeletion(any());
         // Deletion notification job
-        when(identityRepository.findByActiveFalseAndDeletionNotificationSentFalseAndLastLoggedInBefore(any()))
+        when(identityRepository.findForDeactivation(any()))
                 .thenReturn(usersToReturn);
         // Deactivation job
-        when(identityRepository.findByActiveTrueAndLastLoggedInBefore(any())).thenReturn(usersToReturn);
+        when(identityRepository.findForDeactivation(any())).thenReturn(usersToReturn);
 
         DeactivationTask deactivationTask = getDeactivationTask();
         DeletionTask deletionTask = getDeletionTask();
