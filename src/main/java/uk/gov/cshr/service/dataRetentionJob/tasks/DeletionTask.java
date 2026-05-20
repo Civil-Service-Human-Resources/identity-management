@@ -9,8 +9,9 @@ import uk.gov.cshr.service.security.IdentityManagementService;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
+
+import static java.time.ZoneOffset.UTC;
 
 @Slf4j
 @Service
@@ -32,8 +33,8 @@ public class DeletionTask extends LoopingTask {
     @Override
     protected List<Identity> fetchUsers() {
         LocalDateTime deletionDate = LocalDateTime.now(clock).minusMonths(deletionPeriodInMonths);
-        List<Identity> identitiesToBeDeleted = identityRepository.findByActiveFalseAndLastLoggedInBefore(deletionDate.toInstant(ZoneOffset.UTC));
-        log.info("Number of inactive users for deletion who have logged-in before deletion cutoff date {}: {}",
+        List<Identity> identitiesToBeDeleted = identityRepository.findForDeletion(deletionDate.toInstant(UTC));
+        log.info("Number of inactive users for deletion who have logged-in or reactivated before deletion cutoff date {}: {}",
                 deletionDate, identitiesToBeDeleted.size());
         return identitiesToBeDeleted;
     }
