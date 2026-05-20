@@ -1,18 +1,16 @@
 package uk.gov.cshr.service.dataRetentionJob;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import uk.gov.cshr.service.dataRetentionJob.tasks.BaseTask;
 
-import java.util.List;
+import java.util.LinkedList;
 
-@Service
 @Slf4j
 public class DataRetentionJobService {
 
-    private final List<BaseTask> tasks;
+    private final LinkedList<BaseTask> tasks;
 
-    public DataRetentionJobService(List<BaseTask> tasks) {
+    public DataRetentionJobService(LinkedList<BaseTask> tasks) {
         this.tasks = tasks;
     }
 

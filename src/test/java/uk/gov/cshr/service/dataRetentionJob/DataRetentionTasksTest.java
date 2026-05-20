@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.RequestEntityFactory;
+import uk.gov.cshr.service.dataRetentionJob.tasks.BaseTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionTask;
@@ -16,10 +17,7 @@ import uk.gov.cshr.service.security.IdentityManagementService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -171,7 +169,9 @@ public class DataRetentionTasksTest {
         DeletionTask deletionTask = getDeletionTask();
         DeletionNotificationTask deletionNotificationTask = getDeletionNotificationTask();
 
-        DataRetentionJobService service = new DataRetentionJobService(Arrays.asList(deactivationTask, deletionNotificationTask, deletionTask));
+        LinkedList<BaseTask> list = new LinkedList<>(Arrays.asList(deletionTask, deletionNotificationTask, deactivationTask));
+
+        DataRetentionJobService service = new DataRetentionJobService(list);
         service.runDataRetentionJob();
 
         verify(identityManagementService, times(0)).deleteIdentity(any());
