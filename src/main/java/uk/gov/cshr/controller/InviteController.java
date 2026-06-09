@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.cshr.domain.Invite;
@@ -30,6 +31,11 @@ public class InviteController {
     public InviteController(InviteRepository inviteRepository, RoleRepository roleRepository) {
         this.inviteRepository = inviteRepository;
         this.roleRepository = roleRepository;
+    }
+
+    @ModelAttribute
+    public void addTab(Model model) {
+        model.addAttribute("tab", "invites");
     }
 
     @GetMapping("/send")

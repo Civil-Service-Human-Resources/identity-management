@@ -1,7 +1,6 @@
 package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,14 +16,12 @@ import uk.gov.cshr.config.CustomOAuth2Authentication;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.domain.learning.Learning;
-import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
-import uk.gov.cshr.service.CslService;
 import uk.gov.cshr.service.Pagination;
 import uk.gov.cshr.service.ReactivationService;
+import uk.gov.cshr.service.cslService.CslService;
 import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -41,37 +38,25 @@ import static uk.gov.cshr.utils.ApplicationConstants.*;
 @Slf4j
 @Controller
 @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).READ_IDENTITY)")
-public class IdentityController {
+public class IdentityController extends BaseIdentityController {
 
     private static final String UID_ATTRIBUTE = "uid";
-    private static final String IDENTITY_ATTRIBUTE = "identity";
 
-    private static final String REDIRECT_IDENTITIES_LIST = "redirect:/identities";
-    private static final String REDIRECT_IDENTITY_UPDATE = "redirect:/identities/update/%s";
-    private static final String REDIRECT_IDENTITY_ROLES = "redirect:/identities/update/%s/roles";
-    private static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "redirect:/identities/update/%s/other-organisation-access";
-    private static final String REDIRECT_IDENTITIES_REACTIVATE = "redirect:/identities/reactivate/";
-
-    private final IdentityRepository identityRepository;
     private final RoleRepository roleRepository;
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
     private final CsrsService csrsService;
     private final CslService cslService;
     private final IdentityManagementService identityManagementService;
-    private final Integer pageSize;
 
-    public IdentityController(IdentityRepository identityRepository, RoleRepository roleRepository, IdentityService identityService,
-                              ReactivationService reactivationService, CsrsService csrsService, CslService cslService,
-                              IdentityManagementService identityManagementService, @Value("${pagination.pageSize}") Integer pageSize) {
-        this.identityRepository = identityRepository;
+    public IdentityController(IdentityRepository identityRepository, RoleRepository roleRepository, IdentityService identityService, ReactivationService reactivationService, CsrsService csrsService, CslService cslService, IdentityManagementService identityManagementService) {
+        super(identityRepository);
         this.roleRepository = roleRepository;
         this.identityService = identityService;
         this.reactivationService = reactivationService;
         this.csrsService = csrsService;
         this.cslService = cslService;
         this.identityManagementService = identityManagementService;
-        this.pageSize = pageSize;
     }
 
     @GetMapping("/identities")
@@ -139,58 +124,6 @@ public class IdentityController {
         return "identity/required-learning";
     }
 
-    @GetMapping("/identities/update/{uid}/other-learning")
-    public String identityOtherLearning(Model model,
-                                        @PathVariable(UID_ATTRIBUTE) String uid,
-                                        @RequestParam(value = "page", defaultValue = "0") int page,
-                                        CustomOAuth2Authentication auth) {
-        Identity identity = getIdentity(model, uid, auth, "other learning");
-        if(identity == null) {
-            return REDIRECT_IDENTITIES_LIST;
-        }
-
-        UserLearningResponse response = cslService.getOtherLearningForUser(uid, page, pageSize);
-
-        if (response != null && response.getLearning() != null) {
-            model.addAttribute("learningCourses", response.getLearning());
-            int totalPages = (int) Math.ceil((double) response.getTotalResults() / pageSize);
-            model.addAttribute("pagination", Pagination.generateList(response.getPage(), totalPages));
-            model.addAttribute("currentPage", response.getPage());
-            model.addAttribute("totalPages", totalPages);
-            model.addAttribute("totalResults", response.getTotalResults());
-        } else {
-            model.addAttribute("learningCourses", emptyList());
-            model.addAttribute("pagination", emptyList());
-            model.addAttribute("currentPage", 0);
-            model.addAttribute("totalPages", 0);
-            model.addAttribute("totalResults", 0);
-        }
-
-        model.addAttribute("activeTab", "other-learning");
-        return "identity/other-learning";
-    }
-
-    @GetMapping("/identities/update/{uid}/other-learning/{courseId}")
-    public String identityOtherLearningDetail(Model model,
-                                              @PathVariable(UID_ATTRIBUTE) String uid,
-                                              @PathVariable("courseId") String courseId,
-                                              CustomOAuth2Authentication auth) {
-        Identity identity = getIdentity(model, uid, auth, "other learning detail");
-        if(identity == null) {
-            return REDIRECT_IDENTITIES_LIST;
-        }
-
-        Learning learning = cslService.getDetailedLearningForUser(uid, courseId);
-        if (learning == null || learning.getCourses() == null || learning.getCourses().isEmpty()) {
-            model.addAttribute("error", "Course details not found");
-        } else {
-            model.addAttribute("course", learning.getCourses().get(0));
-        }
-
-        model.addAttribute("activeTab", "other-learning");
-        return "identity/other-learning-detail";
-    }
-
     @GetMapping("/identities/update/{uid}/other-organisation-access")
     public String identityOtherOrganisationAccess(Model model,
                                                   @PathVariable(UID_ATTRIBUTE) String uid,
@@ -251,18 +184,6 @@ public class IdentityController {
 
         model.addAttribute("activeTab", "roles");
         return "identity/roles";
-    }
-
-    private Identity getIdentity(Model model, String uid, CustomOAuth2Authentication auth, String attribute) {
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
-            log.info("No identity found for uid {}", uid);
-            return null;
-        }
-        Identity identity = optionalIdentity.get();
-        model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-        log.info("{} viewing {} for {}", auth.getUserEmail(), attribute, identity.getEmail());
-        return identity;
     }
 
     @PostMapping("/identities/active")

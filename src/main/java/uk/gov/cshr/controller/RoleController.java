@@ -25,6 +25,11 @@ public class RoleController {
         this.roleRepository = roleRepository;
     }
 
+    @ModelAttribute
+    public void addTab(Model model) {
+        model.addAttribute("tab", "roles");
+    }
+
     @GetMapping
     public String roles(Model model) {
         log.info("Listing all roles");

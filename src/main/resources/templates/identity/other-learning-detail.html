@@ -6,6 +6,8 @@
 </head>
 <body>
 <section layout:fragment="identity-content">
+    <a th:text="${backLinkText}" th:href="${backLink}" class="btn btn-link-contrast-fix pl-0 mb-3"></a>
+
     <h2 class="pb-3">Course Details</h2>
     <p class="pb-4" th:if="${course == null}">
         Course details not found.

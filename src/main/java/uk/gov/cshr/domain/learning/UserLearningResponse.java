@@ -1,12 +1,19 @@
 package uk.gov.cshr.domain.learning;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserLearningResponse {
     private List<UserLearningCourse> learning;
     private int page;
     private int size;
-    private long totalResults;
+    private int totalResults;
 }
