@@ -139,11 +139,11 @@ public class IdentityController extends BaseIdentityController {
             model.addAttribute("civilServantId", civilServantDto.getUserId());
 
             FormattedOrganisationalUnitNames formattedOrganisationNames = cslService.getFormattedOrganisationNames();
-            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getFormattedOrganisationalUnitNames());
+            model.addAttribute("formattedOrganisationNames", formattedOrganisationNames.getNames());
 
             List<FormattedOrganisationalUnitName> assignedFormattedOrganisationNames = emptyList();
             if (civilServantDto.getOtherOrganisationalUnits() != null) {
-                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getFormattedOrganisationalUnitNames()
+                Map<Long, FormattedOrganisationalUnitName> formattedOrgNamesMap = formattedOrganisationNames.getNames()
                         .stream()
                         .collect(toMap(FormattedOrganisationalUnitName::getId, o -> o));
                 Set<OrganisationalUnit> assignedOtherOrganisations = civilServantDto.getOtherOrganisationalUnits();
