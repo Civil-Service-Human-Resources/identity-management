@@ -545,7 +545,7 @@ public class IdentityControllerTest {
                 .andExpect(view().name("identity/other-organisation-access"))
                 .andExpect(model().attribute("activeTab", "other-organisation-access"))
                 .andExpect(model().attribute("identity", identity))
-                .andExpect(model().attribute("formattedOrganisationNames", formattedNames.getFormattedOrganisationalUnitNames()));
+                .andExpect(model().attribute("formattedOrganisationNames", formattedNames.getNames()));
         verify(csrsService).getCivilServant(UID);
         verify(cslService).getFormattedOrganisationNames();
         verify(reactivationService, never()).getLatestReactivationForEmail(anyString());
