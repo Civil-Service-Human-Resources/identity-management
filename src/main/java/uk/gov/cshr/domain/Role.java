@@ -1,6 +1,8 @@
 package uk.gov.cshr.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -8,6 +10,8 @@ import java.io.Serializable;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
 public class Role implements Serializable {
 
     @Id
@@ -36,31 +40,6 @@ public class Role implements Serializable {
         this.name = name;
         this.description = description;
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
 
     @Override
     public String toString() {

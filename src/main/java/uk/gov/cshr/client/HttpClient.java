@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -74,19 +73,6 @@ public class HttpClient implements IHttpClient {
     @Override
     public <T, R> T executeRequest(RequestEntity<R> request, Class<T> responseClass) {
         return executeRawRequest(request, responseClass).getBody();
-    }
-
-    @Override
-    public <T, R> T executeTypeReferenceRequest(RequestEntity<R> request, ParameterizedTypeReference<T> parameterizedTypeReference) {
-        try {
-            log.debug("Sending request: {}", request);
-            ResponseEntity<T> response = restTemplate.exchange(request, parameterizedTypeReference);
-            log.debug("Request response: {}", response);
-            return response.getBody();
-        } catch (RestClientResponseException e) {
-            throw handleRestClientException(e);
-        }
-
     }
 
 }

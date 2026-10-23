@@ -36,7 +36,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter))
@@ -45,9 +45,7 @@ public class SecurityConfig {
                         .logoutUrl("/sign-out")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .addLogoutHandler((request, response, authentication) -> {
-                            identityService.logoutUser();
-                        })
+                        .addLogoutHandler((_, _, _) -> identityService.logoutUser())
                         .logoutSuccessUrl(signoutUrl + "?returnTo=" + idmLoginUrl)
                 );
 

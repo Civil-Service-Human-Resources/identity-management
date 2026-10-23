@@ -28,16 +28,6 @@ public class UserAuthService implements IUserAuthService {
     }
 
     @Override
-    public String getUsername() {
-        CustomOAuth2Authentication auth = getAuthentication();
-        String username = auth.getToken().getClaimAsString("user_name");
-        if (StringUtils.isBlank(username)) {
-            throw new ClientAuthenticationErrorException("Learner Id is missing from authentication token");
-        }
-        return username;
-    }
-
-    @Override
     public IdentityDto getIdentity() {
         CustomOAuth2Authentication auth = getAuthentication();
         List<String> roles = new ArrayList<>(auth.getRoles());

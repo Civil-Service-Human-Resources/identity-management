@@ -25,7 +25,7 @@ public class Application {
         return new RestTemplate();
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 }

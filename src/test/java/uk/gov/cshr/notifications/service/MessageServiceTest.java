@@ -17,20 +17,20 @@ public class MessageServiceTest {
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "code";
 
-    private MessageDtoFactory messageDtoFactory = mock(MessageDtoFactory.class);
+    private final MessageDtoFactory messageDtoFactory = mock(MessageDtoFactory.class);
 
-    private String suspensionMessageTemplateId = "suspensionMessageTemplateId";
+    private final String suspensionMessageTemplateId = "suspensionMessageTemplateId";
 
-    private String deletionMessageTemplateId = "deletionMessageTemplateId";
+    private final String deletionMessageTemplateId = "deletionMessageTemplateId";
 
-    private String deletedMessageTemplateId = "deletedMessageTemplateId";
+    private final String deletedMessageTemplateId = "deletedMessageTemplateId";
 
-    private String reactivationTemplateId = "reactivationTemplateId";
+    private final String reactivationTemplateId = "reactivationTemplateId";
 
-    private String resetUrl = "resetUrl";
-    private String reactivationUrl = "www.example.com/reactivate/";
+    private final String resetUrl = "resetUrl";
+    private final String reactivationUrl = "www.example.com/reactivate/";
 
-    private MessageService messageService = new MessageService(
+    private final MessageService messageService = new MessageService(
             suspensionMessageTemplateId,
             deletionMessageTemplateId,
             deletedMessageTemplateId,

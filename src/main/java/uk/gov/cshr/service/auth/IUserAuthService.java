@@ -7,8 +7,6 @@ public interface IUserAuthService {
 
     Authentication getAuthentication();
 
-    String getUsername();
-
     uk.gov.cshr.client.model.IdentityDto getIdentity();
 
     Jwt getBearerTokenFromUserAuth();

@@ -15,9 +15,9 @@ import java.util.Date;
 @Service
 public class ReactivationService {
 
-    private ReactivationRepository reactivationRepository;
-    private MessageService messageService;
-    private NotificationService notificationService;
+    private final ReactivationRepository reactivationRepository;
+    private final MessageService messageService;
+    private final NotificationService notificationService;
 
     public ReactivationService(ReactivationRepository reactivationRepository,
                                MessageService messageService,

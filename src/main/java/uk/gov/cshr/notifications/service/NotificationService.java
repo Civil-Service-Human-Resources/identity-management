@@ -44,9 +44,7 @@ public class NotificationService {
             response.getSuccessfulEmailRefs().addAll(batchResponse.getSuccessfulEmailRefs());
         }
         if (!response.getFailedEmails().isEmpty()) {
-            response.getFailedEmails().forEach(failedEmail -> {
-                log.error("Email {} failed to send. Reason: {}", failedEmail.getResource(), failedEmail.getReason());
-            });
+            response.getFailedEmails().forEach(failedEmail -> log.error("Email {} failed to send. Reason: {}", failedEmail.getResource(), failedEmail.getReason()));
             throw new NotificationException(String.format("%s emails failed to send", response.getFailedEmails().size()));
         }
         return response;

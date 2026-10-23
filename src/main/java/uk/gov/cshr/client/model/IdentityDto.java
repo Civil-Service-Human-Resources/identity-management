@@ -12,7 +12,4 @@ public class IdentityDto {
     private String uid;
     private List<String> roles;
 
-    public boolean hasRole(String role) {
-        return this.roles.contains(role);
-    }
 }

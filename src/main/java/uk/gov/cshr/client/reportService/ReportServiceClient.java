@@ -34,7 +34,7 @@ public class ReportServiceClient implements IReportServiceClient {
 
     @Override
     public DeleteUserResults removeUserDetails(UpdateUserDetailsParams params) {
-        RequestEntity<UpdateUserDetailsParams> requestEntity = RequestEntity.put(deactivateRegisteredLearnersUrl).body(params);
+        RequestEntity<UpdateUserDetailsParams> requestEntity = RequestEntity.put(removeUserDataFromReportUrl).body(params);
         return httpClient.executeRequest(requestEntity, DeleteUserResults.class);
     }
 }
