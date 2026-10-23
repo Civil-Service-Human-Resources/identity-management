@@ -14,9 +14,7 @@ import static uk.gov.cshr.utils.DateUtil.formatDatetimeForFE;
 @Data
 public class Record {
 
-//    @JsonFormat(timezone = "UTC", shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSS")
     protected LocalDateTime lastUpdated;
-//    @JsonFormat(timezone = "UTC", shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSS")
     protected LocalDateTime completionDate;
     protected State status;
 

@@ -2,14 +2,13 @@ package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.config.CustomOAuth2Authentication;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
 
-import java.security.Principal;
 import java.util.Optional;
 
 
@@ -18,7 +17,7 @@ import java.util.Optional;
 @Slf4j
 @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ROLES)")
 public class RoleController {
-    
+
     private final RoleRepository roleRepository;
 
     public RoleController(RoleRepository roleRepository) {
@@ -43,9 +42,9 @@ public class RoleController {
     }
 
     @PostMapping("/create")
-    public String roleCreate(@ModelAttribute("role") Role role, Principal principal) {
+    public String roleCreate(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
 
-        log.info("{} created new role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} created new role {}", auth.getUserEmail(), role);
 
         if (role.getId() == null) {
             roleRepository.save(role);
@@ -56,8 +55,8 @@ public class RoleController {
 
     @GetMapping("/update/{id}")
     public String roleUpdate(Model model,
-                             @PathVariable("id") long id, Principal principal) {
-        log.info("{} updating role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
+                             @PathVariable("id") long id, CustomOAuth2Authentication auth) {
+        log.info("{} updating role for id {}", auth.getUserEmail(), id);
 
         Optional<Role> optionalRole = roleRepository.findById(id);
 
@@ -73,18 +72,18 @@ public class RoleController {
 
 
     @PostMapping("/update")
-    public String roleUpdate(@ModelAttribute("role") Role role, Principal principal) {
+    public String roleUpdate(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
         roleRepository.save(role);
 
-        log.info("{} updated role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} updated role {}", auth.getUserEmail(), role);
 
         return "redirect:/roles";
     }
 
     @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
-                             @PathVariable("id") long id, Principal principal) {
-        log.info("{} deleting role for id {}", ((OAuth2Authentication) principal).getPrincipal(), id);
+                             @PathVariable("id") long id, CustomOAuth2Authentication auth) {
+        log.info("{} deleting role for id {}", auth.getUserEmail(), id);
 
         Optional<Role> role = roleRepository.findById(id);
 
@@ -98,10 +97,10 @@ public class RoleController {
     }
 
     @PostMapping("/delete")
-    public String roleDelete(@ModelAttribute("role") Role role, Principal principal) {
+    public String roleDelete(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
         roleRepository.delete(role);
 
-        log.info("{} deleted role {}", ((OAuth2Authentication) principal).getPrincipal(), role);
+        log.info("{} deleted role {}", auth.getUserEmail(), role);
 
         return "redirect:/roles";
     }

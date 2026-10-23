@@ -1,8 +1,7 @@
 package uk.gov.cshr.notifications.service;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
+
+import org.junit.jupiter.api.Test;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
@@ -11,16 +10,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.*;
 
 public class MessageServiceTest {
 
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "code";
-    @Mock
-    private MessageDtoFactory messageDtoFactory;
+
+    private MessageDtoFactory messageDtoFactory = mock(MessageDtoFactory.class);
 
     private String suspensionMessageTemplateId = "suspensionMessageTemplateId";
 
@@ -33,20 +30,14 @@ public class MessageServiceTest {
     private String resetUrl = "resetUrl";
     private String reactivationUrl = "www.example.com/reactivate/";
 
-    private MessageService messageService;
-
-    @Before
-    public void setUp() {
-        initMocks(this);
-        this.messageService = new MessageService(
-                suspensionMessageTemplateId,
-                deletionMessageTemplateId,
-                deletedMessageTemplateId,
-                reactivationTemplateId,
-                resetUrl,
-                reactivationUrl,
-                messageDtoFactory);
-    }
+    private MessageService messageService = new MessageService(
+            suspensionMessageTemplateId,
+            deletionMessageTemplateId,
+            deletedMessageTemplateId,
+            reactivationTemplateId,
+            resetUrl,
+            reactivationUrl,
+            messageDtoFactory);
 
     @Test
     public void createReactivationMessage() {

@@ -1,9 +1,9 @@
 package uk.gov.cshr.domain;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class Invite implements Serializable {
     @Column(length = 150, nullable = false)
     private String forEmail;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "invite_role",
             joinColumns = @JoinColumn(name = "invite_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")

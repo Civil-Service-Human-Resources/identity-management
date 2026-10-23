@@ -1,6 +1,6 @@
 package uk.gov.cshr.service;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;

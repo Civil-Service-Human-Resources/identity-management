@@ -72,7 +72,7 @@ public class IdentityManagementService {
     public void markUsersForDeletion(List<Identity> identities) {
         log.info("Marking identities for deletion {}", identities.stream().map(Identity::getUid).collect(Collectors.joining(", ")));
         identities.forEach(i -> i.setDeletionNotificationSent(true));
-        identityRepository.save(identities);
+        identityRepository.saveAll(identities);
         identityRepository.flush();
         notificationService.send(identities.stream().map(messageService::createDeletionMessage).collect(Collectors.toList()));
     }
@@ -85,7 +85,7 @@ public class IdentityManagementService {
                     log.info("Deactivating a batch of {} total identities", identityBatch.size());
                     identityBatch.forEach(u -> u.setActive(false));
                     reportingService.deactivateRegisteredLearners(identityBatch.stream().map(Identity::getUid).collect(Collectors.toList()));
-                    identityRepository.save(identityBatch);
+                    identityRepository.saveAll(identityBatch);
                     identityRepository.flush();
                     notificationService.send(identityBatch.stream().map(messageService::createSuspensionMessage).collect(Collectors.toList()));
                 });

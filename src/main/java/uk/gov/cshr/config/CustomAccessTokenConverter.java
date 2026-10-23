@@ -1,32 +1,24 @@
 package uk.gov.cshr.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 @Slf4j
 @Component
-public class CustomAccessTokenConverter extends JwtAccessTokenConverter {
+public class CustomAccessTokenConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
+    private final JwtAuthenticationConverter delegate = new JwtAuthenticationConverter();
     private final String EMAIL_KEY = "email";
 
     @Override
-    public Map<String, ?> convertAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
-        log.debug("Getting user email address from access token");
-        Map<String, Object> vals = (Map<String, Object>) super.convertAccessToken(token, authentication);
-        vals.put(EMAIL_KEY, token.getAdditionalInformation().get(EMAIL_KEY));
-        return vals;
+    public AbstractAuthenticationToken convert(Jwt jwt) {
+        log.debug("Getting user email address from JWT token claims");
+        AbstractAuthenticationToken baseAuth = delegate.convert(jwt);
+        String email = jwt.getClaimAsString(EMAIL_KEY);
+        return new CustomOAuth2Authentication(jwt, baseAuth.getAuthorities(), email);
     }
-
-    @Override
-    public CustomOAuth2Authentication extractAuthentication(Map<String, ?> map) {
-        OAuth2Authentication authentication = super.extractAuthentication(map);
-        String email = (String) map.get(EMAIL_KEY);
-        return new CustomOAuth2Authentication(authentication.getOAuth2Request(), authentication.getUserAuthentication(), email);
-    }
-
 }

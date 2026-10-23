@@ -5,14 +5,7 @@ spring:
     url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
     username: ${DATASOURCE_USERNAME:root}
     password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        enable_lazy_load_no_trans: true
-        ddl-auto: none
 
 database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
@@ -21,7 +14,8 @@ database:
 
 server:
   port: 8081
-  context-path: /mgmt
+  servlet:
+    context-path: /mgmt
 
 logging:
   pattern:
@@ -33,7 +27,6 @@ logging:
 security:
   oauth2:
     resource:
-      prefer-token-info: true
       jwt:
         key-value: ${JWT_KEY:key}
     client:
@@ -43,6 +36,9 @@ security:
       user-authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
       reset-uri: ${identity.url}/reset
       reactivation-url: "${identity.url}/account/reactivate/%s"
+    refresh:
+      service-token-cache:
+        before-seconds-to-expire: ${REFRESH_SERVICETOKENCACHE_BEFORE_SECONDS_TOEXPIRE:0}
 
 identity:
   url: ${OAUTH_URL:http://localhost:8080}

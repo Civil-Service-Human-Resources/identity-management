@@ -2,38 +2,28 @@ package uk.gov.cshr.notifications.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.client.HttpClient;
+import uk.gov.cshr.client.notificationService.INotificationServiceClient;
 import uk.gov.cshr.exceptions.NotificationException;
 import uk.gov.cshr.notifications.dto.BulkSendEmail;
 import uk.gov.cshr.notifications.dto.BulkSendEmailResponse;
 import uk.gov.cshr.notifications.dto.MessageDto;
-import uk.gov.cshr.service.RequestEntityFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
 @Slf4j
 public class NotificationService {
 
-    private final HttpClient httpClient;
-
-    private final RequestEntityFactory requestEntityFactory;
-
-    private final String bulkEmailNotificationUrl;
+    private final INotificationServiceClient client;
     private final Integer bulkBatchSize;
 
-    public NotificationService(HttpClient httpClient, RequestEntityFactory requestEntityFactory,
-                               @Value("${notifications.bulkEmail}") String bulkEmailNotificationUrl,
-                                @Value("${notifications.bulkBatchSize}") Integer bulkBatchSize) {
-        this.httpClient = httpClient;
-        this.requestEntityFactory = requestEntityFactory;
-        this.bulkEmailNotificationUrl = bulkEmailNotificationUrl;
+    public NotificationService(INotificationServiceClient client,
+                               @Value("${notifications.bulkBatchSize}") Integer bulkBatchSize) {
+        this.client = client;
         this.bulkBatchSize = bulkBatchSize;
     }
 
@@ -46,11 +36,10 @@ public class NotificationService {
         List<List<MessageDto>> batches = IntStream.iterate(0, i -> i + bulkBatchSize)
                 .limit((int) Math.ceil((double) messages.size() / bulkBatchSize))
                 .mapToObj(i -> messages.subList(i, Math.min(i + bulkBatchSize, messages.size())))
-                .collect(Collectors.toList());
+                .toList();
         for (List<MessageDto> batch : batches) {
             BulkSendEmail body = new BulkSendEmail(batch);
-            RequestEntity<BulkSendEmail> requestEntity = requestEntityFactory.createPostRequest(bulkEmailNotificationUrl, body);
-            BulkSendEmailResponse batchResponse = httpClient.sendRequest(requestEntity, BulkSendEmailResponse.class).getBody();
+            BulkSendEmailResponse batchResponse = client.bulkSendEmails(body);
             response.getFailedEmails().addAll(batchResponse.getFailedEmails());
             response.getSuccessfulEmailRefs().addAll(batchResponse.getSuccessfulEmailRefs());
         }

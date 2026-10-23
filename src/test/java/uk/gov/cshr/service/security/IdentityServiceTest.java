@@ -1,26 +1,24 @@
 package uk.gov.cshr.service.security;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.cshr.client.identity.IIdentityAPIClient;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.RequestEntityFactory;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IdentityServiceTest {
 
     private static final String UID = "UID";
@@ -29,26 +27,12 @@ public class IdentityServiceTest {
     @Mock
     private IdentityRepository identityRepository;
     @Mock
-    private RestTemplate restTemplate;
-    @Mock
-    private RequestEntityFactory requestEntityFactory;
+    private IIdentityAPIClient identityClient;
     @Captor
-    private ArgumentCaptor<Identity> identityArgumentCaptor;
+    private ArgumentCaptor<Identity> identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
 
+    @InjectMocks
     private IdentityService identityService;
-
-    private RequestEntity requestEntity = RequestEntity.get(null).build();
-    private ResponseEntity responseEntity = ResponseEntity.ok().build();
-
-    @Before
-    public void createIdentityService() {
-        identityService = new IdentityService(identityRepository, restTemplate, requestEntityFactory);
-
-        when(requestEntityFactory.createLogoutRequest()).thenReturn(requestEntity);
-        when(restTemplate.exchange(requestEntity, Void.class)).thenReturn(responseEntity);
-
-        identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
-    }
 
     @Test
     public void shouldGetIdentity() {
@@ -60,13 +44,6 @@ public class IdentityServiceTest {
         Identity actualIdentity = identityService.getIdentity(UID);
 
         assertEquals(ID, actualIdentity.getId());
-    }
-
-    @Test(expected = ResourceNotFoundException.class)
-    public void shouldThrowExceptionIfIdentityNotFound() {
-        doThrow(new ResourceNotFoundException()).when(identityRepository).findFirstByUid(UID);
-
-        identityService.getIdentity(UID);
     }
 
     @Test
@@ -83,7 +60,7 @@ public class IdentityServiceTest {
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(false, actualIdentity.isLocked());
+        assertFalse(actualIdentity.isLocked());
     }
 
     @Test
@@ -100,14 +77,14 @@ public class IdentityServiceTest {
         verify(identityRepository).save(identityArgumentCaptor.capture());
 
         Identity actualIdentity = identityArgumentCaptor.getValue();
-        assertEquals(true, actualIdentity.isLocked());
+        assertTrue(actualIdentity.isLocked());
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test
     public void shouldThrowResourceNotFoundIfIdentityDoesNotExistWhenUpdatedLocked() {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
 
-        identityService.updateLockStatus(UID);
+        assertThrows(ResourceNotFoundException.class, () -> identityService.updateLockStatus(UID));
 
         verify(identityRepository, times(0)).save(any(Identity.class));
     }

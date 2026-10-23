@@ -1,11 +1,11 @@
 package uk.gov.cshr.domain;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.validator.constraints.Email;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Date;
