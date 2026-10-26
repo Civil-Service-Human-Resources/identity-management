@@ -23,16 +23,22 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '25'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+    displayName: 'Install Java 25'
+
   - task: Maven@4
     inputs:
       mavenPOMFile: 'pom.xml'
       mavenVersionOption: 'Default'
-      jdkVersionOption: '25'
-      javaHomeOption: 'JDKVersion'
-      jdkArchitectureOption: 'x64'
+      goals: 'clean package'
+      javaHomeOption: 'Path'
+      jdkDirectory: '$(JAVA_HOME_25_X64)'
       publishJUnitResults: false
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      goals: 'package'
     displayName: 'Install Maven@4 and Java@8 and package'
 
   - task: Docker@2
