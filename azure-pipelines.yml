@@ -27,6 +27,7 @@ steps:
     inputs:
       mavenPOMFile: 'pom.xml'
       mavenVersionOption: 'Default'
+      jdkVersionOption: '25'
       javaHomeOption: 'JDKVersion'
       jdkArchitectureOption: 'x64'
       publishJUnitResults: false
