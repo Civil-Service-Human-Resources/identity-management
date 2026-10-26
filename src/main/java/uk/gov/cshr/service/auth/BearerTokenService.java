@@ -20,7 +20,7 @@ public class BearerTokenService implements IBearerTokenService {
     private final Clock clock;
     private final OAuthTokenService oAuthTokenService;
     private final IUserAuthService userAuthService;
-    @Value("${security.oauth2.refresh.service-token-cache.before-seconds-to-expire}")
+    @Value("${spring.security.oauth2.refresh.service-token-cache.before-seconds-to-expire}")
     private long refreshServiceTokenCacheBeforeSecondsToExpire;
 
     public BearerTokenService(Clock clock, OAuthTokenService oAuthTokenService, IUserAuthService userAuthService) {

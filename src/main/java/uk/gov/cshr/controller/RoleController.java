@@ -2,10 +2,11 @@ package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.config.CustomOAuth2Authentication;
+import uk.gov.cshr.config.CustomOAuth2User;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
 
@@ -42,9 +43,9 @@ public class RoleController {
     }
 
     @PostMapping("/create")
-    public String roleCreate(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
+    public String roleCreate(@ModelAttribute("role") Role role, @AuthenticationPrincipal CustomOAuth2User auth) {
 
-        log.info("{} created new role {}", auth.getUserEmail(), role);
+        log.info("{} created new role {}", auth.getEmail(), role);
 
         if (role.getId() == null) {
             roleRepository.save(role);
@@ -55,8 +56,8 @@ public class RoleController {
 
     @GetMapping("/update/{id}")
     public String roleUpdate(Model model,
-                             @PathVariable("id") long id, CustomOAuth2Authentication auth) {
-        log.info("{} updating role for id {}", auth.getUserEmail(), id);
+                             @PathVariable("id") long id, @AuthenticationPrincipal CustomOAuth2User auth) {
+        log.info("{} updating role for id {}", auth.getEmail(), id);
 
         Optional<Role> optionalRole = roleRepository.findById(id);
 
@@ -72,18 +73,18 @@ public class RoleController {
 
 
     @PostMapping("/update")
-    public String roleUpdate(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
+    public String roleUpdate(@ModelAttribute("role") Role role, @AuthenticationPrincipal CustomOAuth2User auth) {
         roleRepository.save(role);
 
-        log.info("{} updated role {}", auth.getUserEmail(), role);
+        log.info("{} updated role {}", auth.getEmail(), role);
 
         return "redirect:/roles";
     }
 
     @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
-                             @PathVariable("id") long id, CustomOAuth2Authentication auth) {
-        log.info("{} deleting role for id {}", auth.getUserEmail(), id);
+                             @PathVariable("id") long id, @AuthenticationPrincipal CustomOAuth2User auth) {
+        log.info("{} deleting role for id {}", auth.getEmail(), id);
 
         Optional<Role> role = roleRepository.findById(id);
 
@@ -97,10 +98,10 @@ public class RoleController {
     }
 
     @PostMapping("/delete")
-    public String roleDelete(@ModelAttribute("role") Role role, CustomOAuth2Authentication auth) {
+    public String roleDelete(@ModelAttribute("role") Role role, @AuthenticationPrincipal CustomOAuth2User auth) {
         roleRepository.delete(role);
 
-        log.info("{} deleted role {}", auth.getUserEmail(), role);
+        log.info("{} deleted role {}", auth.getEmail(), role);
 
         return "redirect:/roles";
     }

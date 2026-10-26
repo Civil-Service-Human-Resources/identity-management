@@ -6,6 +6,26 @@ spring:
     username: ${DATASOURCE_USERNAME:root}
     password: ${DATASOURCE_PASSWORD:my-secret-pw}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  security:
+    oauth2:
+      resource:
+        jwt:
+          key-value: ${JWT_KEY:key}
+      client:
+        registration:
+          identity-service:
+            client-id: ${CLIENT_ID:management}
+            client-secret: ${CLIENT_SECRET:test}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          identity-service:
+            authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
+            token-uri: ${identity.url}${identity.oauthTokenEndpoint}
+
+      refresh:
+        service-token-cache:
+          before-seconds-to-expire: ${REFRESH_SERVICETOKENCACHE_BEFORE_SECONDS_TOEXPIRE:0}
 
 database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
@@ -24,22 +44,6 @@ logging:
     root: ${ROOT_LOGGING_LEVEL:DEBUG}
     uk.gov.cshr: ${CSHR_LOGGING_LEVEL:DEBUG}
 
-security:
-  oauth2:
-    resource:
-      jwt:
-        key-value: ${JWT_KEY:key}
-    client:
-      client-id: ${CLIENT_ID:management}
-      client-secret: ${CLIENT_SECRET:test}
-      access-token-uri: ${identity.url}${identity.oauthTokenEndpoint}
-      user-authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
-      reset-uri: ${identity.url}/reset
-      reactivation-url: "${identity.url}/account/reactivate/%s"
-    refresh:
-      service-token-cache:
-        before-seconds-to-expire: ${REFRESH_SERVICETOKENCACHE_BEFORE_SECONDS_TOEXPIRE:0}
-
 identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
@@ -47,6 +51,8 @@ identity:
   oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/logout}
   oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth2/token}
   oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth2/authorize}
+  reset-uri: ${identity.url}/reset
+  reactivation-url: "${identity.url}/account/reactivate/%s"
 
 learnerRecord:
   serviceUrl: ${LEARNER_RECORD_URL:http://localhost:9000}

@@ -12,10 +12,10 @@ public class BasicHttpClientConfig {
     @Value("${identity.url}")
     private String identityBaseUrl;
 
-    @Value("${security.oauth2.client.client-id}")
+    @Value("${spring.security.oauth2.client.registration.identity-service.client-id}")
     private String identityClientId;
 
-    @Value("${security.oauth2.client.client-secret}")
+    @Value("${spring.security.oauth2.client.registration.identity-service.client-secret}")
     private String identityClientSecret;
 
     public BasicHttpClientConfig(BasicHttpClientFactory basicHttpClientFactory) {

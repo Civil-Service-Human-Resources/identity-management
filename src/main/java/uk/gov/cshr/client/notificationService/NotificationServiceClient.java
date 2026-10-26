@@ -8,28 +8,17 @@ import org.springframework.stereotype.Component;
 import uk.gov.cshr.client.IHttpClient;
 import uk.gov.cshr.notifications.dto.BulkSendEmail;
 import uk.gov.cshr.notifications.dto.BulkSendEmailResponse;
-import uk.gov.cshr.notifications.dto.MessageDto;
 
 @Component
 @Slf4j
 public class NotificationServiceClient implements INotificationServiceClient {
-
-    @Value("${notifications.email}")
-    private String emails;
+    
     @Value("${notifications.bulkEmail}")
     private String bulkEmails;
     private final IHttpClient httpClient;
 
     public NotificationServiceClient(@Qualifier("notificationServiceHttpClient") IHttpClient httpClient) {
         this.httpClient = httpClient;
-    }
-
-    @Override
-    public void sendEmail(String emailName, MessageDto body) {
-        log.info("Sending email '{}'", emailName);
-        String url = String.format("%s/%s/send", emails, emailName);
-        RequestEntity<MessageDto> request = RequestEntity.post(url).body(body);
-        httpClient.executeRequest(request, Void.class);
     }
 
     @Override

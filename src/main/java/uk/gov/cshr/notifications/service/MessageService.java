@@ -31,8 +31,8 @@ public class MessageService {
                           @Value("${govNotify.templateName.accountDeletion}") String deletionMessageTemplateName,
                           @Value("${govNotify.templateName.accountDeleted}") String deletedMessageTemplateName,
                           @Value("${govNotify.templateName.reactivation}") String reactivationTemplateName,
-                          @Value("${security.oauth2.client.reset-uri}") String resetUrl,
-                          @Value("${security.oauth2.client.reactivation-url}") String reactivationUrl,
+                          @Value("${identity.reset-uri}") String resetUrl,
+                          @Value("${identity.reactivation-url}") String reactivationUrl,
                           MessageDtoFactory messageDtoFactory
     ) {
         this.messageDtoFactory = messageDtoFactory;
