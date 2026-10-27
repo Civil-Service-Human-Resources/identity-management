@@ -7,8 +7,6 @@ import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.cshr.client.IHttpClient;
 
-import java.net.URI;
-
 @Component
 @Slf4j
 public class IdentityAPIClient implements IIdentityAPIClient {
@@ -23,6 +21,6 @@ public class IdentityAPIClient implements IIdentityAPIClient {
 
     @Override
     public void logoutUser() {
-        client.executeRequest(RequestEntity.get(URI.create(oauthLogoutEndpoint)).build(), Void.class);
+        client.executeRequest(RequestEntity.get(oauthLogoutEndpoint).build(), Void.class);
     }
 }

@@ -47,12 +47,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/identity-service")
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oauth2UserService) // Bypasses user-info-uri and reads token directly
+                                .userService(oauth2UserService)
                         )
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/sign-out")
+                        .logoutUrl("/mgmt/sign-out")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .addLogoutHandler((_, _, _) -> identityService.logoutUser())
