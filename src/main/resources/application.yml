@@ -47,7 +47,7 @@ logging:
 identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
-  idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
+  idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt
   oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/logout}
   oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth2/token}
   oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth2/authorize}
