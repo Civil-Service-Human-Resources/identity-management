@@ -51,26 +51,26 @@ identity:
   oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/logout}
   oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth2/token}
   oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth2/authorize}
-  reset-uri: ${identity.url}/reset
-  reactivation-url: "${identity.url}/account/reactivate/%s"
+  reset-uri: "/reset"
+  reactivation-url: "/account/reactivate/%s"
 
 learnerRecord:
   serviceUrl: ${LEARNER_RECORD_URL:http://localhost:9000}
-  deleteUrl: "${learnerRecord.serviceUrl}/learner/%s"
+  deleteUrl: "/learner/%s"
 
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
-  deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
-  getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
-  getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
-  updateOtherOrgUnitsUrl: "${csrs.serviceUrl}/civilServants/%s"
+  deleteUrl: "/civilServants/%s/delete"
+  getCivilServant: "/civilServants/resource/%s"
+  getAgencyToken: "/agencyTokens"
+  updateOtherOrgUnitsUrl: "/civilServants/%s"
 
 cslService:
   serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
-  getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
-  getFormattedOrganisationNames: "${cslService.serviceUrl}/api/organisations/formatted_list"
-  getUserLearningUrl: "${cslService.serviceUrl}/api/learning"
-  getDetailedLearningUrl: "${cslService.serviceUrl}/api/learning/detailed"
+  getRequiredLearningUrl: "/api/learning/required/detailed"
+  getFormattedOrganisationNames: "/api/organisations/formatted_list"
+  getUserLearningUrl: "/api/learning"
+  getDetailedLearningUrl: "/api/learning/detailed"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
@@ -81,11 +81,11 @@ notifications:
 reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
   registeredLearners:
-    url: "${reporting.serviceUrl}/registered-learners"
-    deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
+    url: "/registered-learners"
+    deactivateUrl: "${reporting.registeredLearners.url}/registered-learners/deactivate"
     deactivationBatchSize: ${REPORTING_DEACTIVATION_BATCH_SIZE:50}
   api:
-    url: "${reporting.serviceUrl}/api/report"
+    url: "/api/report"
     removeUserDataFromReportUrl: "${reporting.api.url}/remove-user-details"
 
 accountPeriodsInMonths:

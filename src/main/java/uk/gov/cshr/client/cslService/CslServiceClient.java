@@ -1,6 +1,5 @@
 package uk.gov.cshr.client.cslService;
 
-import jakarta.ws.rs.core.UriBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.client.IHttpClient;
 import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
@@ -53,11 +53,11 @@ public class CslServiceClient implements ICslServiceClient {
     }
 
     public UserLearningResponse getOtherLearningForUser(String uid, GetOptionalLearningRecordParams params) {
-        String url = UriBuilder.fromPath(String.format("%s/%s", getUserLearningUrl, uid))
+        String url = UriComponentsBuilder.fromPath(String.format("%s/%s", getUserLearningUrl, uid))
                 .queryParam("page", params.getPage())
                 .queryParam("size", params.getSize())
                 .queryParam("q", params.getQ())
-                .queryParam("sort", params.getSortDirection()).toString();
+                .queryParam("sort", params.getSortDirection()).toUriString();
         RequestEntity<Void> requestEntity = RequestEntity.get(url).build();
         try {
             return httpClient.executeRequest(requestEntity, UserLearningResponse.class);
