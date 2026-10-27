@@ -1,6 +1,6 @@
 package uk.gov.cshr.service;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
@@ -15,9 +15,9 @@ import java.util.Date;
 @Service
 public class ReactivationService {
 
-    private ReactivationRepository reactivationRepository;
-    private MessageService messageService;
-    private NotificationService notificationService;
+    private final ReactivationRepository reactivationRepository;
+    private final MessageService messageService;
+    private final NotificationService notificationService;
 
     public ReactivationService(ReactivationRepository reactivationRepository,
                                MessageService messageService,

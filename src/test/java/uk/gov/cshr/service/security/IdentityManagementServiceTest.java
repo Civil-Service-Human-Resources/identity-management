@@ -1,11 +1,9 @@
 package uk.gov.cshr.service.security;
 
-import junit.framework.TestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.service.MessageService;
@@ -20,30 +18,34 @@ import uk.gov.cshr.service.reportingService.ReportingService;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class IdentityManagementServiceTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+public class IdentityManagementServiceTest {
 
-    @Mock
-    private IdentityRepository identityRepository;
-    @Mock
-    private MessageService messageService;
-    @Mock
-    private NotificationService notificationService;
-    @Mock
-    private LearnerRecordService learnerRecordService;
-    @Mock
-    private CsrsService csrsService;
-    @Mock
-    private ReportingService reportingService;
-    @Mock
-    private InviteService inviteService;
-    @Mock
-    private ResetService resetService;
+    private final IdentityRepository identityRepository = mock(IdentityRepository.class);
+    private final MessageService messageService = mock(MessageService.class);
+    private final NotificationService notificationService = mock(NotificationService.class);
+    private final LearnerRecordService learnerRecordService = mock(LearnerRecordService.class);
+    private final CsrsService csrsService = mock(CsrsService.class);
+    private final ReportingService reportingService = mock(ReportingService.class);
+    private final InviteService inviteService = mock(InviteService.class);
+    private final ResetService resetService = mock(ResetService.class);
 
     @InjectMocks
-    private IdentityManagementService identityManagementService;
+    private IdentityManagementService identityManagementService = new IdentityManagementService(
+            identityRepository,
+            messageService,
+            notificationService,
+            learnerRecordService,
+            csrsService,
+            reportingService,
+            inviteService,
+            resetService,
+            50
+    );
 
 
     @Test
@@ -77,13 +79,14 @@ public class IdentityManagementServiceTest extends TestCase {
         when(messageService.createDeletionMessage(identity)).thenReturn(messageDto);
 
         identityManagementService.markUsersForDeletion(list);
-        verify(identityRepository, times(1)).save(list);
+        verify(identityRepository, times(1)).saveAll(list);
         verify(messageService, times(1)).createDeletionMessage(identity);
         verify(notificationService, times(1)).send(Collections.singletonList(messageDto));
 
         assertTrue(identity.isDeletionNotificationSent());
     }
 
+    @Test
     public void testDeactivateIdentities() {
         Identity identity = new Identity();
         identity.setUid("uid");
@@ -96,9 +99,9 @@ public class IdentityManagementServiceTest extends TestCase {
 
         identityManagementService.deactivateIdentities(list);
         verify(reportingService, times(1)).deactivateRegisteredLearners(Collections.singletonList("uid"));
-        verify(identityRepository, times(1)).save(list);
+        verify(identityRepository, times(1)).saveAll(list);
         verify(messageService, times(1)).createSuspensionMessage(identity);
-        verify(notificationService, times(1)).send(messageDto);
+        verify(notificationService, times(1)).send(List.of(messageDto));
 
         assertFalse(identity.isActive());
     }

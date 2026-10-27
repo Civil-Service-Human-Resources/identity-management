@@ -1,8 +1,7 @@
 package uk.gov.cshr.notifications.service;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
+
+import org.junit.jupiter.api.Test;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
@@ -11,42 +10,34 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.*;
 
 public class MessageServiceTest {
 
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "code";
-    @Mock
-    private MessageDtoFactory messageDtoFactory;
 
-    private String suspensionMessageTemplateId = "suspensionMessageTemplateId";
+    private final MessageDtoFactory messageDtoFactory = mock(MessageDtoFactory.class);
 
-    private String deletionMessageTemplateId = "deletionMessageTemplateId";
+    private final String suspensionMessageTemplateId = "suspensionMessageTemplateId";
 
-    private String deletedMessageTemplateId = "deletedMessageTemplateId";
+    private final String deletionMessageTemplateId = "deletionMessageTemplateId";
 
-    private String reactivationTemplateId = "reactivationTemplateId";
+    private final String deletedMessageTemplateId = "deletedMessageTemplateId";
 
-    private String resetUrl = "resetUrl";
-    private String reactivationUrl = "www.example.com/reactivate/";
+    private final String reactivationTemplateId = "reactivationTemplateId";
 
-    private MessageService messageService;
+    private final String resetUrl = "resetUrl";
+    private final String reactivationUrl = "www.example.com/reactivate/";
 
-    @Before
-    public void setUp() {
-        initMocks(this);
-        this.messageService = new MessageService(
-                suspensionMessageTemplateId,
-                deletionMessageTemplateId,
-                deletedMessageTemplateId,
-                reactivationTemplateId,
-                resetUrl,
-                reactivationUrl,
-                messageDtoFactory);
-    }
+    private final MessageService messageService = new MessageService(
+            suspensionMessageTemplateId,
+            deletionMessageTemplateId,
+            deletedMessageTemplateId,
+            reactivationTemplateId,
+            resetUrl,
+            reactivationUrl,
+            messageDtoFactory);
 
     @Test
     public void createReactivationMessage() {

@@ -1,13 +1,12 @@
 package uk.gov.cshr.service.dataRetentionJob;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.web.client.RestTemplate;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.service.RequestEntityFactory;
 import uk.gov.cshr.service.dataRetentionJob.tasks.BaseTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
@@ -21,18 +20,13 @@ import java.util.*;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DataRetentionTasksTest {
 
     @Mock
     private IdentityRepository identityRepository;
     @Mock
     private IdentityManagementService identityManagementService;
-
-    @Mock
-    private RestTemplate restTemplate;
-    @Mock
-    private RequestEntityFactory requestEntityFactory;
 
     private final Clock clock = Clock.fixed(Instant.parse("2024-01-01T10:00:00.000Z"), ZoneId.of("UTC"));
 
@@ -48,14 +42,14 @@ public class DataRetentionTasksTest {
         return getDeletionTask(identityManagementService);
     }
 
-    private DeletionTask getDeletionTask(IdentityManagementService identityManagementService){
+    private DeletionTask getDeletionTask(IdentityManagementService identityManagementService) {
         return new DeletionTask(clock, identityRepository, identityManagementService);
     }
 
     /*
-    * The deactivation job should take the users it gets from the SQL statement and
-    * set the active field to false, agencyTokenUid to null and send the relevant email notification
-    * */
+     * The deactivation job should take the users it gets from the SQL statement and
+     * set the active field to false, agencyTokenUid to null and send the relevant email notification
+     * */
     @Test
     public void deactivationUpdatesSuccessfullyApplied() {
 
@@ -77,9 +71,9 @@ public class DataRetentionTasksTest {
     }
 
     /*
-    * The deletion notification job should take the users it gets from the SQL statement and
-    * set the deletionNotificationSent field to true, as well as send the relevant email notification
-    * */
+     * The deletion notification job should take the users it gets from the SQL statement and
+     * set the deletionNotificationSent field to true, as well as send the relevant email notification
+     * */
     @Test
     public void deletionNotificationUpdatesSuccessfullyApplied() {
 
@@ -100,10 +94,10 @@ public class DataRetentionTasksTest {
     }
 
     /*
-    * The deletion job should take the users it gets from the SQL statement and
-    * call the identityService.deleteIdentity function on each one using the UID.
-    * It should also send the relevant email notification.
-    * */
+     * The deletion job should take the users it gets from the SQL statement and
+     * call the identityService.deleteIdentity function on each one using the UID.
+     * It should also send the relevant email notification.
+     * */
     @Test
     public void deletionJobSuccessfulRun() {
 
@@ -122,9 +116,9 @@ public class DataRetentionTasksTest {
     }
 
     /*
-    * Test that the BaseTask update user function carries on even when it hits an exception
-    * updating a single user
-    * */
+     * Test that the BaseTask update user function carries on even when it hits an exception
+     * updating a single user
+     * */
     @Test
     public void testTaskContinuationOnUserUpdateFail() {
         List<Identity> usersToReturn = new ArrayList<>();
@@ -149,9 +143,10 @@ public class DataRetentionTasksTest {
     }
 
     /*
-    * Test that the deletion notification job and deactivation job continue running
-    * even when the deletion job fails.
-    * */
+     * Test that the deletion notification job and deactivation job continue running
+     * even when the deletion job fails.
+     * */
+    @Test
     public void testJobContinuationWhenOneJobFails() {
         List<Identity> usersToReturn = new ArrayList<>();
         Identity genericUser = new Identity();
@@ -160,7 +155,7 @@ public class DataRetentionTasksTest {
         // Deletion job
         doThrow(new RuntimeException()).when(identityRepository).findForDeletion(any());
         // Deletion notification job
-        when(identityRepository.findForDeactivation(any()))
+        when(identityRepository.findForDeletionNotification(any()))
                 .thenReturn(usersToReturn);
         // Deactivation job
         when(identityRepository.findForDeactivation(any())).thenReturn(usersToReturn);

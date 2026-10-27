@@ -1,9 +1,10 @@
 package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import uk.gov.cshr.config.CustomOAuth2Authentication;
+import uk.gov.cshr.config.CustomOAuth2User;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.repository.IdentityRepository;
 
@@ -31,15 +32,15 @@ public abstract class BaseIdentityController {
         model.addAttribute("tab", "identities");
     }
 
-    protected Identity getIdentity(Model model, String uid, CustomOAuth2Authentication auth, String attribute) {
+    protected Identity getIdentity(Model model, String uid, @AuthenticationPrincipal CustomOAuth2User auth, String attribute) {
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-        if (!optionalIdentity.isPresent()) {
+        if (optionalIdentity.isEmpty()) {
             log.info("No identity found for uid {}", uid);
             return null;
         }
         Identity identity = optionalIdentity.get();
         model.addAttribute(IDENTITY_ATTRIBUTE, identity);
-        log.info("{} viewing {} for {}", auth.getUserEmail(), attribute, identity.getEmail());
+        log.info("{} viewing {} for {}", auth.getEmail(), attribute, identity.getEmail());
         return identity;
     }
 

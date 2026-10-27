@@ -2,10 +2,11 @@ package uk.gov.cshr.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.config.CustomOAuth2Authentication;
+import uk.gov.cshr.config.CustomOAuth2User;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
@@ -36,9 +37,9 @@ public class OtherLearningController extends BaseIdentityController {
                                         @RequestParam(value = "page", defaultValue = "0") int page,
                                         @RequestParam(value = "query", required = false, defaultValue = "") String query,
                                         @RequestParam(value = "sort", required = false, defaultValue = "ASC") String sort,
-                                        CustomOAuth2Authentication auth) {
+                                        @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "other learning");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
@@ -65,9 +66,9 @@ public class OtherLearningController extends BaseIdentityController {
     public String identityOtherLearningDetail(Model model,
                                               @PathVariable String uid,
                                               @PathVariable String courseId,
-                                              CustomOAuth2Authentication auth, @RequestHeader(value = "referer", required = false) URI referer) {
+                                              @AuthenticationPrincipal CustomOAuth2User auth, @RequestHeader(value = "referer", required = false) URI referer) {
         Identity identity = getIdentity(model, uid, auth, "other learning detail");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 

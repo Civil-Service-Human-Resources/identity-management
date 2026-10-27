@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.config.CustomOAuth2Authentication;
+import uk.gov.cshr.config.CustomOAuth2User;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
@@ -29,7 +30,7 @@ import uk.gov.cshr.service.security.IdentityService;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mysql.cj.util.StringUtils.isNullOrEmpty;
+import static ch.qos.logback.core.util.StringUtil.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
@@ -45,7 +46,7 @@ public class IdentityController extends BaseIdentityController {
     private final RoleRepository roleRepository;
     private final IdentityService identityService;
     private final ReactivationService reactivationService;
-    private final CsrsService csrsService;
+    private final CsrsService client;
     private final CslService cslService;
     private final IdentityManagementService identityManagementService;
 
@@ -54,15 +55,15 @@ public class IdentityController extends BaseIdentityController {
         this.roleRepository = roleRepository;
         this.identityService = identityService;
         this.reactivationService = reactivationService;
-        this.csrsService = csrsService;
+        this.client = csrsService;
         this.cslService = cslService;
         this.identityManagementService = identityManagementService;
     }
 
     @GetMapping("/identities")
-    public String identities(CustomOAuth2Authentication auth, Model model, Pageable pageable,
+    public String identities(@AuthenticationPrincipal CustomOAuth2User auth, Model model, Pageable pageable,
                              @RequestParam(value = "query", required = false) String query) {
-        log.info("{}{}", format("User %s searching for identities", auth.getUserEmail()), isNullOrEmpty(query) ? "" : format(" with query '%s'", query));
+        log.info("{}{}", format("User %s searching for identities", auth.getEmail()), isNullOrEmpty(query) ? "" : format(" with query '%s'", query));
 
         Page<Identity> pages = query == null || query.isEmpty() ? identityRepository.findAll(pageable) : identityRepository.findAllByEmailContains(pageable, query);
 
@@ -76,9 +77,9 @@ public class IdentityController extends BaseIdentityController {
     @GetMapping("/identities/update/{uid}")
     public String identityProfile(Model model,
                                   @PathVariable(UID_ATTRIBUTE) String uid,
-                                  CustomOAuth2Authentication auth) {
+                                  @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "profile");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
@@ -86,13 +87,13 @@ public class IdentityController extends BaseIdentityController {
         String tokenUid = identity.getAgencyTokenUid();
         String agencyToken = "None";
         if (tokenUid != null) {
-            AgencyTokenDto agencyTokenDto = csrsService.getAgencyToken(identity.getAgencyTokenUid());
+            AgencyTokenDto agencyTokenDto = client.getAgencyToken(identity.getAgencyTokenUid());
             if (agencyTokenDto != null) {
                 agencyToken = agencyTokenDto.getToken();
             }
         }
         identity.setLastReactivation(this.reactivationService.getLatestReactivationForEmail(identity.getEmail()));
-        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        CivilServantDto civilServantDto = client.getCivilServant(uid);
 
         model.addAttribute("profile", civilServantDto);
         model.addAttribute("token", agencyToken);
@@ -105,15 +106,15 @@ public class IdentityController extends BaseIdentityController {
     @GetMapping("/identities/update/{uid}/required-learning")
     public String identityRequiredLearning(Model model,
                                            @PathVariable(UID_ATTRIBUTE) String uid,
-                                           CustomOAuth2Authentication auth) {
+                                           @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "required learning");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
         // --- Required Learning-specific data ---
         List<?> requiredCourses = emptyList();
-        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        CivilServantDto civilServantDto = client.getCivilServant(uid);
         if (civilServantDto != null && civilServantDto.isProfileComplete()) {
             requiredCourses = cslService.getRequiredLearningForUser(uid).getCourses();
         }
@@ -127,14 +128,14 @@ public class IdentityController extends BaseIdentityController {
     @GetMapping("/identities/update/{uid}/other-organisation-access")
     public String identityOtherOrganisationAccess(Model model,
                                                   @PathVariable(UID_ATTRIBUTE) String uid,
-                                                  CustomOAuth2Authentication auth) {
+                                                  @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "other organisation access");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
         // --- Other Org-specific data ---
-        CivilServantDto civilServantDto = csrsService.getCivilServant(uid);
+        CivilServantDto civilServantDto = client.getCivilServant(uid);
         if (civilServantDto != null) {
             model.addAttribute("civilServantId", civilServantDto.getUserId());
 
@@ -171,9 +172,9 @@ public class IdentityController extends BaseIdentityController {
     @GetMapping("/identities/update/{uid}/roles")
     public String identityRoles(Model model,
                                 @PathVariable(UID_ATTRIBUTE) String uid,
-                                CustomOAuth2Authentication auth) {
+                                @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "roles");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
 
@@ -188,12 +189,12 @@ public class IdentityController extends BaseIdentityController {
 
     @PostMapping("/identities/active")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updateActive(CustomOAuth2Authentication auth,
+    public String updateActive(@AuthenticationPrincipal CustomOAuth2User auth,
                                @RequestParam(UID_ATTRIBUTE) String uid,
                                RedirectAttributes redirectAttributes) {
         try {
             Identity identity = identityService.getIdentity(uid);
-            log.info("{} attempting to deactivate identity {}", auth.getUserEmail(), identity.getEmail());
+            log.info("{} attempting to deactivate identity {}", auth.getEmail(), identity.getEmail());
 
             if (identity.isActive()) {
                 identityManagementService.deactivateIdentity(identity);
@@ -225,12 +226,12 @@ public class IdentityController extends BaseIdentityController {
 
     @PostMapping("/identities/reactivate")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String reactivateUser(CustomOAuth2Authentication auth,
+    public String reactivateUser(@AuthenticationPrincipal CustomOAuth2User auth,
                                  @RequestParam("uid") String uid,
                                  RedirectAttributes redirectAttributes) {
         try {
             Identity identity = identityService.getIdentity(uid);
-            log.info("{} attempting to activate identity {}", auth.getUserEmail(), identity.getEmail());
+            log.info("{} attempting to activate identity {}", auth.getEmail(), identity.getEmail());
             if (identity.isActive()) {
                 redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_ALREADY_ACTIVE_ERROR);
                 return String.format(REDIRECT_IDENTITY_UPDATE, uid);
@@ -251,18 +252,18 @@ public class IdentityController extends BaseIdentityController {
 
     @PostMapping("/identities/locked")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String updateLockStatus(CustomOAuth2Authentication auth,
+    public String updateLockStatus(@AuthenticationPrincipal CustomOAuth2User auth,
                                    @RequestParam(UID_ATTRIBUTE) String uid,
                                    RedirectAttributes redirectAttributes) {
-        log.info("{} attempting to lock identity {}", auth.getUserEmail(), uid);
+        log.info("{} attempting to lock identity {}", auth.getEmail(), uid);
         try {
             Identity identity = identityService.updateLockStatus(uid);
-            if(identity.isLocked()) {
+            if (identity.isLocked()) {
                 redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is locked successfully");
             } else {
                 redirectAttributes.addFlashAttribute(SUCCESS_ATTRIBUTE, "Account is unlocked successfully");
             }
-            log.info("{} has updated the account lock status for identity {}", auth.getUserEmail(), uid);
+            log.info("{} has updated the account lock status for identity {}", auth.getEmail(), uid);
             return String.format(REDIRECT_IDENTITY_UPDATE, uid);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, IDENTITY_RESOURCE_NOT_FOUND_ERROR);
@@ -275,7 +276,7 @@ public class IdentityController extends BaseIdentityController {
 
     @PostMapping("/identities/{uid}/update_roles")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)")
-    public String identityUpdateRoles(CustomOAuth2Authentication auth,
+    public String identityUpdateRoles(@AuthenticationPrincipal CustomOAuth2User auth,
                                       @PathVariable(UID_ATTRIBUTE) String uid,
                                       @RequestParam(value = "roleId", required = false) ArrayList<String> roleId,
                                       RedirectAttributes redirectAttributes) {
@@ -283,7 +284,7 @@ public class IdentityController extends BaseIdentityController {
 
         if (optionalIdentity.isPresent() && roleId != null) {
             Identity identity = optionalIdentity.get();
-            log.info("{} attempting to set the following roles on identity {}: {}", auth.getUserEmail(),
+            log.info("{} attempting to set the following roles on identity {}: {}", auth.getEmail(),
                     identity.getEmail(), String.join(", ", roleId));
 
             Set<Role> roleSet = new HashSet<>();
@@ -309,9 +310,9 @@ public class IdentityController extends BaseIdentityController {
 
     @GetMapping("/identities/delete/{uid}")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth) {
+    public String getIdentityDelete(Model model, @PathVariable(UID_ATTRIBUTE) String uid, @AuthenticationPrincipal CustomOAuth2User auth) {
         Identity identity = getIdentity(model, uid, auth, "identity delete");
-        if(identity == null) {
+        if (identity == null) {
             return REDIRECT_IDENTITIES_LIST;
         }
         return "identity/delete";
@@ -320,9 +321,9 @@ public class IdentityController extends BaseIdentityController {
     @Transactional
     @PostMapping("/identities/delete")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)")
-    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, CustomOAuth2Authentication auth,
+    public String identityDelete(@RequestParam(UID_ATTRIBUTE) String uid, @AuthenticationPrincipal CustomOAuth2User auth,
                                  RedirectAttributes redirectAttributes) {
-        log.info("{} deleting identity {}", auth.getUserEmail(), uid);
+        log.info("{} deleting identity {}", auth.getEmail(), uid);
         identityRepository.findFirstByUid(uid)
                 .ifPresent(identity -> {
                     String email = identity.getEmail();
@@ -335,14 +336,14 @@ public class IdentityController extends BaseIdentityController {
     @Transactional
     @PostMapping("/identities/{uid}/other-organisations/add")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
-    public String assignOtherOrganisationalUnits(CustomOAuth2Authentication auth,
-                  @PathVariable("uid") String uid,
-                  @RequestParam("civilServantId") String civilServantId,
-                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
-                            ArrayList<String> alreadyAssignedOtherOrganisationIds,
-                  @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
-                  RedirectAttributes redirectAttributes) {
-        log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+    public String assignOtherOrganisationalUnits(@AuthenticationPrincipal CustomOAuth2User auth,
+                                                 @PathVariable("uid") String uid,
+                                                 @RequestParam("civilServantId") String civilServantId,
+                                                 @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
+                                                 ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                                                 @RequestParam(value = "otherOrgIdsToAdd", required = false) ArrayList<String> otherOrgIdsToAdd,
+                                                 RedirectAttributes redirectAttributes) {
+        log.info("{} is adding other organisation ids {} for civilServantId {} and identity id {}", auth.getEmail(),
                 otherOrgIdsToAdd, civilServantId, uid);
         if (otherOrgIdsToAdd != null && !otherOrgIdsToAdd.isEmpty()) {
             List<String> otherOrganisationalUnits = new ArrayList<>();
@@ -365,14 +366,14 @@ public class IdentityController extends BaseIdentityController {
     @Transactional
     @PostMapping("/identities/{uid}/other-organisations/{otherOrgIdToRemove}/remove")
     @PreAuthorize("hasPermission(returnObject, T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)")
-    public String removeOtherOrganisationalUnits(CustomOAuth2Authentication auth,
-                  @PathVariable("uid") String uid,
-                  @PathVariable("otherOrgIdToRemove") String otherOrgIdToRemove,
-                  @RequestParam("civilServantId") String civilServantId,
-                  @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
-                          ArrayList<String> alreadyAssignedOtherOrganisationIds,
-                  RedirectAttributes redirectAttributes) {
-        log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getUserEmail(),
+    public String removeOtherOrganisationalUnits(@AuthenticationPrincipal CustomOAuth2User auth,
+                                                 @PathVariable("uid") String uid,
+                                                 @PathVariable("otherOrgIdToRemove") String otherOrgIdToRemove,
+                                                 @RequestParam("civilServantId") String civilServantId,
+                                                 @RequestParam(value = "alreadyAssignedOtherOrganisationIds", required = false)
+                                                 ArrayList<String> alreadyAssignedOtherOrganisationIds,
+                                                 RedirectAttributes redirectAttributes) {
+        log.info("{} is removing other organisation id {} for civilServantId {} and identity id {}", auth.getEmail(),
                 otherOrgIdToRemove, civilServantId, uid);
         List<String> otherOrganisationalUnits = new ArrayList<>();
         if (alreadyAssignedOtherOrganisationIds == null || alreadyAssignedOtherOrganisationIds.isEmpty()) {
@@ -393,7 +394,7 @@ public class IdentityController extends BaseIdentityController {
     }
 
     private void updateOtherOrganisationalUnits(String civilServantId, String uid, List<String> otherOrganisationalUnits) {
-        String email ="";
+        String email = "";
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
@@ -401,7 +402,7 @@ public class IdentityController extends BaseIdentityController {
         }
         UpdateOtherOrgUnitsParams updateOtherOrgUnitsParams = new UpdateOtherOrgUnitsParams(otherOrganisationalUnits);
         log.debug("Updating other organisational units {} for user {} ({})", updateOtherOrgUnitsParams, email, uid);
-        String updateOtherOrgUnitsResult = csrsService.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
+        String updateOtherOrgUnitsResult = client.updateOtherOrganisationalUnits(civilServantId, updateOtherOrgUnitsParams);
         log.info("Other organisational units update is successful for user {} ({}), update result is {}", email, uid, updateOtherOrgUnitsResult);
     }
 }

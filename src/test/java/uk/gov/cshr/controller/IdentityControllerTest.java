@@ -1,21 +1,16 @@
 package uk.gov.cshr.controller;
 
-import org.glassfish.jersey.servlet.WebConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.cshr.config.CustomPermissionEvaluator;
-import uk.gov.cshr.config.FrontendAuthService;
-import uk.gov.cshr.config.MethodSecurityConfig;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.Role;
@@ -30,18 +25,18 @@ import uk.gov.cshr.service.csrs.*;
 import uk.gov.cshr.service.security.IdentityManagementService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
-import uk.gov.cshr.utils.CustomOAuth2AuthenticationProvider;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -49,12 +44,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.cshr.utils.ApplicationConstants.SUCCESS_ATTRIBUTE;
 import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebMvcTest(IdentityController.class)
-@ContextConfiguration(classes = {WebConfig.class, MethodSecurityConfig.class, OtherLearningController.class, BaseIdentityController.class, IdentityController.class, FrontendAuthService.class, CustomOAuth2AuthenticationProvider.class,
-CustomPermissionEvaluator.class})
-@EnableSpringDataWebSupport
+
+@ActiveProfiles({"h2"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class IdentityControllerTest {
+
+    @Autowired
+    private WebApplicationContext context;
+
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+    }
 
     private static final String CODE = "CODE";
     private static final String UID = "UID";
@@ -67,42 +73,34 @@ public class IdentityControllerTest {
     private static final String REDIRECT_IDENTITY_OTHER_ORGANISATION_ACCESS = "/identities/update/%s/other-organisation-access";
     private static final String REDIRECT_IDENTITY_REACTIVATE = "/identities/reactivate/";
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @MockitoBean
     private IdentityRepository identityRepository;
 
-    @MockBean
+    @MockitoBean
     private CsrsService csrsService;
 
-    @MockBean
+    @MockitoBean
     private CslService cslService;
 
-    @MockBean
+    @MockitoBean
     private IdentityManagementService identityManagementService;
 
-    @MockBean
+    @MockitoBean
     private RoleRepository roleRepository;
 
-    @MockBean
+    @MockitoBean
     private IdentityService identityService;
 
-    @MockBean
+    @MockitoBean
     private ReactivationService reactivationService;
 
     @Captor
-    private ArgumentCaptor<Identity> identityArgumentCaptor;
+    private ArgumentCaptor<Identity> identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
 
     private Identity identity;
 
-    @Before
-    public void setUp() {
-        identityArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
-        getIdentity();
-    }
-
-    private void getIdentity() {
+    @BeforeEach
+    public void before() {
         identity = new Identity();
         identity.setLocked(false);
         identity.setActive(true);
@@ -114,10 +112,10 @@ public class IdentityControllerTest {
     @Test
     public void updateActiveShouldSetActiveToFalse() throws Exception {
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("success", "Account is deactivated successfully"))
@@ -129,10 +127,10 @@ public class IdentityControllerTest {
     public void updateActiveShouldRedirectToReactivateConfirmationIfNotActive() throws Exception {
         identity.setActive(false);
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITY_REACTIVATE + UID));
@@ -143,10 +141,10 @@ public class IdentityControllerTest {
     public void updateActiveShouldThrowResourceNotFound() throws Exception {
         doThrow(new ResourceNotFoundException()).when(identityService).getIdentity(UID);
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
@@ -158,10 +156,10 @@ public class IdentityControllerTest {
     public void updateActiveShouldThrowGeneralException() throws Exception {
         doThrow(new RuntimeException()).when(identityService).getIdentity(UID);
         mockMvc.perform(
-                post("/identities/active")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/active")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(model().attributeDoesNotExist("success"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
@@ -173,8 +171,8 @@ public class IdentityControllerTest {
     public void shouldGetReactivateUserConfirmation() throws Exception {
         identity.setActive(false);
         mockMvc.perform(
-                get("/identities/reactivate/" + UID)
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
+                        get("/identities/reactivate/" + UID)
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
                 .andExpect(model().attribute("identity", identity))
                 .andExpect(model().attribute("uid", UID))
                 .andExpect(status().is2xxSuccessful())
@@ -190,10 +188,10 @@ public class IdentityControllerTest {
         when(reactivationService.createReactivationRequest(EMAIL)).thenReturn(reactivation);
         doNothing().when(reactivationService).sendReactivationEmail(identity, reactivation);
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("success", "Reactivation verification email sent"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
@@ -202,10 +200,10 @@ public class IdentityControllerTest {
     @Test
     public void shouldGetRedirectIfUserAlreadyActiveAndReactivationRequested() throws Exception {
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_ALREADY_ACTIVE_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
@@ -215,10 +213,10 @@ public class IdentityControllerTest {
     public void shouldHandleResourceNotFoundIfIdentityNotFound() throws Exception {
         doThrow(new ResourceNotFoundException()).when(identityService).getIdentity(UID);
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -228,10 +226,10 @@ public class IdentityControllerTest {
     public void shouldExceptionIfTechnicalExceptionOccurs() throws Exception {
         doThrow(new RuntimeException()).when(identityService).getIdentity(UID);
         mockMvc.perform(
-                post("/identities/reactivate/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/reactivate")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -241,9 +239,9 @@ public class IdentityControllerTest {
     public void shouldUnLockIdentity() throws Exception {
         when(identityService.updateLockStatus(UID)).thenReturn(identity);
         mockMvc.perform(
-                        post("/identities/locked/")
+                        post("/identities/locked")
                                 .with(csrf())
-                                .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
                                 .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("success", "Account is unlocked successfully"))
@@ -255,10 +253,10 @@ public class IdentityControllerTest {
         identity.setLocked(true);
         when(identityService.updateLockStatus(UID)).thenReturn(identity);
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("success", "Account is locked successfully"))
                 .andExpect(redirectedUrl(String.format(REDIRECT_IDENTITY_UPDATE, UID)));
@@ -268,10 +266,10 @@ public class IdentityControllerTest {
     public void shouldHandleExceptionIfIdentityNotFoundWhenUpdatingLocked() throws Exception {
         doThrow(new ResourceNotFoundException()).when(identityService).updateLockStatus(UID);
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.IDENTITY_RESOURCE_NOT_FOUND_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -281,10 +279,10 @@ public class IdentityControllerTest {
     public void shouldHandleExceptionIfTechnicalExceptionOccursWhenUpdatingLocked() throws Exception {
         doThrow(new RuntimeException()).when(identityService).updateLockStatus(UID);
         mockMvc.perform(
-                post("/identities/locked/")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("uid", UID))
+                        post("/identities/locked")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -298,11 +296,11 @@ public class IdentityControllerTest {
         when(roleRepository.findById(1)).thenReturn(Optional.of(learnerRole));
         when(roleRepository.findById(2)).thenReturn(Optional.of(adminRole));
         mockMvc.perform(
-                post("/identities/" + UID + "/update_roles")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2"))
+                        post("/identities/" + UID + "/update_roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2"))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Roles updated successfully"))
                 .andExpect(status().is3xxRedirection())
@@ -324,12 +322,12 @@ public class IdentityControllerTest {
         when(roleRepository.findById(3)).thenReturn(Optional.empty());
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         mockMvc.perform(
-                post("/identities/" + UID + "/update_roles")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2")
-                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                        post("/identities/" + UID + "/update_roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2")
+                                .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -340,12 +338,12 @@ public class IdentityControllerTest {
     public void updateIdentityRolesShouldRedirectIfIdentityNotPresent() throws Exception {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
         mockMvc.perform(
-                post("/identities/" + UID + "/update_roles")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
-                        .accept(APPLICATION_JSON).param("roleId", "1")
-                        .accept(APPLICATION_JSON).param("roleId", "2")
-                        .accept(APPLICATION_JSON).param("roleId", "3"))
+                        post("/identities/" + UID + "/update_roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY")))))
+                                .accept(APPLICATION_JSON).param("roleId", "1")
+                                .accept(APPLICATION_JSON).param("roleId", "2")
+                                .accept(APPLICATION_JSON).param("roleId", "3"))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -356,9 +354,9 @@ public class IdentityControllerTest {
     public void updateIdentityRolesShouldRedirectIfRoleParamNotPresent() throws Exception {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.empty());
         mockMvc.perform(
-                post("/identities/" + UID + "/update_roles")
-                        .with(csrf())
-                        .with(authentication(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
+                        post("/identities/" + UID + "/update_roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(new HashSet<>(Collections.singletonList("IDENTITY_MANAGE_IDENTITY"))))))
                 .andExpect(flash().attribute("status", ApplicationConstants.SYSTEM_ERROR))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(REDIRECT_IDENTITIES));
@@ -368,7 +366,7 @@ public class IdentityControllerTest {
     @Test
     public void testAssignOtherOrganisationalUnitsSuccess() throws Exception {
         String civilServantId = "100";
-        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY", "IDENTITY_MANAGE_ORGANISATIONS"));
         String alreadyAssignedOtherOrganisationIds = "10,11";
         String otherOrgIdsToAdd = "1";
         List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
@@ -379,7 +377,7 @@ public class IdentityControllerTest {
         mockMvc.perform(
                         post("/identities/" + UID + "/other-organisations/add")
                                 .with(csrf())
-                                .with(authentication(getOAuth2User(idmAdminRoles)))
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles)))
                                 .accept(APPLICATION_JSON).param("uid", UID)
                                 .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
                                 .accept(APPLICATION_JSON).param("otherOrgIdsToAdd", otherOrgIdsToAdd)
@@ -395,7 +393,7 @@ public class IdentityControllerTest {
     @Test
     public void testRemoveOtherOrganisationalUnitsSuccess() throws Exception {
         String civilServantId = "100";
-        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY","IDENTITY_MANAGE_ORGANISATIONS"));
+        Set<String> idmAdminRoles = new HashSet<>(Arrays.asList("LEARNER", "IDENTITY_MANAGER", "IDENTITY_MANAGE_IDENTITY", "IDENTITY_MANAGE_ORGANISATIONS"));
         String alreadyAssignedOtherOrganisationIds = "1,10,11";
         String otherOrgIdToRemove = "1";
         List<String> consolidatedOtherOrgIds = Arrays.stream(alreadyAssignedOtherOrganisationIds.split(","))
@@ -404,12 +402,12 @@ public class IdentityControllerTest {
         consolidatedOtherOrgIds.remove("/organisationalUnits/" + otherOrgIdToRemove);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         mockMvc.perform(post("/identities/" + UID + "/other-organisations/" + otherOrgIdToRemove + "/remove")
-                                .with(csrf())
-                                .with(authentication(getOAuth2User(idmAdminRoles)))
-                                .accept(APPLICATION_JSON).param("uid", UID)
-                                .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
-                                .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
-                                .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
+                        .with(csrf())
+                        .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles)))
+                        .accept(APPLICATION_JSON).param("uid", UID)
+                        .accept(APPLICATION_JSON).param("civilServantId", civilServantId)
+                        .accept(APPLICATION_JSON).param("otherOrgIdToRemove", otherOrgIdToRemove)
+                        .accept(APPLICATION_JSON).param("alreadyAssignedOtherOrganisationIds", alreadyAssignedOtherOrganisationIds))
                 .andExpect(model().attributeDoesNotExist("status"))
                 .andExpect(flash().attribute(SUCCESS_ATTRIBUTE, "Other organisational units are updated to unassign organisation"))
                 .andExpect(status().is3xxRedirection())
@@ -431,9 +429,9 @@ public class IdentityControllerTest {
         when(reactivationService.getLatestReactivationForEmail(EMAIL)).thenReturn(lastReactivationDate);
         when(csrsService.getAgencyToken(AGENCY_UID)).thenReturn(agencyTokenDto);
         mockMvc.perform(
-                get("/identities/update/" + UID)
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/profile"))
                 .andExpect(model().attribute("activeTab", "profile"))
@@ -460,9 +458,9 @@ public class IdentityControllerTest {
         when(csrsService.getCivilServant(UID)).thenReturn(civilServantDto);
         when(cslService.getRequiredLearningForUser(UID)).thenReturn(learning);
         mockMvc.perform(
-                get("/identities/update/" + UID + "/required-learning")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/required-learning")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/required-learning"))
                 .andExpect(model().attribute("activeTab", "required-learning"))
@@ -489,9 +487,9 @@ public class IdentityControllerTest {
         when(cslService.getOtherLearningForUser(any(String.class), any(GetOptionalLearningRecordParams.class))).thenReturn(learningResponse);
 
         mockMvc.perform(
-                get("/identities/update/" + UID + "/other-learning")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/other-learning")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-learning"))
                 .andExpect(model().attribute("activeTab", "other-learning"))
@@ -517,7 +515,7 @@ public class IdentityControllerTest {
         mockMvc.perform(
                         get("/identities/update/" + UID + "/other-learning")
                                 .with(csrf())
-                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-learning"))
                 .andExpect(model().attribute("activeTab", "other-learning"))
@@ -538,9 +536,9 @@ public class IdentityControllerTest {
         when(csrsService.getCivilServant(UID)).thenReturn(civilServantDto);
         when(cslService.getFormattedOrganisationNames()).thenReturn(formattedNames);
         mockMvc.perform(
-                get("/identities/update/" + UID + "/other-organisation-access")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/other-organisation-access")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-organisation-access"))
                 .andExpect(model().attribute("activeTab", "other-organisation-access"))
@@ -559,10 +557,10 @@ public class IdentityControllerTest {
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         when(roleRepository.findAll()).thenReturn(roles);
         mockMvc.perform(
-                get("/identities/update/" + UID + "/roles")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles)))
-                    .accept(APPLICATION_JSON).param("uid", UID))
+                        get("/identities/update/" + UID + "/roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles)))
+                                .accept(APPLICATION_JSON).param("uid", UID))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/roles"))
                 .andExpect(model().attribute("activeTab", "roles"))
@@ -581,41 +579,41 @@ public class IdentityControllerTest {
 
         // Test profile tab
         mockMvc.perform(
-                get("/identities/update/" + UID)
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
 
         // Test required learning tab
         mockMvc.perform(
-                get("/identities/update/" + UID + "/required-learning")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/required-learning")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
 
         // Test other learning tab
         mockMvc.perform(
-                get("/identities/update/" + UID + "/other-learning")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/other-learning")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
 
         // Test other organisation access tab
         mockMvc.perform(
-                get("/identities/update/" + UID + "/other-organisation-access")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/other-organisation-access")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
 
         // Test roles tab
         mockMvc.perform(
-                get("/identities/update/" + UID + "/roles")
-                    .with(csrf())
-                    .with(authentication(getOAuth2User(idmAdminRoles))))
+                        get("/identities/update/" + UID + "/roles")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/identities"));
     }
@@ -636,7 +634,7 @@ public class IdentityControllerTest {
         mockMvc.perform(
                         get("/identities/update/" + UID + "/other-learning/courseId")
                                 .with(csrf())
-                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-learning-detail"))
                 .andExpect(model().attribute("activeTab", "other-learning"))
@@ -657,7 +655,7 @@ public class IdentityControllerTest {
         mockMvc.perform(
                         get("/identities/update/" + UID + "/other-learning/courseId")
                                 .with(csrf())
-                                .with(authentication(getOAuth2User(idmAdminRoles))))
+                                .with(oauth2Login().oauth2User(getOAuth2User(idmAdminRoles))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("identity/other-learning-detail"))
                 .andExpect(model().attribute("activeTab", "other-learning"))

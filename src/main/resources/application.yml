@@ -5,14 +5,27 @@ spring:
     url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
     username: ${DATASOURCE_USERNAME:root}
     password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        enable_lazy_load_no_trans: true
-        ddl-auto: none
+  security:
+    oauth2:
+      resource:
+        jwt:
+          key-value: ${JWT_KEY:key}
+      client:
+        registration:
+          identity-service:
+            client-id: ${CLIENT_ID:management}
+            client-secret: ${CLIENT_SECRET:test}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          identity-service:
+            authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
+            token-uri: ${identity.url}${identity.oauthTokenEndpoint}
+
+      refresh:
+        service-token-cache:
+          before-seconds-to-expire: ${REFRESH_SERVICETOKENCACHE_BEFORE_SECONDS_TOEXPIRE:0}
 
 database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
@@ -21,7 +34,8 @@ database:
 
 server:
   port: 8081
-  context-path: /mgmt
+  servlet:
+    context-path: /mgmt
 
 logging:
   pattern:
@@ -30,45 +44,33 @@ logging:
     root: ${ROOT_LOGGING_LEVEL:DEBUG}
     uk.gov.cshr: ${CSHR_LOGGING_LEVEL:DEBUG}
 
-security:
-  oauth2:
-    resource:
-      prefer-token-info: true
-      jwt:
-        key-value: ${JWT_KEY:key}
-    client:
-      client-id: ${CLIENT_ID:management}
-      client-secret: ${CLIENT_SECRET:test}
-      access-token-uri: ${identity.url}${identity.oauthTokenEndpoint}
-      user-authorization-uri: ${identity.url}${identity.oauthAuthorizationEndpoint}
-      reset-uri: ${identity.url}/reset
-      reactivation-url: "${identity.url}/account/reactivate/%s"
-
 identity:
   url: ${OAUTH_URL:http://localhost:8080}
   signoutUrl: ${identity.url}/logout
-  idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt/login
+  idmLoginUrl: ${IDM_URL:http://localhost:8081}/mgmt
   oauthLogoutEndpoint: ${OAUTH_LOGOUT_ENDPOINT:/logout}
   oauthTokenEndpoint: ${OAUTH_TOKEN_ENDPOINT:/oauth2/token}
   oauthAuthorizationEndpoint: ${OAUTH_AUTHORIZATION_ENDPOINT:/oauth2/authorize}
+  reset-uri: "/reset"
+  reactivation-url: "/account/reactivate/%s"
 
 learnerRecord:
   serviceUrl: ${LEARNER_RECORD_URL:http://localhost:9000}
-  deleteUrl: "${learnerRecord.serviceUrl}/learner/%s"
+  deleteUrl: "/learner/%s"
 
 csrs:
   serviceUrl: ${REGISTRY_SERVICE_URL:http://localhost:9002}
-  deleteUrl: "${csrs.serviceUrl}/civilServants/%s/delete"
-  getCivilServant: "${csrs.serviceUrl}/civilServants/resource/%s"
-  getAgencyToken: "${csrs.serviceUrl}/agencyTokens"
-  updateOtherOrgUnitsUrl: "${csrs.serviceUrl}/civilServants/%s"
+  deleteUrl: "/civilServants/%s/delete"
+  getCivilServant: "/civilServants/resource/%s"
+  getAgencyToken: "/agencyTokens"
+  updateOtherOrgUnitsUrl: "/civilServants/%s"
 
 cslService:
   serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
-  getRequiredLearningUrl: "${cslService.serviceUrl}/api/learning/required/detailed"
-  getFormattedOrganisationNames: "${cslService.serviceUrl}/api/organisations/formatted_list"
-  getUserLearningUrl: "${cslService.serviceUrl}/api/learning"
-  getDetailedLearningUrl: "${cslService.serviceUrl}/api/learning/detailed"
+  getRequiredLearningUrl: "/api/learning/required/detailed"
+  getFormattedOrganisationNames: "/api/organisations/formatted_list"
+  getUserLearningUrl: "/api/learning"
+  getDetailedLearningUrl: "/api/learning/detailed"
 
 notifications:
   service: ${NOTIFICATION_SERVICE_URL:http://localhost:9006}
@@ -79,11 +81,11 @@ notifications:
 reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
   registeredLearners:
-    url: "${reporting.serviceUrl}/registered-learners"
-    deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
+    url: "/registered-learners"
+    deactivateUrl: "${reporting.registeredLearners.url}/registered-learners/deactivate"
     deactivationBatchSize: ${REPORTING_DEACTIVATION_BATCH_SIZE:50}
   api:
-    url: "${reporting.serviceUrl}/api/report"
+    url: "/api/report"
     removeUserDataFromReportUrl: "${reporting.api.url}/remove-user-details"
 
 accountPeriodsInMonths:
