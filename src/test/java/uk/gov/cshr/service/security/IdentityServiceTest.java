@@ -9,9 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.cshr.client.identity.IIdentityAPIClient;
-import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.identity.repository.IdentityRepository;
 
 import java.util.Optional;
 

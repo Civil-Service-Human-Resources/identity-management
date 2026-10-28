@@ -5,9 +5,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.domain.ReactivationStatus;
-import uk.gov.cshr.repository.ReactivationRepository;
+import uk.gov.cshr.identity.entity.Reactivation;
+import uk.gov.cshr.identity.entity.ReactivationStatus;
+import uk.gov.cshr.identity.repository.ReactivationRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

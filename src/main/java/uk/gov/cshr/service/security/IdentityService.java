@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.client.identity.IIdentityAPIClient;
-import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.identity.repository.IdentityRepository;
 
 @Service
 @Slf4j

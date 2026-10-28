@@ -1,8 +1,8 @@
-package uk.gov.cshr.repository;
+package uk.gov.cshr.identity.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.identity.entity.Role;
 
 import java.util.Optional;
 
