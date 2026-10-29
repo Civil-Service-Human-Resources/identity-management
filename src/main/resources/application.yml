@@ -2,10 +2,18 @@ spring:
   thymeleaf:
     cache: ${THYMELEAF_CACHE:true}
   datasource:
-    url: ${DATASOURCE_URL:${database.host}/${database.name}?useSSL=${database.use-ssl}&requireSSL=false}
-    username: ${DATASOURCE_USERNAME:root}
-    password: ${DATASOURCE_PASSWORD:my-secret-pw}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    jobs:
+      url: ${database.host}/jobs?useSSL=${database.use-ssl}&requireSSL=false
+      username: ${DATASOURCE_USERNAME:root}
+      password: ${DATASOURCE_PASSWORD:my-secret-pw}
+      driver-class-name: ${database.driver-class-name}
+    identity:
+      url: ${database.host}/identity?useSSL=${database.use-ssl}&requireSSL=false
+      username: ${DATASOURCE_USERNAME:root}
+      password: ${DATASOURCE_PASSWORD:my-secret-pw}
+      driver-class-name: ${database.driver-class-name}
+  flyway:
+    locations: classpath:db/migration/{vendor}
   security:
     oauth2:
       resource:
@@ -29,8 +37,8 @@ spring:
 
 database:
   host: ${DATABASE_HOST:jdbc:mysql://localhost:3306}
-  name: ${DATABASE_NAME:identity}
   use-ssl: ${DATABASE_USESSL:false}
+  driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
   port: 8081

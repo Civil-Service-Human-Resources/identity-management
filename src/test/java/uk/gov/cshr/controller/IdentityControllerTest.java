@@ -11,13 +11,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.learning.*;
 import uk.gov.cshr.exceptions.ResourceNotFoundException;
-import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.entity.Reactivation;
+import uk.gov.cshr.identity.entity.Role;
+import uk.gov.cshr.identity.repository.IdentityRepository;
+import uk.gov.cshr.identity.repository.RoleRepository;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.cslService.CslService;
 import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
@@ -106,6 +106,7 @@ public class IdentityControllerTest {
         identity.setActive(true);
         identity.setEmail(EMAIL);
         identity.setAgencyTokenUid(AGENCY_UID);
+        identity.setRoles(Set.of(new Role("LEARNER", "Learner")));
         when(identityService.getIdentity(UID)).thenReturn(identity);
     }
 

@@ -5,8 +5,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import uk.gov.cshr.config.CustomOAuth2User;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.repository.IdentityRepository;
 
 import java.util.Optional;
 

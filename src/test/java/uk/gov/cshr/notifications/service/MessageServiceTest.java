@@ -2,8 +2,8 @@ package uk.gov.cshr.notifications.service;
 
 
 import org.junit.jupiter.api.Test;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.entity.Reactivation;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
 
 import java.time.Instant;

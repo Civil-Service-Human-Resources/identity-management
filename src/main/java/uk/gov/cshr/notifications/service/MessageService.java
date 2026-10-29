@@ -2,8 +2,8 @@ package uk.gov.cshr.notifications.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.entity.Reactivation;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
 

@@ -1,9 +1,9 @@
-package uk.gov.cshr.repository;
+package uk.gov.cshr.identity.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.domain.ReactivationStatus;
+import uk.gov.cshr.identity.entity.Reactivation;
+import uk.gov.cshr.identity.entity.ReactivationStatus;
 
 import java.util.Date;
 import java.util.List;

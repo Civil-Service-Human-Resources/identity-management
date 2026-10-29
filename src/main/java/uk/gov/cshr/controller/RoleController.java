@@ -7,8 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.config.CustomOAuth2User;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.identity.entity.Role;
+import uk.gov.cshr.identity.repository.RoleRepository;
 
 import java.util.Optional;
 

@@ -1,4 +1,4 @@
-package uk.gov.cshr.domain;
+package uk.gov.cshr.identity.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

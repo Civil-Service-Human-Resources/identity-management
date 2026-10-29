@@ -1,8 +1,8 @@
-package uk.gov.cshr.repository;
+package uk.gov.cshr.identity.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import uk.gov.cshr.domain.Reset;
+import uk.gov.cshr.identity.entity.Reset;
 
 @Repository
 public interface ResetRepository extends CrudRepository<Reset, Long> {

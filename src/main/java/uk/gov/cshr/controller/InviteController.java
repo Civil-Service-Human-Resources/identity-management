@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.cshr.config.CustomOAuth2User;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.repository.InviteRepository;
-import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.identity.entity.Invite;
+import uk.gov.cshr.identity.repository.InviteRepository;
+import uk.gov.cshr.identity.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
 
 @Controller
