@@ -19,9 +19,6 @@
                 <input type="hidden" name="otherOrgIdsToAdd" id="otherOrgIdsToAdd" />
                 <button type="submit" class="btn btn-primary btn-contrast-fix">Assign organisation</button>
                 <br/><br/>
-                <p class="pb-4" th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">
-                    No other organisations assigned.
-                </p>
                 <table class="table" th:if="!${alreadyAssignedOtherOrganisations.isEmpty()}">
                     <thead class="thead-dark">
                     <tr>
