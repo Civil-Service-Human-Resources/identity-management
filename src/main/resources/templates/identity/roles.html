@@ -14,7 +14,7 @@
             <select aria-label="User roles" class="form-control" multiple="multiple" name="roleId" id="roleId" size="25"
                     style="height: 100%;">
                 <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
-                        th:selected="${identity.getRoles().contains(role)}"></option>
+                        th:selected="${userRoleIds.contains(role.id)}"></option>
             </select>
         </div>
         <button type="submit" class="btn btn-primary btn-contrast-fix">Update Roles</button>

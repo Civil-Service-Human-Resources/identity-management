@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.config.CustomOAuth2User;
+import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.identity.entity.Reactivation;
 import uk.gov.cshr.identity.entity.Role;
-import uk.gov.cshr.exceptions.ResourceNotFoundException;
 import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.identity.repository.RoleRepository;
 import uk.gov.cshr.service.Pagination;
@@ -184,6 +184,7 @@ public class IdentityController extends BaseIdentityController {
         // --- End Roles-specific data ---
 
         model.addAttribute("activeTab", "roles");
+        model.addAttribute("userRoleIds", identity.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
         return "identity/roles";
     }
 

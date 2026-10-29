@@ -7,10 +7,9 @@
 <body>
 <section layout:fragment="identity-content">
     <h2 class="pb-3">Other Organisation Access</h2>
-    <p th:if="${civilServantId != null}">
-        <p th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
-                    and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
-            <dt class="pb-4">Search organisation - Start typing to find organisation name</dt>
+    <div th:if="${civilServantId != null}">
+        <div th:if="${@frontendAuthService.hasAllPermissions(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS, T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+            <span class="pb-4 visually-hidden">Search organisation - Start typing to find organisation name</span>
             <form th:action="@{/identities/{uid}/other-organisations/add(uid=${identity.uid})}" method="POST" th:object="${identity}">
                 <div class="form-group">
                     <input type="text" class="form-control" id="otherOrganisationInput" placeholder="Organisation Name"
@@ -33,30 +32,28 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <div th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}">
-                            <tr>
-                                <td th:text="${alreadyAssignedOtherOrganisation.getName()}"></td>
-                                <td th:text="Yes"></td>
-                                <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
-                                                and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
-                                    <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisation.id}"
-                                           th:id="'otherOrgIds-' + ${alreadyAssignedOtherOrganisation.id}"/>
-                                    <button th:formaction="@{/identities/{uid}/other-organisations/{otherOrgIdToRemove}/remove(uid=${identity.uid}, otherOrgIdToRemove=${alreadyAssignedOtherOrganisation.id})}"
-                                            type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
-                                </td>
-                            </tr>
-                        </div>
+                        <tr th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}">
+                            <td th:text="${alreadyAssignedOtherOrganisation.getName()}"></td>
+                            <td th:text="Yes"></td>
+                            <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS)
+                                            and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+                                <input type="hidden" name="alreadyAssignedOtherOrganisationIds" th:value="${alreadyAssignedOtherOrganisation.id}"
+                                       th:id="'otherOrgIds-' + ${alreadyAssignedOtherOrganisation.id}"/>
+                                <button th:formaction="@{/identities/{uid}/other-organisations/{otherOrgIdToRemove}/remove(uid=${identity.uid}, otherOrgIdToRemove=${alreadyAssignedOtherOrganisation.id})}"
+                                        type="submit" class="btn btn-primary btn-contrast-fix">Remove</button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </form>
-        </p>
-        <ul th:if="${!@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}" class="list-group mb-5">
-            <p class="pb-4" th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">
-                No other organisations assigned.
-            </p>
-            <li class="list-group-item" th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}" th:value="${alreadyAssignedOtherOrganisation.getName()}" th:text="${alreadyAssignedOtherOrganisation.getName()}"></li>
-        </ul>
-    </p>
+        </div>
+        <div th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+            <p th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">No other organisations assigned.</p>
+            <ul th:if="${!alreadyAssignedOtherOrganisations.isEmpty()}" class="list-group mb-5">
+                <li class="list-group-item" th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}" th:value="${alreadyAssignedOtherOrganisation.getName()}" th:text="${alreadyAssignedOtherOrganisation.getName()}"></li>
+            </ul>
+        </div>
+    </div>
     <script th:inline="javascript">
         /*<![CDATA[*/
         $(document).ready(function () {

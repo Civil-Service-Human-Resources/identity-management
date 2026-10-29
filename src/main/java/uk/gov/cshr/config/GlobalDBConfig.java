@@ -21,7 +21,9 @@ public class GlobalDBConfig {
     public Map<String, Object> hibernateProperties() {
         return Map.of(
                 "hibernate.dialect", "org.hibernate.dialect.MySQLDialect",
-                "hibernate.hbm2ddl.auto", "none"
+                "hibernate.hbm2ddl.auto", "none",
+                "hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl",
+                "hibernate.enable_lazy_load_no_trans", "true"
         );
     }
 }
