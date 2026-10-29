@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
+import java.util.Map;
+
 @Configuration
 public class GlobalDBConfig {
 
@@ -15,4 +17,11 @@ public class GlobalDBConfig {
         return new EntityManagerFactoryBuilder(vendorAdapter, _ -> jpaProperties.getProperties(), null);
     }
 
+    @Bean
+    public Map<String, Object> hibernateProperties() {
+        return Map.of(
+                "hibernate.dialect", "org.hibernate.dialect.MySQLDialect",
+                "hibernate.hbm2ddl.auto", "none"
+        );
+    }
 }

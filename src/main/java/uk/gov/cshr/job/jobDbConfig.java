@@ -16,6 +16,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.util.Map;
 
 @Configuration
 @EnableTransactionManagement
@@ -43,11 +44,13 @@ public class jobDbConfig {
     @Bean(name = "jobEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("jobDataSource") DataSource dataSource) {
+            @Qualifier("jobDataSource") DataSource dataSource,
+            Map<String, Object> hibernateProperties) {
         return builder
                 .dataSource(dataSource)
                 .packages("uk.gov.cshr.job.entity")
                 .persistenceUnit("job")
+                .properties(hibernateProperties)
                 .build();
     }
 
@@ -59,11 +62,12 @@ public class jobDbConfig {
     }
 
     @Primary
-    @Bean(name = "jobsFlyway")
+    @Bean(name = "jobsFlyway", initMethod = "migrate")
     public Flyway jobsFlyway(@Qualifier("jobDataSource") DataSource dataSource) {
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration/mysql")
+                .baselineOnMigrate(true)
                 .load();
     }
 

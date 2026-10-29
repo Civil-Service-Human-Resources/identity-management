@@ -14,7 +14,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -40,16 +39,14 @@ public class IdentityDbConfig {
     @Bean(name = "identityEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("identityDataSource") DataSource dataSource) {
+            @Qualifier("identityDataSource") DataSource dataSource,
+            Map<String, Object> hibernateProperties) {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-        properties.put("hibernate.hbm2ddl.auto", "update");
         return builder
                 .dataSource(dataSource)
                 .packages("uk.gov.cshr.identity.entity")
                 .persistenceUnit("identity")
-                .properties(properties)
+                .properties(hibernateProperties)
                 .build();
     }
 
