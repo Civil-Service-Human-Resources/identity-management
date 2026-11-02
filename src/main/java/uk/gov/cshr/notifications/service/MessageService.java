@@ -2,8 +2,8 @@ package uk.gov.cshr.notifications.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.entity.Reactivation;
 import uk.gov.cshr.notifications.dto.MessageDto;
 import uk.gov.cshr.notifications.dto.factory.MessageDtoFactory;
 
@@ -31,8 +31,8 @@ public class MessageService {
                           @Value("${govNotify.templateName.accountDeletion}") String deletionMessageTemplateName,
                           @Value("${govNotify.templateName.accountDeleted}") String deletedMessageTemplateName,
                           @Value("${govNotify.templateName.reactivation}") String reactivationTemplateName,
-                          @Value("${security.oauth2.client.reset-uri}") String resetUrl,
-                          @Value("${security.oauth2.client.reactivation-url}") String reactivationUrl,
+                          @Value("${identity.reset-uri}") String resetUrl,
+                          @Value("${identity.reactivation-url}") String reactivationUrl,
                           MessageDtoFactory messageDtoFactory
     ) {
         this.messageDtoFactory = messageDtoFactory;

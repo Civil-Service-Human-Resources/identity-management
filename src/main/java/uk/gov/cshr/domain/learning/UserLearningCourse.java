@@ -1,7 +1,7 @@
 package uk.gov.cshr.domain.learning;
 
 import lombok.Data;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class UserLearningCourse {

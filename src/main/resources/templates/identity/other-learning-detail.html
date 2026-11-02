@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="identity/layout" xmlns:th="http://www.thymeleaf.org">
+      layout:decorate="identity/layout" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title th:text="${'Other Learning Detail - ' + identity.email}"></title>
 </head>
@@ -16,7 +16,9 @@
         <h3 th:text="${course.courseTitle}"></h3>
         <h4 class="mt-4">Learner record</h4>
         <p class="lead">
-            User has completed <strong th:text="${course.completedRequiredModules} + ' out of ' + ${course.requiredModules}"></strong> required modules in the current learning period for this course
+            User has completed <strong
+                th:text="${course.completedRequiredModules} + ' out of ' + ${course.requiredModules}"></strong> required
+            modules in the current learning period for this course
         </p>
         <table class="table">
             <thead class="thead-dark">
@@ -29,7 +31,8 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:classappend="${!module.isCompleted() and module.isRequired()} ? 'table-warning' : ''" th:each="module : ${course.modules}">
+            <tr th:classappend="${!module.isCompleted() and module.isRequired()} ? 'table-warning' : ''"
+                th:each="module : ${course.modules}">
                 <td th:text="${module.getModuleTitle()}"></td>
                 <td th:text="${module.isRequired()}"></td>
                 <td th:text="${module.getDisplayLastUpdated()}"></td>

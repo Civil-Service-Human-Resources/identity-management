@@ -1,13 +1,13 @@
 package uk.gov.cshr.service;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Reactivation;
-import uk.gov.cshr.domain.ReactivationStatus;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.entity.Reactivation;
+import uk.gov.cshr.identity.entity.ReactivationStatus;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
-import uk.gov.cshr.repository.ReactivationRepository;
+import uk.gov.cshr.identity.repository.ReactivationRepository;
 
 import java.util.Comparator;
 import java.util.Date;
@@ -15,9 +15,9 @@ import java.util.Date;
 @Service
 public class ReactivationService {
 
-    private ReactivationRepository reactivationRepository;
-    private MessageService messageService;
-    private NotificationService notificationService;
+    private final ReactivationRepository reactivationRepository;
+    private final MessageService messageService;
+    private final NotificationService notificationService;
 
     public ReactivationService(ReactivationRepository reactivationRepository,
                                MessageService messageService,

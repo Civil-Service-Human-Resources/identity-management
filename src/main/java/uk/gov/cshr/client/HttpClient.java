@@ -1,64 +1,78 @@
 package uk.gov.cshr.client;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.cshr.service.RequestEntityException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import uk.gov.cshr.client.exception.NotFoundException;
+import uk.gov.cshr.client.exception.ValidationException;
+import uk.gov.cshr.client.model.ErrorDto;
 
-@Service
 @Slf4j
-public class HttpClient {
+@AllArgsConstructor
+@Getter
+public class HttpClient implements IHttpClient {
 
-    private final int MAX_RETRIES = 3;
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     private final RestTemplate restTemplate;
 
-    public HttpClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
-    public <T, R> ResponseEntity<T> sendRequestNoRetries(RequestEntity<R> requestEntity, Class<T> responseClass) {
+    private <T, R> ResponseEntity<T> executeRawRequest(RequestEntity<R> request, Class<T> responseClass) {
         try {
-            ResponseEntity<T> resp = restTemplate.exchange(requestEntity, responseClass);
-            log.debug(String.format("Response from %s %s: %s", requestEntity.getMethod(), requestEntity.getUrl(), resp.toString()));
-            return resp;
-        } catch (RequestEntityException | RestClientResponseException e) {
-            log.error(String.format("Failed to send request: method: %s, URL: %s. Response code: %s", requestEntity.getMethod(), requestEntity.getUrl(), e.getMessage()));
-            throw e;
+            log.debug("Sending request: {}", request);
+            ResponseEntity<T> response = restTemplate.exchange(request, responseClass);
+            log.debug("Request response: {}", response);
+            return response;
+        } catch (RestClientResponseException e) {
+            throw handleRestClientException(e);
         }
     }
 
-    public <T, R> ResponseEntity<T> sendRequest(RequestEntity<R> requestEntity, Class<T> responseClass) {
-        int count = 0;
-        while (true) {
-            try {
-                return restTemplate.exchange(requestEntity, responseClass);
-            } catch (RequestEntityException | RestClientResponseException e) {
-                if (++count == MAX_RETRIES) {
-                    log.error(String.format("Failed to send request with %d retries: method: %s, URL: %s", MAX_RETRIES, requestEntity.getMethod(), requestEntity.getUrl()));
-                    throw e;
-                }
+    private RuntimeException handleRestClientException(RestClientResponseException e) {
+        String msg = String.format("Error sending request. Status code: %s", e.getStatusCode());
+        if (!e.getResponseBodyAsString().isEmpty()) {
+            msg = String.format("%s Body was: %s.", msg, e.getResponseBodyAsString());
+        }
+        msg = String.format("%s Error was: %s", msg, e.getMessage());
+        log.error(msg);
+        if (e.getStatusCode().equals(HttpStatusCode.valueOf(404))) {
+            throw new NotFoundException(msg);
+        } else if (e.getStatusCode().equals(HttpStatusCode.valueOf(400))) {
+            ErrorDto errorDto = parseErrorDto(e.getResponseBodyAsString());
+            throw new ValidationException(msg, errorDto);
+        }
+        throw new RuntimeException(msg);
+    }
+
+    private ErrorDto parseErrorDto(String responseBody) {
+        if (responseBody == null || responseBody.isBlank()) {
+            return null;
+        }
+        try {
+            ErrorDto errorDto = OBJECT_MAPPER.readValue(responseBody, ErrorDto.class);
+            if (errorDto.getMessage() != null && !errorDto.getMessage().isBlank()
+                    && errorDto.getErrors() != null && !errorDto.getErrors().isEmpty()
+                    && errorDto.getStatus() != 0) {
+                return errorDto;
             }
+        } catch (Exception ex) {
+            log.debug("Could not parse error response body as ErrorDto: {}", ex.getMessage());
         }
+        return null;
     }
 
-    public <T, R> ResponseEntity<T> sendPatchRequestNoRetries(RequestEntity<R> requestEntity, Class<T> responseClass) {
-        try {
-            // Use Apache HttpClient to support PATCH
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            HttpComponentsClientHttpRequestFactory requestFactory =
-                    new HttpComponentsClientHttpRequestFactory(httpClient);
-            restTemplate.setRequestFactory(requestFactory);
-            return restTemplate.exchange(requestEntity, responseClass);
-        } catch (RequestEntityException | RestClientResponseException e) {
-            log.error(String.format("Failed to send request: method: %s, URL: %s", requestEntity.getMethod(), requestEntity.getUrl()));
-            throw e;
-        }
+    @Override
+    public <T, R> T executeRequest(RequestEntity<R> request, Class<T> responseClass) {
+        return executeRawRequest(request, responseClass).getBody();
     }
+
 }
