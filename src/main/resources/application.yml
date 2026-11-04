@@ -77,7 +77,7 @@ cslService:
   serviceUrl: ${CSL_SERVICE_URL:http://localhost:9003}
   getRequiredLearningUrl: "/api/learning/required/detailed"
   getFormattedOrganisationNames: "/api/organisations/formatted_list"
-  getRequiredLearningMapUrl: "/api/learning/required/for-departments"
+  getRequiredLearningMapUrl: "/api/learning/required/courses"
   getUserLearningUrl: "/api/learning"
   getDetailedLearningUrl: "/api/learning/detailed"
 
