@@ -1,7 +1,7 @@
 CREATE TABLE jobs
 (
     id       INT PRIMARY KEY AUTO_INCREMENT,
-    job_name VARCHAR(50) NOT NULL
+    job_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE job_statuses

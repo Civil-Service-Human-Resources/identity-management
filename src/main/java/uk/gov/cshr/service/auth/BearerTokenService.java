@@ -2,7 +2,6 @@ package uk.gov.cshr.service.auth;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.client.OAuthTokenService;
 import uk.gov.cshr.client.model.OAuthToken;
@@ -30,11 +29,7 @@ public class BearerTokenService implements IBearerTokenService {
     }
 
     public String getBearerToken() {
-        String bearerToken = "";
-        Jwt jwtPrincipal = userAuthService.getBearerTokenFromUserAuth();
-        if (jwtPrincipal != null) {
-            bearerToken = jwtPrincipal.getTokenValue();
-        }
+        String bearerToken = userAuthService.getBearerTokenFromUserAuth();
         if (isBlank(bearerToken)) {
             OAuthToken serviceToken = oAuthTokenService.getCachedOAuthServiceToken();
             LocalDateTime tokenExpiry = serviceToken.getExpiryDateTime();

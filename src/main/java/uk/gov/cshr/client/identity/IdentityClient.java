@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.client.IHttpClient;
 import uk.gov.cshr.client.exception.InternalAuthErrorException;
 import uk.gov.cshr.client.model.OAuthToken;
@@ -24,7 +25,8 @@ public class IdentityClient implements IIdentityClient {
     @Override
     public OAuthToken getServiceToken() {
         log.debug("Getting service token from identity service");
-        String url = String.format("%s?grant_type=client_credentials", token);
+        String url = UriComponentsBuilder.fromPath(token)
+                .queryParam("grant_type", "client_credentials").toUriString();
         RequestEntity<Void> request = RequestEntity.post(url).build();
         OAuthToken response = client.executeRequest(request, OAuthToken.class);
         if (response == null) {

@@ -4,13 +4,16 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "job_executions")
 public class JobExecution {
 
     @Id
@@ -28,6 +31,12 @@ public class JobExecution {
     @Column(nullable = false)
     private LocalDateTime startTimestamp;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime endTimestamp;
+
+    public JobExecution(Job job, JobStatus jobStatus, LocalDateTime startTimestamp) {
+        this.job = job;
+        this.jobStatus = jobStatus;
+        this.startTimestamp = startTimestamp;
+    }
 }

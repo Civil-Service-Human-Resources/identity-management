@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,6 +16,7 @@ import uk.gov.cshr.identity.entity.Reactivation;
 import uk.gov.cshr.identity.entity.Role;
 import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.identity.repository.RoleRepository;
+import uk.gov.cshr.integration.IntegrationTestBase;
 import uk.gov.cshr.service.ReactivationService;
 import uk.gov.cshr.service.cslService.CslService;
 import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
@@ -44,10 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.cshr.utils.ApplicationConstants.SUCCESS_ATTRIBUTE;
 import static uk.gov.cshr.utils.AuthUtils.getOAuth2User;
 
-
-@ActiveProfiles({"h2"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class IdentityControllerTest {
+public class IdentityControllerTest extends IntegrationTestBase {
 
     @Autowired
     private WebApplicationContext context;

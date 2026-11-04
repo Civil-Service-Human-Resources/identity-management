@@ -1,6 +1,7 @@
 package uk.gov.cshr.client.cslService;
 
 
+import uk.gov.cshr.client.cslService.models.RequiredLearningCourseMapResponse;
 import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
@@ -15,4 +16,5 @@ public interface ICslServiceClient {
 
     FormattedOrganisationalUnitNames getFormattedOrganisationNames();
 
+    RequiredLearningCourseMapResponse getRequiredLearningMap(String dueBy);
 }

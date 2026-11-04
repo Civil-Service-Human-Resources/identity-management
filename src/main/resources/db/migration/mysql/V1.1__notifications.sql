@@ -16,5 +16,8 @@ CREATE TABLE job_notifications
     job_execution_id     INT         NOT NULL,
     notification_type_id INT         NOT NULL,
     sent_timestamp       DATETIME    NOT NULL DEFAULT NOW(),
-    user_id              VARCHAR(50) NOT NULL
+    user_id              VARCHAR(50) NOT NULL,
+
+    CONSTRAINT fk_jn_job_execution FOREIGN KEY (job_execution_id) REFERENCES job_executions (id),
+    CONSTRAINT fk_jn_notification_type FOREIGN KEY (notification_type_id) REFERENCES job_notification_types (id)
 );
