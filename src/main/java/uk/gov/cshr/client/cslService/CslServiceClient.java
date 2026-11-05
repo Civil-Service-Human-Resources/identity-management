@@ -93,7 +93,7 @@ public class CslServiceClient implements ICslServiceClient {
     @Override
     public RequiredLearningCourseMapResponse getRequiredLearningMap(String dueBy) {
         String url = UriComponentsBuilder.fromPath(getRequiredLearningMapUrl)
-                .queryParam("dueDate", dueBy).toUriString();
+                .queryParam("dueBy", dueBy).toUriString();
         RequestEntity<Void> requestEntity = RequestEntity.get(url).build();
         return httpClient.executeRequest(requestEntity, RequiredLearningCourseMapResponse.class);
     }
