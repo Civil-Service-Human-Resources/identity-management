@@ -40,12 +40,12 @@ public class RequiredLearningProducerJobTest extends IntegrationTestBase {
                         "learningPeriods": {
                             "aud1": {
                                 "learningPeriodStartTimestamp": "2022-01-01T00:00:00",
-                                "learningPeriodEndTimestamp": "2023-01-31T23:59:59.999999999",
+                                "learningPeriodEnd": "2023-01-31",
                                 "organisationIds": [3, 4]
                             },
                             "aud2": {
                                 "learningPeriodStartTimestamp": "2021-01-01T00:00:00",
-                                "learningPeriodEndTimestamp": "2023-01-31T23:59:59.999999999",
+                                "learningPeriodEnd": "2023-01-31",
                                 "organisationIds": [5]
                             }
                         }
@@ -55,7 +55,7 @@ public class RequiredLearningProducerJobTest extends IntegrationTestBase {
                         "learningPeriods": {
                             "aud2": {
                                 "learningPeriodStartTimestamp": "2022-01-01T00:00:00",
-                                "learningPeriodEndTimestamp": "2023-01-31T23:59:59.999999999",
+                                "learningPeriodEnd": "2023-01-31",
                                 "organisationIds": [3, 4, 5]
                             }
                         }

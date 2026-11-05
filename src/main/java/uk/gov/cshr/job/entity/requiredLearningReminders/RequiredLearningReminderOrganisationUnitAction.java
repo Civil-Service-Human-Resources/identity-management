@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import uk.gov.cshr.job.entity.JobExecution;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,12 +35,12 @@ public class RequiredLearningReminderOrganisationUnitAction {
     private LocalDateTime learningPeriodStart;
 
     @Column(nullable = false)
-    private LocalDateTime learningPeriodEnd;
+    private LocalDate learningPeriodEnd;
 
     @Column()
     private LocalDateTime processedTimestamp;
 
-    public RequiredLearningReminderOrganisationUnitAction(JobExecution jobExecution, Integer organisationId, String courseId, String courseTitle, LocalDateTime learningPeriodStart, LocalDateTime learningPeriodEnd) {
+    public RequiredLearningReminderOrganisationUnitAction(JobExecution jobExecution, Integer organisationId, String courseId, String courseTitle, LocalDateTime learningPeriodStart, LocalDate learningPeriodEnd) {
         this.jobExecution = jobExecution;
         this.organisationId = organisationId;
         this.courseId = courseId;

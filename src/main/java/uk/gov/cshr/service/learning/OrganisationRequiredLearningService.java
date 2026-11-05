@@ -27,7 +27,7 @@ public class OrganisationRequiredLearningService {
             courseWithLearningPeriods.getLearningPeriods().values()
                     .forEach(learningPeriodWithOrgs -> learningPeriodWithOrgs.getOrganisationIds()
                             .forEach(orgId -> requiredCourses.add(new OrganisationUnitRequiredCourse(orgId, courseId, courseTitle, learningPeriodWithOrgs.getLearningPeriodStartTimestamp(),
-                                    learningPeriodWithOrgs.getLearningPeriodEndTimestamp()))));
+                                    learningPeriodWithOrgs.getLearningPeriodEnd()))));
         });
         return requiredCourses;
     }

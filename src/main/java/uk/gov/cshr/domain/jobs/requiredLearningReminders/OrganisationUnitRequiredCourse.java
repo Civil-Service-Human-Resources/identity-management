@@ -3,6 +3,7 @@ package uk.gov.cshr.domain.jobs.requiredLearningReminders;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -12,6 +13,6 @@ public class OrganisationUnitRequiredCourse {
     private String courseId;
     private String courseTitle;
     private LocalDateTime learningPeriodStart;
-    private LocalDateTime learningPeriodEnd;
+    private LocalDate learningPeriodEnd;
     ;
 }
