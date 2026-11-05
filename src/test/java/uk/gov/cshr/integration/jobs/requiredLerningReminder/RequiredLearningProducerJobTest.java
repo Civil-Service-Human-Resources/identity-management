@@ -27,9 +27,7 @@ public class RequiredLearningProducerJobTest extends IntegrationTestBase {
     @Autowired
     private RequiredLearningReminderOrganisationUnitActionRepository repository;
 
-    @Test
-    @Transactional
-    public void testGenerateOrganisationActionRows() {
+    private void generateStubs() {
         stubService.getIdentityServiceStubService().getClientToken();
         stubService.getCslServiceStubService().getRequiredLearningForCourses("2023-01-02", "{}");
         stubService.getCslServiceStubService().getRequiredLearningForCourses("2023-01-15", "{}");
@@ -62,6 +60,12 @@ public class RequiredLearningProducerJobTest extends IntegrationTestBase {
                     }
                 }
                 """);
+    }
+
+    @Test
+    @Transactional
+    public void testGenerateOrganisationActionRows() {
+        generateStubs();
         jobRunner.run(job);
         List<RequiredLearningReminderOrganisationUnitAction> all = repository.findAll();
         assertEquals(6, all.size());
@@ -79,5 +83,14 @@ public class RequiredLearningProducerJobTest extends IntegrationTestBase {
         assertEquals(explp1Start, resultMap.get("course2:3"));
         assertEquals(explp1Start, resultMap.get("course2:4"));
         assertEquals(explp1Start, resultMap.get("course2:5"));
+    }
+
+    @Test
+    public void testNoRowsGeneratedForExistingRows() {
+        generateStubs();
+        jobRunner.run(job);
+        jobRunner.run(job);
+        List<RequiredLearningReminderOrganisationUnitAction> all = repository.findAll();
+        assertEquals(6, all.size());
     }
 }
