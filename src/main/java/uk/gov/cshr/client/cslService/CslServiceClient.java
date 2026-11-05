@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.cshr.client.IHttpClient;
+import uk.gov.cshr.client.cslService.models.RequiredLearningCourseMapResponse;
 import uk.gov.cshr.domain.learning.Learning;
 import uk.gov.cshr.domain.learning.UserLearningResponse;
 import uk.gov.cshr.service.cslService.models.GetOptionalLearningRecordParams;
@@ -21,16 +22,19 @@ public class CslServiceClient implements ICslServiceClient {
     private final IHttpClient httpClient;
     private final String getRequiredLearningUrl;
     private final String getFormattedOrganisationNamesUrl;
+    private final String getRequiredLearningMapUrl;
     private final String getUserLearningUrl;
     private final String getDetailedLearningUrl;
 
     public CslServiceClient(@Qualifier("cslServiceHttpClient") IHttpClient httpClient, @Value("${cslService.getRequiredLearningUrl}") String getRequiredLearningUrl,
                             @Value("${cslService.getFormattedOrganisationNames}") String getFormattedOrganisationNamesUrl,
+                            @Value("${cslService.getRequiredLearningMapUrl}") String getRequiredLearningMapUrl,
                             @Value("${cslService.getUserLearningUrl}") String getUserLearningUrl,
                             @Value("${cslService.getDetailedLearningUrl}") String getDetailedLearningUrl) {
         this.httpClient = httpClient;
         this.getRequiredLearningUrl = getRequiredLearningUrl;
         this.getFormattedOrganisationNamesUrl = getFormattedOrganisationNamesUrl;
+        this.getRequiredLearningMapUrl = getRequiredLearningMapUrl;
         this.getUserLearningUrl = getUserLearningUrl;
         this.getDetailedLearningUrl = getDetailedLearningUrl;
     }
@@ -84,6 +88,14 @@ public class CslServiceClient implements ICslServiceClient {
             }
             throw e;
         }
+    }
+
+    @Override
+    public RequiredLearningCourseMapResponse getRequiredLearningMap(String dueBy) {
+        String url = UriComponentsBuilder.fromPath(getRequiredLearningMapUrl)
+                .queryParam("dueBy", dueBy).toUriString();
+        RequestEntity<Void> requestEntity = RequestEntity.get(url).build();
+        return httpClient.executeRequest(requestEntity, RequiredLearningCourseMapResponse.class);
     }
 
 }

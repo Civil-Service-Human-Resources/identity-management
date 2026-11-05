@@ -1,8 +1,8 @@
 package uk.gov.cshr.service.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import uk.gov.cshr.client.model.IdentityDto;
 import uk.gov.cshr.config.CustomOAuth2User;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class UserAuthService implements IUserAuthService {
 
     public CustomOAuth2User getAuthentication() {
@@ -22,8 +23,13 @@ public class UserAuthService implements IUserAuthService {
     }
 
     @Override
-    public Jwt getBearerTokenFromUserAuth() {
-        return getAuthentication().getToken();
+    public String getBearerTokenFromUserAuth() {
+        try {
+            return getAuthentication().getToken().getTokenValue();
+        } catch (ClientAuthenticationErrorException e) {
+            log.error("CustomOAuth2user does not exist in security context. Returning blank token");
+            return "";
+        }
     }
 
     @Override
