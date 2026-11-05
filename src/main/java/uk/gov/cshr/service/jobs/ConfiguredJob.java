@@ -15,7 +15,7 @@ public abstract class ConfiguredJob<C extends BaseJobConfig> implements Job {
 
     @Override
     public boolean isEnabled() {
-        return config.isEnabled();
+        return config.getEnabled();
     }
 
 }

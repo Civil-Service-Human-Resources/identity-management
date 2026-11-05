@@ -100,6 +100,7 @@ reporting:
 jobs:
   required-learning-notification:
     producer:
+      enabled: ${REQUIRED_LEARNING_PRODUCER_ENABLED:true}
       cron: ${REQUIRED_LEARNING_PRODUCER_JOB_CRON_SCHEDULE:0 0 1 * * *}
       days-to-remind: ${REQUIRED_LEARNING_PRODUCER_JOB_DAYS_TO_REMIDNERS:30,14,1}
 
