@@ -1,7 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout">
+      layout:decorate="layout">
 <head>
     <title th:text="'Delete Identity - ' + ${identity.email}"></title>
 </head>
@@ -14,7 +13,8 @@
     <form autocomplete="off" action="#" th:action="@{/identities/delete}" th:object="${identity}" method="post">
         <div class="form-group">
             <label for="name">Email</label>
-            <input disabled="disabled" type="text" class="form-control" id="name" placeholder="Role name" th:field="*{email}" required="required"/>
+            <input disabled="disabled" type="text" class="form-control" id="name" placeholder="Role name"
+                   th:field="*{email}" required="required"/>
         </div>
         <input type="hidden" th:field="*{uid}"/>
         <button type="submit" class="btn btn-danger">Delete</button>

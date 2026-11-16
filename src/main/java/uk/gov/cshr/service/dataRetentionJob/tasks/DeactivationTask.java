@@ -3,8 +3,8 @@ package uk.gov.cshr.service.dataRetentionJob.tasks;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.identity.entity.Identity;
+import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.service.security.IdentityManagementService;
 
 import java.time.Clock;

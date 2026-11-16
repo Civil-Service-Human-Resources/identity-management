@@ -4,11 +4,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component("frontendAuthService")
 public class FrontendAuthService {
 
     public boolean hasPermission(Permission permission) {
         return this.authHasPermission(SecurityContextHolder.getContext().getAuthentication(), permission);
+    }
+
+    public boolean hasAllPermissions(Permission... permissions) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return Arrays.stream(permissions).allMatch(p -> authHasPermission(authentication, p));
     }
 
     public boolean authHasPermission(Authentication authentication, Permission permission) {

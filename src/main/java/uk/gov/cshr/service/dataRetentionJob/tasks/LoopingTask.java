@@ -1,7 +1,7 @@
 package uk.gov.cshr.service.dataRetentionJob.tasks;
 
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.identity.entity.Identity;
 
 import java.time.Clock;
 import java.util.List;
