@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout">
+      layout:decorate="layout">
 <head>
     <title>List of Roles</title>
 </head>
@@ -12,7 +12,8 @@
     <form autocomplete="off" action="#" th:action="@{/roles/create}" th:object="${role}" method="post">
         <div class="form-group">
             <label for="name">Name</label>
-            <input type="text" class="form-control" id="name" placeholder="Role name" th:field="*{name}" required="required"/>
+            <input type="text" class="form-control" id="name" placeholder="Role name" th:field="*{name}"
+                   required="required"/>
         </div>
         <div class="form-group">
             <label for="description">Description</label>

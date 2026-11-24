@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout">
+      layout:decorate="layout">
 <head>
     <title>List of Identities</title>
 </head>
@@ -36,7 +36,9 @@
             <th scope="col" id="activeheader">Active</th>
             <th scope="col" id="lockedheader">Locked</th>
             <th scope="col">Email</th>
-            <th scope="col" th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)}">Action</th>
+            <th scope="col"
+                th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)}">Action
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -44,7 +46,8 @@
             <td th:text="${identity.active} ? 'Yes' : 'No'"></td>
             <td th:text="${identity.locked} ? 'Yes' : 'No' "></td>
             <td>
-                <a th:text="${identity.email}" th:href="@{|/identities/update/${identity.uid}|}" th:alt="'View user ' + ${identity.email}"></a>
+                <a th:text="${identity.email}" th:href="@{|/identities/update/${identity.uid}|}"
+                   th:alt="'View user ' + ${identity.email}"></a>
             </td>
             <td th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).DELETE_IDENTITY)}">
                 <a class="btn btn-danger btn-sm" th:href="@{|/identities/delete/${identity.uid}|}">
@@ -59,11 +62,13 @@
         <ul class="pagination justify-content-center">
             <th:block th:each="ins: ${pagination}">
                 <li class="page-item disabled">
-                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
+                    <a th:if="${page.getNumber() == ins.value || ins.key == '...'}"
+                       class="page-link page-link-contrast-fix"
                        th:text="${ins.key}"></a>
                 </li>
                 <li class="page-item">
-                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}" class="page-link page-link-contrast-fix"
+                    <a th:unless="${page.getNumber() == ins.value || ins.key == '...'}"
+                       class="page-link page-link-contrast-fix"
                        th:href="@{|?query=${query}&amp;page=${ins.value}|}"
                        th:text="${ins.key}"></a>
                 </li>

@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.notifications.service.MessageService;
 import uk.gov.cshr.notifications.service.NotificationService;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.csrs.CsrsService;
@@ -72,7 +72,7 @@ public class IdentityManagementService {
     public void markUsersForDeletion(List<Identity> identities) {
         log.info("Marking identities for deletion {}", identities.stream().map(Identity::getUid).collect(Collectors.joining(", ")));
         identities.forEach(i -> i.setDeletionNotificationSent(true));
-        identityRepository.save(identities);
+        identityRepository.saveAll(identities);
         identityRepository.flush();
         notificationService.send(identities.stream().map(messageService::createDeletionMessage).collect(Collectors.toList()));
     }
@@ -85,7 +85,7 @@ public class IdentityManagementService {
                     log.info("Deactivating a batch of {} total identities", identityBatch.size());
                     identityBatch.forEach(u -> u.setActive(false));
                     reportingService.deactivateRegisteredLearners(identityBatch.stream().map(Identity::getUid).collect(Collectors.toList()));
-                    identityRepository.save(identityBatch);
+                    identityRepository.saveAll(identityBatch);
                     identityRepository.flush();
                     notificationService.send(identityBatch.stream().map(messageService::createSuspensionMessage).collect(Collectors.toList()));
                 });

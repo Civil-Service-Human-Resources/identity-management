@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout" xmlns:th="http://www.thymeleaf.org">
+      layout:decorate="layout" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title th:text="${'View Identity - ' + identity.email}"></title>
 </head>
@@ -20,19 +20,24 @@
 
     <ul class="nav nav-pills mb-3">
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab == 'profile'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}|}">Profile</a>
+            <a class="nav-link" th:classappend="${activeTab == 'profile'} ? 'active' : ''"
+               th:href="@{|/identities/update/${identity.uid}|}">Profile</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab == 'required-learning'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/required-learning|}">Required learning</a>
+            <a class="nav-link" th:classappend="${activeTab == 'required-learning'} ? 'active' : ''"
+               th:href="@{|/identities/update/${identity.uid}/required-learning|}">Required learning</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab == 'other-learning'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/other-learning|}">Other learning</a>
+            <a class="nav-link" th:classappend="${activeTab == 'other-learning'} ? 'active' : ''"
+               th:href="@{|/identities/update/${identity.uid}/other-learning|}">Other learning</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab == 'other-organisation-access'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/other-organisation-access|}">Other organisation access</a>
+            <a class="nav-link" th:classappend="${activeTab == 'other-organisation-access'} ? 'active' : ''"
+               th:href="@{|/identities/update/${identity.uid}/other-organisation-access|}">Other organisation access</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:classappend="${activeTab == 'roles'} ? 'active' : ''" th:href="@{|/identities/update/${identity.uid}/roles|}">Roles</a>
+            <a class="nav-link" th:classappend="${activeTab == 'roles'} ? 'active' : ''"
+               th:href="@{|/identities/update/${identity.uid}/roles|}">Roles</a>
         </li>
     </ul>
 
