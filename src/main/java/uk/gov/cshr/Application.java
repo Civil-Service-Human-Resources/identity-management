@@ -3,6 +3,7 @@ package uk.gov.cshr;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableMethodSecurity
 @ConfigurationPropertiesScan
 @EnableScheduling
+@EnableCaching
 public class Application {
     @Bean
     public PasswordEncoder passwordEncoder() {

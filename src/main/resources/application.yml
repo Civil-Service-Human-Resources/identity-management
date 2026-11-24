@@ -90,7 +90,7 @@ reporting:
   serviceUrl: ${REPORTING_SERVICE_URL:http://localhost:9004}
   registeredLearners:
     url: "/registered-learners"
-    deactivateUrl: "${reporting.registeredLearners.url}/registered-learners/deactivate"
+    deactivateUrl: "${reporting.registeredLearners.url}/deactivate"
     deactivationBatchSize: ${REPORTING_DEACTIVATION_BATCH_SIZE:50}
   api:
     url: "/api/report"
