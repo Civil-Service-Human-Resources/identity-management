@@ -3,15 +3,10 @@ package uk.gov.cshr.service.dataRetentionJob.tasks;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.cshr.identity.entity.Identity;
 
-import java.time.Clock;
 import java.util.List;
 
 @Slf4j
 public abstract class LoopingTask extends BaseTask {
-
-    protected LoopingTask(Clock clock) {
-        super(clock);
-    }
 
     protected abstract void updateUser(Identity user);
 
