@@ -12,6 +12,7 @@ import uk.gov.cshr.service.dataRetentionJob.tasks.DeactivationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionNotificationTask;
 import uk.gov.cshr.service.dataRetentionJob.tasks.DeletionTask;
 import uk.gov.cshr.service.security.IdentityManagementService;
+import uk.gov.cshr.utils.UtilService;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -30,12 +31,14 @@ public class DataRetentionTasksTest {
 
     private final Clock clock = Clock.fixed(Instant.parse("2024-01-01T10:00:00.000Z"), ZoneId.of("UTC"));
 
+    private final UtilService utilService = new UtilService(clock);
+
     private DeactivationTask getDeactivationTask() {
-        return new DeactivationTask(clock, identityRepository, identityManagementService);
+        return new DeactivationTask(utilService, identityRepository, identityManagementService);
     }
 
     private DeletionNotificationTask getDeletionNotificationTask() {
-        return new DeletionNotificationTask(clock, identityRepository, identityManagementService);
+        return new DeletionNotificationTask(utilService, identityRepository, identityManagementService);
     }
 
     private DeletionTask getDeletionTask() {
@@ -43,7 +46,7 @@ public class DataRetentionTasksTest {
     }
 
     private DeletionTask getDeletionTask(IdentityManagementService identityManagementService) {
-        return new DeletionTask(clock, identityRepository, identityManagementService);
+        return new DeletionTask(utilService, identityRepository, identityManagementService);
     }
 
     /*
