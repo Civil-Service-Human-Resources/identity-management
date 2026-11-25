@@ -15,7 +15,7 @@ public interface InviteRepository extends PagingAndSortingRepository<Invite, Lon
 
     Page<Invite> findAllByInviterNotNullAndInvitedAtNotNull(Pageable pageable);
 
-    Integer deleteAllByForEmail(String forEmail);
+    long deleteByForEmail(String forEmail);
 
-    Integer deleteAllByInviter(Identity inviter);
+    long deleteByInviter(Identity identity);
 }

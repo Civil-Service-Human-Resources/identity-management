@@ -20,11 +20,11 @@ public class InviteService {
         String email = identity.getEmail();
         Long inviterId = identity.getId();
         log.info("Deleting invites with email {} and inviter id {}", email, inviterId);
-        Integer deletedByEmail = inviteRepository.deleteAllByForEmail(email);
+        Long deletedByEmail = inviteRepository.deleteByForEmail(email);
         log.info("Deleted {} invites by email", deletedByEmail);
-        Integer deletedByInviter = inviteRepository.deleteAllByInviter(identity);
+        Long deletedByInviter = inviteRepository.deleteByInviter(identity);
         log.info("Deleted {} invites by inviter", deletedByInviter);
         inviteRepository.flush();
-        return deletedByEmail + deletedByInviter;
+        return deletedByEmail.intValue() + deletedByInviter.intValue();
     }
 }
