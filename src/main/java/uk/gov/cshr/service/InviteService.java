@@ -2,12 +2,10 @@ package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.identity.repository.InviteRepository;
 
 @Service
-@Transactional
 @Slf4j
 public class InviteService {
     private final InviteRepository inviteRepository;
