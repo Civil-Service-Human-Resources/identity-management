@@ -44,7 +44,7 @@
                 </table>
             </form>
         </div>
-        <div th:if="${@frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
+        <div th:if="${!@frontendAuthService.hasAllPermissions(T(uk.gov.cshr.config.Permission).MANAGE_ORGANISATIONS) and @frontendAuthService.hasPermission(T(uk.gov.cshr.config.Permission).MANAGE_IDENTITY)}">
             <p th:if="${alreadyAssignedOtherOrganisations.isEmpty()}">No other organisations assigned.</p>
             <ul th:if="${!alreadyAssignedOtherOrganisations.isEmpty()}" class="list-group mb-5">
                 <li class="list-group-item" th:each="alreadyAssignedOtherOrganisation : ${alreadyAssignedOtherOrganisations}" th:value="${alreadyAssignedOtherOrganisation.getName()}" th:text="${alreadyAssignedOtherOrganisation.getName()}"></li>

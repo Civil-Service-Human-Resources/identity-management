@@ -1,5 +1,6 @@
 package uk.gov.cshr.service.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class UserAuthService implements IUserAuthService {
 
     public CustomOAuth2User getAuthentication() {
@@ -23,7 +25,12 @@ public class UserAuthService implements IUserAuthService {
 
     @Override
     public Jwt getBearerTokenFromUserAuth() {
-        return getAuthentication().getToken();
+        try {
+            return getAuthentication().getToken();
+        } catch (ClientAuthenticationErrorException e) {
+            log.warn("User token is null");
+            return null;
+        }
     }
 
     @Override

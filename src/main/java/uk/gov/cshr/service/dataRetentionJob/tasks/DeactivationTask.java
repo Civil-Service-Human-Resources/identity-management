@@ -6,13 +6,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.service.security.IdentityManagementService;
+import uk.gov.cshr.utils.IUtilService;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
-
-import static java.time.LocalDateTime.now;
-import static java.time.ZoneOffset.UTC;
 
 @Slf4j
 @Service
@@ -21,19 +18,20 @@ public class DeactivationTask extends BaseTask {
     @Value("${accountPeriodsInMonths.deactivation}")
     private int deactivationPeriodInMonths;
 
+    private final IUtilService utilService;
     private final IdentityManagementService identityManagementService;
     private final IdentityRepository identityRepository;
 
-    public DeactivationTask(Clock clock, IdentityRepository identityRepository,
+    public DeactivationTask(IUtilService utilService, IdentityRepository identityRepository,
                             IdentityManagementService identityManagementService) {
-        super(clock);
+        this.utilService = utilService;
         this.identityRepository = identityRepository;
         this.identityManagementService = identityManagementService;
     }
 
     @Override
     protected List<Identity> fetchUsers() {
-        Instant deactivationDateTime = now(clock).minusMonths(deactivationPeriodInMonths).toInstant(UTC);
+        LocalDateTime deactivationDateTime = utilService.getNowDateTime().minusMonths(deactivationPeriodInMonths);
         List<Identity> identitiesToBeDeactivated = identityRepository.findForDeactivation(deactivationDateTime);
         log.info("Number of active users for deactivation who have logged-in or reactivated before cutoff date {}: {}",
                 deactivationDateTime, identitiesToBeDeactivated.size());

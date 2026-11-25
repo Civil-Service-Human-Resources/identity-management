@@ -6,12 +6,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.cshr.identity.entity.Identity;
 import uk.gov.cshr.identity.repository.IdentityRepository;
 import uk.gov.cshr.service.security.IdentityManagementService;
+import uk.gov.cshr.utils.IUtilService;
 
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static java.time.ZoneOffset.UTC;
 
 @Slf4j
 @Service
@@ -20,20 +18,21 @@ public class DeletionNotificationTask extends BaseTask {
     @Value("${accountPeriodsInMonths.notification}")
     private int notificationPeriodInMonths;
 
+    private final IUtilService utilService;
     private final IdentityRepository identityRepository;
     private final IdentityManagementService identityManagementService;
 
 
-    public DeletionNotificationTask(Clock clock, IdentityRepository identityRepository, IdentityManagementService identityManagementService) {
-        super(clock);
+    public DeletionNotificationTask(IUtilService utilService, IdentityRepository identityRepository, IdentityManagementService identityManagementService) {
+        this.utilService = utilService;
         this.identityRepository = identityRepository;
         this.identityManagementService = identityManagementService;
     }
 
     @Override
     protected List<Identity> fetchUsers() {
-        LocalDateTime deletionNotificationDate = LocalDateTime.now(clock).minusMonths(notificationPeriodInMonths);
-        List<Identity> identitiesToSendDeletionNotification = identityRepository.findForDeletionNotification(deletionNotificationDate.toInstant(UTC));
+        LocalDateTime deletionNotificationDate = utilService.getNowDateTime().minusMonths(notificationPeriodInMonths);
+        List<Identity> identitiesToSendDeletionNotification = identityRepository.findForDeletionNotification(deletionNotificationDate);
         log.info("Number of inactive users for deletion notification who have logged-in/reactivated before deletion notification cutoff date {}: {}",
                 deletionNotificationDate, identitiesToSendDeletionNotification.size());
         return identitiesToSendDeletionNotification;
