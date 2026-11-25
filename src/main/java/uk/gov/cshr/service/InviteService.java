@@ -22,7 +22,6 @@ public class InviteService {
         log.info("Deleted {} invites by email", deletedByEmail);
         Long deletedByInviter = inviteRepository.deleteByInviter(identity);
         log.info("Deleted {} invites by inviter", deletedByInviter);
-        inviteRepository.flush();
         return deletedByEmail.intValue() + deletedByInviter.intValue();
     }
 }
